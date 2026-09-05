@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#11110f">
+<title>CENQAL Atlas</title>
+<style>
+:root{
+ --ink:#11110f;--paper:#f3efe6;--card:#fffdf8;--muted:#777268;--line:#d9d1c3;
+ --accent:#9c5f32;--soft:#e9dfcf;--good:#2d6c50;--warn:#9b6b22;--bad:#9a4338;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:860px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 14px calc(34px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;gap:12px;margin:3px 0 16px}
+.mark{width:52px;height:52px;border:1.5px solid var(--ink);border-radius:50%;display:grid;place-items:center;font-family:Georgia,serif;font-size:22px;letter-spacing:-2px}
+.brand h1{font-family:Georgia,serif;font-size:23px;margin:0;letter-spacing:.02em}.brand p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);padding:20px 0 17px;margin-bottom:16px}
+.kicker{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.hero h2{font-family:Georgia,serif;font-weight:500;font-size:31px;line-height:1.02;margin:7px 0}
+.hero p{margin:0;color:var(--muted);line-height:1.5}
+.nav{display:flex;gap:7px;overflow:auto;padding-bottom:8px;scrollbar-width:none;position:sticky;top:0;background:rgba(243,239,230,.94);backdrop-filter:blur(10px);z-index:8}
+.nav::-webkit-scrollbar{display:none}.nav button{white-space:nowrap;border:1px solid var(--ink);background:transparent;border-radius:999px;padding:8px 11px;font-size:12px}
+.nav button.active{background:var(--ink);color:var(--paper)}
+.card{background:var(--card);border:1px solid var(--line);padding:15px;margin:10px 0}
+.food{padding:0;overflow:hidden}.foodHead{padding:17px 16px 13px;border-bottom:1px solid var(--line)}
+.num{font-size:10px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.food h3{font-family:Georgia,serif;font-weight:500;font-size:25px;line-height:1.05;margin:6px 0 5px}
+.food .sub{font-size:12px;color:var(--muted)}.question{font-family:Georgia,serif;font-size:17px;line-height:1.35;padding:14px 16px;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 14px}.chip{border:1px solid var(--line);border-radius:999px;padding:5px 8px;font-size:10px;background:var(--paper)}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.progress{height:7px;background:var(--soft);overflow:hidden}.progress>i{display:block;height:100%;background:var(--ink)}
+.foodFoot{border-top:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:9px}.foodFoot .progress{flex:1}.pct{font-size:11px;color:var(--muted);min-width:34px;text-align:right}
+.action{border:0;background:var(--ink);color:#fff;padding:12px 14px;font-weight:700}.action.alt{background:transparent;color:var(--ink);border:1px solid var(--ink)}.action.small{padding:8px 10px;font-size:12px}.action.good{background:var(--good)}.action.warn{background:var(--warn)}
+.grid{display:grid;grid-template-columns:1fr;gap:10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{border:1px solid var(--line);background:var(--card);padding:12px;text-align:center}.stat b{font-family:Georgia,serif;font-size:23px;display:block}.stat span{font-size:10px;color:var(--muted)}
+.sectionTitle{font-family:Georgia,serif;font-size:23px;font-weight:500;margin:20px 0 8px}
+.label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin:14px 0 6px;display:block}
+.help{font-size:11px;color:var(--muted);line-height:1.4;margin:-2px 0 7px}
+textarea,input,select{width:100%;border:1px solid var(--line);background:#fff;padding:11px;color:var(--ink);border-radius:0}
+textarea{min-height:105px;resize:vertical;line-height:1.45}.short{min-height:72px}
+.formActions{display:flex;gap:8px;position:sticky;bottom:0;background:rgba(243,239,230,.96);padding:10px 0 calc(10px + env(safe-area-inset-bottom));z-index:6}.formActions button{flex:1}
+.banner{border:1px solid var(--ink);padding:13px;background:var(--soft);margin:10px 0}.banner strong{display:block;margin-bottom:3px}.banner small{color:var(--muted)}
+.session{border-left:5px solid var(--accent)}.sessionTime{font-family:Georgia,serif;font-size:24px}
+.member{border:1px solid var(--line);padding:10px;margin:7px 0}.member .row{align-items:flex-start}.member input[type=checkbox]{width:auto;margin-top:4px}
+.poster{aspect-ratio:420/594;background:#fff;border:1px solid #bbb;box-shadow:0 8px 25px rgba(0,0,0,.08);padding:5%;margin:12px auto;max-width:440px;display:grid;grid-template-columns:1.1fr .9fr;grid-template-rows:auto 1fr 1fr 1fr;gap:2.5%;font-size:8px}
+.poster .ph{border:1px solid #bbb;padding:4%}.poster .title{grid-column:1/3;border-top:5px solid #111;padding-top:3%;font-family:Georgia,serif;font-size:18px}.poster .wide{grid-column:1/3}.poster b{font-size:9px}
+.teacherGroup{border-top:4px solid var(--ink)}.studentRow{display:grid;grid-template-columns:1fr 90px 70px;gap:7px;align-items:center;border-bottom:1px solid var(--line);padding:8px 0;font-size:12px}.studentRow select{padding:7px}
+.reviewBox{border-top:1px dashed var(--line);margin-top:13px;padding-top:12px}
+.sessionList{font-size:12px}.sessionItem{border-bottom:1px solid var(--line);padding:10px 0}.sessionItem:last-child{border-bottom:0}
+.tag{display:inline-block;border:1px solid var(--line);padding:3px 6px;font-size:10px;margin-right:4px}.status-final,.status-reviewed{color:var(--good)}.status-ready_review{color:var(--warn)}
+.empty{padding:28px 10px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 13px;font-size:12px;z-index:100;max-width:85%;display:none}
+.back{border:0;background:none;padding:5px 0;font-weight:800}.hidden{display:none!important}
+@media(min-width:650px){.grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+ <div class="top"><div class="mark">Cq</div><div class="brand"><h1>CENQAL Atlas</h1><p>Química del procesado · cuaderno de equipo</p></div></div>
+ <div id="root"><div class="empty">Cargando Gran Atlas…</div></div>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+const tg=window.Telegram?.WebApp;
+if(tg){try{tg.ready();tg.expand();tg.setHeaderColor('#11110f');}catch(e){}}
+const qp=new URLSearchParams(location.search);
+const SBURL=qp.get('sburl')||'';
+const SBKEY=qp.get('sbkey')||'';
+const TOKEN=qp.get('token')||'';
+let DATA=null, VIEW='home', CURRENT=null;
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const val=id=>document.getElementById(id)?.value??'';
+const toast=t=>{let x=document.getElementById('toast');x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2200)};
+const fmt=d=>{if(!d)return '—';try{return new Date(d).toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch(e){return d}};
+async function rpc(name,body){
+ if(!SBURL||!SBKEY)throw new Error('Falta configuración pública de Supabase');
+ const r=await fetch(`${SBURL}/rest/v1/rpc/${name}`,{method:'POST',headers:{'apikey':SBKEY,'Authorization':`Bearer ${SBKEY}`,'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+ const txt=await r.text();let d;try{d=txt?JSON.parse(txt):{}}catch(e){throw new Error(txt||'Error de servidor')}
+ if(!r.ok)throw new Error(d?.message||d?.error||`HTTP ${r.status}`);return d;
+}
+async function load(){
+ if(!TOKEN){document.getElementById('root').innerHTML='<div class="empty">🔒 Abre CENQAL Atlas desde Mr. Berilio.</div>';return}
+ try{DATA=await rpc('cenqal_atlas_state',{p_token:TOKEN});if(!DATA?.ok)throw new Error(DATA?.error||'Acceso no válido');render()}
+ catch(e){document.getElementById('root').innerHTML=`<div class="empty">⚠️ ${esc(e.message)}<br><br>Vuelve a abrir Atlas desde Telegram.</div>`}
+}
+function nav(active){
+ const teacher=DATA.role==='teacher';
+ return `<div class="nav">
+ <button class="${active==='home'?'active':''}" onclick="go('home')">🗺️ Atlas</button>
+ ${!teacher?`<button class="${active==='session'?'active':''}" onclick="go('session')">⏱️ Sesión</button>`:''}
+ <button class="${active==='model'?'active':''}" onclick="go('model')">📐 Modelo póster</button>
+ ${teacher?`<button class="${active==='students'?'active':''}" onclick="go('students')">👥 Equipos</button><button class="${active==='history'?'active':''}" onclick="go('history')">🕘 Historial</button>`:''}
+ </div>`;
+}
+function go(v){VIEW=v;CURRENT=null;render();window.scrollTo({top:0,behavior:'smooth'})}
+function entryFor(code){return (DATA.entries||[]).find(e=>e.food_code===code)||{food_code:code,progress_percent:0,status:'not_started'}}
+function foodFor(code){return (DATA.foods||[]).find(f=>f.food_code===code)}
+function statusText(s){return ({not_started:'No iniciado',in_progress:'En curso',profiled:'Perfilado',ready_review:'Listo para revisión',reviewed:'Revisado',final:'Final'})[s]||s}
+function overall(group){
+ const fs=(DATA.foods||[]).filter(f=>!group||f.group_code===group);
+ if(!fs.length)return 0;
+ return Math.round(fs.reduce((a,f)=>a+(entryFor(f.food_code).progress_percent||0),0)/fs.length)
+}
+function openFood(code){CURRENT=code;VIEW='food';render();window.scrollTo({top:0,behavior:'smooth'})}
+function render(){
+ if(DATA.role==='teacher')return renderTeacher();
+ if(!DATA.group_code){
+   document.getElementById('root').innerHTML=`${nav('home')}<div class="hero"><div class="kicker">Gran Atlas CENQAL</div><h2>Aún no tienes equipo</h2><p>La profesora debe asignarte al Grupo A o B. Cuando lo haga, vuelve a abrir esta Mini App.</p></div>`;
+   return;
+ }
+ if(VIEW==='model')return renderModel();
+ if(VIEW==='session')return renderSession();
+ if(VIEW==='food')return renderFood();
+ renderStudentHome();
+}
+function renderStudentHome(){
+ const g=(DATA.groups||[])[0]||{};
+ const fs=DATA.foods||[], done=fs.filter(f=>['reviewed','final'].includes(entryFor(f.food_code).status)).length, avg=overall(DATA.group_code);
+ const open=(DATA.sessions||[]).find(s=>s.status==='open');
+ document.getElementById('root').innerHTML=`${nav('home')}
+ <div class="hero"><div class="kicker">${esc(g.name||'Gran Atlas')}</div><h2>26 alimentos.<br>Química que transforma.</h2><p>${esc(g.subtitle||'')}</p></div>
+ ${open?`<div class="banner session"><strong>⏱️ Sesión abierta · ${esc(foodFor(open.food_code)?.name)}</strong><small>Desde ${fmt(open.started_at)} · ${esc(open.objective)}</small></div>`:''}
+ <div class="stats"><div class="stat"><b>${fs.length}</b><span>ALIMENTOS</span></div><div class="stat"><b>${done}</b><span>REVISADOS</span></div><div class="stat"><b>${avg}%</b><span>PROGRESO</span></div></div>
+ <h2 class="sectionTitle">Archivo de procesados</h2>
+ <div class="grid">${fs.map(foodCard).join('')}</div>`;
+}
+function foodCard(f){
+ const e=entryFor(f.food_code);
+ return `<article class="card food" onclick="openFood('${esc(f.food_code)}')">
+  <div class="foodHead"><div class="num">${esc(f.food_code)} · ${esc(statusText(e.status))}</div><h3>${esc(f.name)}</h3><div class="sub">${esc(f.subtitle||'')}</div></div>
+  <p class="question">${esc(f.research_question)}</p>
+  <div class="chips">${(f.chemistry_focus||[]).slice(0,5).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
+  <div class="foodFoot"><div class="progress"><i style="width:${e.progress_percent||0}%"></i></div><span class="pct">${e.progress_percent||0}%</span></div>
+ </article>`;
+}
+function field(id,label,help,short=false){
+ const e=entryFor(CURRENT);return `<label class="label">${label}</label><div class="help">${help}</div><textarea id="${id}" class="${short?'short':''}">${esc(e[id]||'')}</textarea>`;
+}
+function renderFood(){
+ const f=foodFor(CURRENT),e=entryFor(CURRENT);if(!f)return go('home');
+ const open=(DATA.sessions||[]).find(s=>s.status==='open');
+ document.getElementById('root').innerHTML=`${nav('home')}
+ <button class="back" onclick="go('home')">← Volver al Atlas</button>
+ <div class="hero"><div class="kicker">${esc(f.food_code)} · ${esc(statusText(e.status))} · ${e.progress_percent||0}%</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
+ <div class="chips">${(f.chemistry_focus||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
+ ${open?`<div class="banner session"><strong>⏱️ Hay una sesión abierta con ${esc(foodFor(open.food_code)?.name)}</strong><small>${esc(open.objective)}</small></div>`:`<button class="action alt" onclick="startForCurrent()">⏱️ Iniciar sesión con este alimento</button>`}
+ <div class="card">
+ ${field('identity_text','01 · Identidad del producto','Qué es, origen, materias primas y por qué el procesado define su identidad.',true)}
+ ${field('matrix_text','02 · Matriz y composición','Describe la matriz alimentaria y los componentes que realmente importan para entender el proceso. Evita una tabla nutricional sin interpretación.')}
+ ${field('molecules_text','03 · Moléculas protagonistas','Incluye al menos tres moléculas/estructuras, fórmulas o familias químicas y explica su papel.')}
+ ${field('processing_text','04 · Diagrama del procesado','Secuencia materia prima → operaciones → producto. Incluye tiempo, temperatura, pH, sal, microorganismos u otras variables críticas.')}
+ ${field('transformations_text','05 · Transformaciones químicas','Mecanismos: reacción, enzima, fermentación, gelificación, cristalización, oxidación, Maillard, hidrólisis, etc.')}
+ ${field('water_aw_text','06 · Agua y aᵥ','Contenido/estado del agua, actividad de agua cuando sea relevante y consecuencias para movilidad, textura o estabilidad.')}
+ ${field('sensory_text','07 · Química → percepción','Relaciona los cambios químicos con aroma, sabor, color y textura. Deben aparecer cadenas causales.')}
+ ${field('stability_text','08 · Qué puede salir mal','Deterioro, inestabilidad, defectos de procesado y mecanismos que los explican.')}
+ ${field('industry_text','09 · Control tecnológico','Cómo controla la industria el fenómeno: variables, formulación, proceso, conservación o calidad.')}
+ ${field('scheme_text','10 · Esquema integrador','Diseña el esquema visual central del póster: estructura → interacción/reacción → propiedad → consecuencia.')}
+ ${field('conclusion_text','11 · Conclusión crítica','Tres ideas que explican el producto y una idea inicial que el grupo haya corregido.')}
+ ${field('surprising_fact_text','12 · Dato que sorprende','Un hallazgo breve y verificable que merezca ocupar un lugar visual destacado.',true)}
+ ${field('sources_text','13 · Evidencia científica','Mínimo 3 fuentes académicas; al menos una reciente. DOI/PMID/URL y base consultada. CENQAL/Mr. Berilio es punto de partida, no sustituto de la fuente original.')}
+ <label class="label">Enlace al póster</label><div class="help">Canva, Drive u otro enlace de trabajo del equipo.</div><input id="poster_url" value="${esc(e.poster_url||'')}" placeholder="https://…">
+ ${e.teacher_feedback?`<div class="banner"><strong>👩‍🏫 Revisión docente</strong><small>${esc(e.teacher_feedback)}</small></div>`:''}
+ </div>
+ <div class="formActions"><button class="action" onclick="saveEntry()">Guardar ficha</button><button class="action alt" onclick="markReady()">Enviar a revisión</button></div>`;
+}
+async function saveEntry(){
+ const keys=['identity_text','matrix_text','molecules_text','processing_text','transformations_text','water_aw_text','sensory_text','stability_text','industry_text','scheme_text','conclusion_text','surprising_fact_text','sources_text','poster_url'];
+ const payload={};keys.forEach(k=>payload[k]=val(k));
+ try{let d=await rpc('cenqal_atlas_save_entry',{p_token:TOKEN,p_food_code:CURRENT,p_payload:payload});if(!d.ok)throw new Error(d.error);toast(`Guardado · ${d.entry.progress_percent}%`);await refresh(true)}
+ catch(e){toast('⚠️ '+e.message)}
+}
+async function markReady(){
+ try{await saveEntry();let d=await rpc('cenqal_atlas_mark_ready',{p_token:TOKEN,p_food_code:CURRENT});if(!d.ok)throw new Error(d.error==='insufficient_progress'?`Completa más apartados (${d.progress}%)`:d.error);toast('✅ Lista para revisión');await refresh(true)}
+ catch(e){toast('⚠️ '+e.message)}
+}
+async function startForCurrent(){
+ let objective=prompt('Objetivo concreto para las próximas dos horas:','Dejar perfilados proceso, moléculas y transformaciones clave.');
+ if(!objective)return;
+ try{let d=await rpc('cenqal_atlas_start_session',{p_token:TOKEN,p_food_code:CURRENT,p_objective:objective});if(!d.ok)throw new Error(d.error);toast(d.already_open?'Ya había una sesión abierta':'Sesión iniciada');VIEW='session';CURRENT=null;await refresh()}
+ catch(e){toast('⚠️ '+e.message)}
+}
+function renderSession(){
+ const s=(DATA.sessions||[]).find(x=>x.status==='open');
+ if(!s){
+  document.getElementById('root').innerHTML=`${nav('session')}<div class="hero"><div class="kicker">Cuaderno de equipo</div><h2>No hay sesión abierta</h2><p>Abre un alimento y pulsa “Iniciar sesión”. El reloj y el alimento quedarán registrados.</p></div>`;
+  return;
+ }
+ const f=foodFor(s.food_code);
+ document.getElementById('root').innerHTML=`${nav('session')}
+ <div class="hero"><div class="kicker">Sesión de trabajo · ${fmt(s.started_at)}</div><h2>${esc(f?.name)}</h2><p>${esc(s.objective)}</p></div>
+ <div class="card session"><div class="sessionTime">⏱️ Trabajo en curso</div><p class="help">La sesión permanecerá abierta hasta que el equipo documente lo realizado y pulse Cerrar sesión.</p></div>
+ <div class="card">
+ <label class="label">Qué hemos hecho hoy</label><textarea id="s_work" placeholder="Trabajo concreto realizado, apartados construidos, búsquedas, esquemas…"></textarea>
+ <label class="label">Conclusiones alcanzadas</label><textarea id="s_conc" placeholder="Qué hemos entendido o demostrado hoy."></textarea>
+ <label class="label">Qué queda pendiente</label><textarea id="s_pending" class="short"></textarea>
+ <label class="label">Apartados del póster avanzados</label><input id="s_sections" placeholder="Ej.: 03 moléculas, 04 proceso, 05 transformaciones">
+ <label class="label">Fuentes consultadas hoy</label><textarea id="s_sources" class="short" placeholder="DOI, PubMed, CENQAL, PubChem, BRENDA…"></textarea>
+ <h3 class="sectionTitle">Participación de hoy</h3>
+ <div class="help">Marca a quienes hayan estado presentes y deja constancia de su rol y contribución concreta.</div>
+ <div id="members">${(DATA.members||[]).map(memberRow).join('')}</div>
+ </div>
+ <div class="formActions"><button class="action good" onclick="closeSession('${esc(s.id)}')">✅ Cerrar sesión y registrar</button><button class="action alt" onclick="openFood('${esc(s.food_code)}')">Editar ficha</button></div>`;
+}
+function memberRow(m,i){
+ return `<div class="member"><div class="row"><label><input type="checkbox" id="pres_${i}"> ${esc(m.full_name||m.student_code||m.telegram_user_id)}</label><span class="tag">${esc(m.student_code||'')}</span></div>
+ <select id="role_${i}"><option>Coordinación</option><option>Análisis químico</option><option>Curación de evidencia</option><option>Edición visual</option><option>Auditoría científica</option><option>Investigación bibliográfica</option></select>
+ <input id="cont_${i}" placeholder="Contribución concreta de hoy"></div>`;
+}
+async function closeSession(id){
+ const parts=(DATA.members||[]).map((m,i)=>({present:!!document.getElementById(`pres_${i}`)?.checked,telegram_user_id:m.telegram_user_id,student_code:m.student_code,full_name:m.full_name,role:val(`role_${i}`),contribution:val(`cont_${i}`)})).filter(x=>x.present);
+ if(!val('s_work').trim()||!val('s_conc').trim()){toast('Describe trabajo y conclusiones');return}
+ if(!parts.length){toast('Marca al menos un participante');return}
+ try{
+  let d=await rpc('cenqal_atlas_close_session',{p_token:TOKEN,p_session_id:id,p_work_done:val('s_work'),p_conclusions:val('s_conc'),p_pending:val('s_pending'),p_poster_sections:val('s_sections'),p_sources_used:val('s_sources'),p_participants:parts});
+  if(!d.ok)throw new Error(d.error);toast('✅ Sesión cerrada');VIEW='home';await refresh()
+ }catch(e){toast('⚠️ '+e.message)}
+}
+function renderModel(){
+ document.getElementById('root').innerHTML=`${nav('model')}
+ <div class="hero"><div class="kicker">Modelo común del Gran Atlas</div><h2>Un póster científico.<br>No una pared de texto.</h2><p>Todos siguen la misma arquitectura científica, pero cada equipo decide su maquetación, lenguaje visual, esquemas y jerarquía.</p></div>
+ <div class="card">
+ <div class="row"><div><b>A2 vertical</b><div class="help">420 × 594 mm · 300 dpi si se rasteriza</div></div><span class="tag">1 ficha = 1 alimento</span></div>
+ <div class="poster">
+  <div class="title">PRODUCTO<br><small>La gran pregunta química</small></div>
+  <div class="ph"><b>01 · ORIGEN / MATRIZ</b><br>materias primas + composición útil</div>
+  <div class="ph"><b>02 · MOLÉCULAS</b><br>estructuras + protagonistas</div>
+  <div class="ph"><b>03 · PROCESO</b><br>diagrama con variables</div>
+  <div class="ph"><b>04 · QUÉ CAMBIA</b><br>reacciones + mecanismos</div>
+  <div class="ph"><b>05 · QUÍMICA → PERCEPCIÓN</b><br>color · aroma · textura</div>
+  <div class="ph"><b>06 · ESTABILIDAD</b><br>qué puede salir mal</div>
+  <div class="ph wide"><b>ESQUEMA CENTRAL</b><br>estructura → interacción/reacción → propiedad → consecuencia + evidencia</div>
+ </div>
+ </div>
+ <div class="card">
+ <h3 class="sectionTitle">Normas de diseño</h3>
+ <p>• Máximo orientativo: <b>700–900 palabras.</b><br>
+ • Al menos <b>40 % del póster debe ser visual</b>: moléculas, esquemas, flechas, fotografías o gráficos propios.<br>
+ • Una sola idea principal por bloque. Evitar párrafos largos.<br>
+ • Máximo <b>2 tipografías</b>. Recomendadas: Arial, Aptos, Inter, Montserrat o equivalentes legibles.<br>
+ • Título 55–72 pt; subtítulos 28–36 pt; cuerpo 20–26 pt como referencia para A2.<br>
+ • Debe aparecer al menos <b>una estructura molecular, un diagrama de proceso y tres cadenas causales</b>.<br>
+ • Mínimo <b>3 fuentes académicas fiables</b>, una de ellas reciente. Las afirmaciones importantes deben poder rastrearse.</p>
+ </div>
+ <div class="card"><h3 class="sectionTitle">Pregunta que debe responder cada ficha</h3><p class="question">“¿Qué le hacemos a esta materia y qué cambia molecularmente para que aparezca este alimento?”</p></div>`;
+}
+
+function renderTeacher(){
+ if(VIEW==='model')return renderModelTeacher();
+ if(VIEW==='students')return renderStudents();
+ if(VIEW==='history')return renderHistory();
+ if(VIEW==='food')return renderTeacherFood();
+ renderTeacherHome();
+}
+function groupSummary(code){
+ const g=(DATA.groups||[]).find(x=>x.group_code===code)||{};
+ const fs=(DATA.foods||[]).filter(f=>f.group_code===code);
+ const es=fs.map(f=>entryFor(f.food_code)), avg=fs.length?Math.round(es.reduce((a,e)=>a+(e.progress_percent||0),0)/fs.length):0;
+ const reviewed=es.filter(e=>['reviewed','final'].includes(e.status)).length;
+ const members=(DATA.memberships||[]).filter(m=>m.group_code===code).length;
+ const last=(DATA.sessions||[]).filter(s=>s.group_code===code&&s.status==='closed').sort((a,b)=>new Date(b.closed_at)-new Date(a.closed_at))[0];
+ return {g,fs,avg,reviewed,members,last}
+}
+function renderTeacherHome(){
+ const a=groupSummary('A'),b=groupSummary('B');
+ document.getElementById('root').innerHTML=`${nav('home')}
+ <div class="hero"><div class="kicker">Panel docente</div><h2>Gran Atlas CENQAL</h2><p>26 alimentos · 2 equipos · trazabilidad de las sesiones de dos horas.</p></div>
+ ${[a,b].map(x=>`<div class="card teacherGroup"><div class="kicker">${esc(x.g.name||'')}</div><h2 class="sectionTitle">${x.fs.length} alimentos · ${x.avg}%</h2>
+ <div class="stats"><div class="stat"><b>${x.members}</b><span>ALUMNOS</span></div><div class="stat"><b>${x.reviewed}</b><span>REVISADOS</span></div><div class="stat"><b>${x.avg}%</b><span>PROGRESO</span></div></div>
+ <p class="help">Última sesión cerrada: ${x.last?`${fmt(x.last.closed_at)} · ${esc(foodFor(x.last.food_code)?.name)}`:'—'}</p>
+ <div class="grid">${x.fs.map(foodCard).join('')}</div></div>`).join('')}`;
+}
+function renderStudents(){
+ const map=new Map((DATA.memberships||[]).map(m=>[String(m.telegram_user_id),m.group_code]));
+ document.getElementById('root').innerHTML=`${nav('students')}
+ <div class="hero"><div class="kicker">Organización</div><h2>Asignar alumnos a los dos equipos</h2><p>Cada alumno solo puede pertenecer a un grupo del Atlas.</p></div>
+ <div class="card">${(DATA.students||[]).map(s=>`<div class="studentRow"><div><b>${esc(s.full_name||s.student_code)}</b><br><small>${esc(s.student_code||'')}</small></div>
+ <select id="asg_${s.telegram_user_id}"><option value="">—</option><option value="A" ${map.get(String(s.telegram_user_id))==='A'?'selected':''}>Grupo A</option><option value="B" ${map.get(String(s.telegram_user_id))==='B'?'selected':''}>Grupo B</option></select>
+ <button class="action small" onclick="assign(${s.telegram_user_id})">Guardar</button></div>`).join('')||'<div class="empty">No hay alumnos registrados todavía.</div>'}</div>`;
+}
+async function assign(uid){
+ const g=val(`asg_${uid}`);if(!g){toast('Elige A o B');return}
+ try{let d=await rpc('cenqal_atlas_teacher_assign_student',{p_token:TOKEN,p_student_telegram_user_id:uid,p_group_code:g});if(!d.ok)throw new Error(d.error);toast('Equipo actualizado');await refresh()}
+ catch(e){toast('⚠️ '+e.message)}
+}
+function renderHistory(){
+ const ss=(DATA.sessions||[]);
+ document.getElementById('root').innerHTML=`${nav('history')}
+ <div class="hero"><div class="kicker">Trazabilidad</div><h2>Historial de sesiones</h2><p>Qué hicieron, qué concluyeron y quién participó.</p></div>
+ <div class="card sessionList">${ss.map(s=>`<div class="sessionItem"><div class="row"><b>${esc(s.group_code)} · ${esc(foodFor(s.food_code)?.name)}</b><span class="tag">${esc(s.status)}</span></div>
+ <div class="help">${fmt(s.started_at)}${s.closed_at?' → '+fmt(s.closed_at):' · ABIERTA'}</div>
+ <div><b>Objetivo:</b> ${esc(s.objective)}</div>
+ ${s.work_done?`<div><b>Trabajo:</b> ${esc(s.work_done)}</div>`:''}
+ ${s.conclusions?`<div><b>Conclusiones:</b> ${esc(s.conclusions)}</div>`:''}
+ ${Array.isArray(s.participants)&&s.participants.length?`<div class="help">Participaron: ${s.participants.map(p=>esc(p.full_name||p.student_code)).join(' · ')}</div>`:''}</div>`).join('')||'<div class="empty">Aún no hay sesiones.</div>'}</div>`;
+}
+function renderTeacherFood(){
+ const f=foodFor(CURRENT),e=entryFor(CURRENT);if(!f)return go('home');
+ const ss=(DATA.sessions||[]).filter(s=>s.food_code===CURRENT&&s.group_code===f.group_code);
+ document.getElementById('root').innerHTML=`${nav('home')}<button class="back" onclick="go('home')">← Volver</button>
+ <div class="hero"><div class="kicker">${esc(f.group_code)} · ${esc(f.food_code)} · ${e.progress_percent||0}%</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
+ <div class="card"><h3 class="sectionTitle">Ficha del grupo</h3>
+ ${[['Matriz','matrix_text'],['Moléculas','molecules_text'],['Proceso','processing_text'],['Transformaciones','transformations_text'],['Agua / aᵥ','water_aw_text'],['Química → percepción','sensory_text'],['Estabilidad','stability_text'],['Control tecnológico','industry_text'],['Esquema','scheme_text'],['Conclusión','conclusion_text'],['Dato','surprising_fact_text'],['Fuentes','sources_text']].map(x=>`<div class="reviewBox"><b>${x[0]}</b><p>${esc(e[x[1]]||'—')}</p></div>`).join('')}
+ ${e.poster_url?`<p><a href="${esc(e.poster_url)}" target="_blank">↗ Abrir póster del equipo</a></p>`:''}
+ </div>
+ <div class="card"><h3 class="sectionTitle">Revisión docente</h3><textarea id="t_feedback">${esc(e.teacher_feedback||'')}</textarea>
+ <div class="row" style="margin-top:8px"><select id="t_status"><option value="reviewed">Revisado</option><option value="in_progress">Devolver a trabajo</option><option value="final">Final</option></select><button class="action" onclick="teacherReview('${esc(f.group_code)}','${esc(f.food_code)}')">Guardar revisión</button></div></div>
+ <div class="card"><h3 class="sectionTitle">Sesiones sobre este alimento</h3>${ss.map(s=>`<div class="sessionItem"><b>${fmt(s.started_at)}</b><div>${esc(s.objective)}</div>${s.work_done?`<div class="help">${esc(s.work_done)}</div>`:''}</div>`).join('')||'—'}</div>`;
+}
+async function teacherReview(g,c){
+ try{let d=await rpc('cenqal_atlas_teacher_review',{p_token:TOKEN,p_group_code:g,p_food_code:c,p_status:val('t_status'),p_feedback:val('t_feedback')});if(!d.ok)throw new Error(d.error);toast('Revisión guardada');await refresh(true)}
+ catch(e){toast('⚠️ '+e.message)}
+}
+function renderModelTeacher(){const old=DATA.role;DATA.role='student';renderModel();DATA.role=old}
+async function refresh(keep=false){
+ try{DATA=await rpc('cenqal_atlas_state',{p_token:TOKEN});if(!keep&&VIEW==='food')VIEW='home';render()}
+ catch(e){toast('⚠️ '+e.message)}
+}
+load();
+</script>
+</body>
+</html>
