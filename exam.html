@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#111827">
+<title>CENQAL Exam</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#f3f5f7;--card:#fff;--ink:#18202a;--muted:#697586;--line:#dfe4ea;--dark:#111827;--ok:#18794e;--warn:#a05a00;--bad:#b42318;--accent:#27364a}
+*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:680px;margin:0 auto;padding:16px 14px 42px}.hero{padding:18px 4px 12px}
+.brand{font-size:12px;font-weight:900;letter-spacing:.16em;color:#6b7280}.hero h1{margin:5px 0 3px;font-size:27px}.sub{color:var(--muted);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:19px;margin:10px 0;box-shadow:0 5px 20px rgba(0,0,0,.04)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.pill{display:inline-block;border-radius:999px;background:#eef1f5;padding:6px 10px;font-size:12px;font-weight:800}
+.timer{font-variant-numeric:tabular-nums;font-weight:900;font-size:19px}.timer.low{color:var(--bad)}
+.progress{height:9px;background:#e8ebef;border-radius:99px;overflow:hidden;margin:13px 0 19px}.progress>div{height:100%;background:var(--dark);transition:width .25s}
+.question{font-size:20px;line-height:1.38;font-weight:750;margin:12px 0 18px}
+.answers{display:grid;gap:11px}.answer{width:100%;text-align:left;border:1px solid #d8dde4;background:white;border-radius:15px;padding:15px 14px;font-size:15px;line-height:1.35;display:flex;gap:11px;align-items:flex-start}
+.answer b{width:27px;height:27px;min-width:27px;border-radius:50%;display:grid;place-items:center;background:#eef1f5}.answer:active{transform:scale(.995)}.answer:disabled{opacity:.55}
+.action{width:100%;border:0;border-radius:14px;background:var(--dark);color:white;padding:14px 16px;font-size:15px;font-weight:850;margin-top:10px}.secondary{background:#eef1f5;color:var(--ink);border:1px solid #dfe4ea}
+.center{text-align:center}.big{font-size:48px}.score{font-size:46px;font-weight:950;margin:5px 0}.muted{color:var(--muted)}.message{font-size:17px;line-height:1.5}
+.notice{padding:13px;border-radius:13px;background:#f6f7f9;color:#4b5563;font-size:14px;line-height:1.45;margin:13px 0}
+input{width:100%;padding:14px;border:1px solid #d8dde4;border-radius:12px;font-size:16px;margin:6px 0 11px;background:white}
+label{font-size:13px;font-weight:800}.error{color:var(--bad);font-weight:700;font-size:14px;margin-top:10px}
+.review{border-top:1px solid var(--line);padding:16px 0}.review:first-child{border-top:0}.good{color:var(--ok)}.bad{color:var(--bad)}
+.small{font-size:13px}.loading{padding:34px 0;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero"><div class="brand">CENQAL · MR. BERILIO</div><h1>📝 CENQAL Exam</h1><div class="sub">Evaluación semanal · 20 preguntas · 30 minutos</div></header>
+  <main id="screen"><div class="loading">Preparando acceso…</div></main>
+</div>
+<script>
+const tg=window.Telegram?.WebApp; try{tg?.ready();tg?.expand()}catch(e){}
+const params=new URLSearchParams(location.search);
+const SBURL=(params.get('sburl')||sessionStorage.getItem('cenqal_sburl')||'').replace(/\/$/,'');
+const SBKEY=params.get('sbkey')||sessionStorage.getItem('cenqal_sbkey')||'';
+let TOKEN=params.get('token')||sessionStorage.getItem('cenqal_exam_token')||'';
+const EXAMCODE=params.get('exam')||'';
+if(SBURL)sessionStorage.setItem('cenqal_sburl',SBURL);
+if(SBKEY)sessionStorage.setItem('cenqal_sbkey',SBKEY);
+if(TOKEN)sessionStorage.setItem('cenqal_exam_token',TOKEN);
+let timerHandle=null,remaining=0,busy=false,current=null;
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function headers(){
+ const h={'Content-Type':'application/json','apikey':SBKEY};
+ if(/^eyJ/.test(SBKEY))h['Authorization']='Bearer '+SBKEY;
+ return h;
+}
+async function rpc(name,payload){
+ if(!SBURL||!SBKEY)throw new Error('Falta la configuración pública de Supabase.');
+ const r=await fetch(`${SBURL}/rest/v1/rpc/${name}`,{method:'POST',headers:headers(),body:JSON.stringify(payload||{})});
+ const raw=await r.text(); let data=null;
+ try{data=raw?JSON.parse(raw):null}catch(e){data={message:raw}}
+ if(!r.ok)throw new Error(data?.message||`Error ${r.status}`);
+ return data;
+}
+function vibrate(kind){try{tg?.HapticFeedback?.notificationOccurred(kind)}catch(e){}}
+function fmt(sec){sec=Math.max(0,sec|0);return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function stopTimer(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}}
+function startTimer(sec){stopTimer();remaining=sec|0;paintTimer();timerHandle=setInterval(()=>{remaining--;paintTimer();if(remaining<=0){stopTimer();loadState()}},1000)}
+function paintTimer(){const el=document.getElementById('timer');if(el){el.textContent=fmt(remaining);el.classList.toggle('low',remaining<=300)}}
+function feedback(score){
+ if(score>=9)return ['🌟','Excelente trabajo','Dominas el tema con mucha solidez. Mantén este nivel de razonamiento.'];
+ if(score>=7)return ['💪','Muy buen trabajo','Tienes una base sólida. Revisa algunos conceptos para terminar de afianzarlos.'];
+ if(score>=5)return ['👍','Prueba superada','Has alcanzado el nivel mínimo. El Gimnasio te ayudará a reforzar los conceptos que aún no están consolidados.'];
+ return ['🧠','Sigue entrenando','Esta prueba te indica qué conceptos necesitan más trabajo. Vuelve al Gimnasio y utilízalos como objetivo de entrenamiento.'];
+}
+function configError(){
+ document.getElementById('screen').innerHTML=`<section class="card"><h2>⚠️ Configuración pendiente</h2><p>Esta dirección necesita la configuración pública de CENQAL Exam.</p><p class="muted small">Entra desde el botón 📝 Examen de Mr. Berilio o utiliza el enlace de emergencia facilitado por la profesora.</p></section>`;
+}
+function fallback(){
+ document.getElementById('screen').innerHTML=`<section class="card">
+ <span class="pill">ACCESO DE EMERGENCIA</span><h2>Entrar al examen</h2>
+ <div class="notice">Utiliza este acceso solo si Telegram o Mr. Berilio no están disponibles. El examen conserva exactamente las mismas reglas y el mismo reloj.</div>
+ <label>Código del examen</label><input id="ecode" value="${esc(EXAMCODE)}" autocomplete="off">
+ <label>Tu código CENQAL</label><input id="scode" autocomplete="off" autocapitalize="characters">
+ <label>PIN facilitado por la profesora</label><input id="pin" inputmode="numeric" maxlength="6" autocomplete="off">
+ <button class="action" onclick="fallbackLogin()">Entrar</button><div id="err" class="error"></div>
+ </section>`;
+}
+async function fallbackLogin(){
+ const e=document.getElementById('ecode').value.trim(),s=document.getElementById('scode').value.trim(),p=document.getElementById('pin').value.trim();
+ const er=document.getElementById('err');er.textContent='';if(!e||!s||!p){er.textContent='Completa los tres campos.';return}
+ try{
+  const d=await rpc('cenqal_exam_fallback_login',{p_exam_code:e,p_student_code:s,p_pin:p});
+  if(!d?.ok){er.textContent=({bad_pin:'PIN incorrecto.',student_not_found:'No encuentro ese código de alumno.',exam_not_found:'No encuentro ese examen.',closed:'El examen no está abierto.'}[d?.reason]||'No ha sido posible entrar.');return}
+  TOKEN=d.token;sessionStorage.setItem('cenqal_exam_token',TOKEN);await loadState();
+ }catch(e){er.textContent=e.message}
+}
+async function loadState(){
+ if(!TOKEN){fallback();return}
+ document.getElementById('screen').innerHTML='<div class="loading">Cargando examen…</div>';
+ try{const d=await rpc('cenqal_exam_state',{p_token:TOKEN});render(d)}
+ catch(e){document.getElementById('screen').innerHTML=`<section class="card"><h2>⚠️ No puedo cargar el examen</h2><p>${esc(e.message)}</p><button class="action secondary" onclick="loadState()">Reintentar</button></section>`}
+}
+function render(d){
+ current=d;stopTimer();
+ if(!d?.ok){document.getElementById('screen').innerHTML=`<section class="card"><h2>⚠️ Acceso no válido</h2><p>${esc(d?.reason||'No se ha podido abrir el examen.')}</p></section>`;return}
+ if(d.state==='in_progress')return renderQuestion(d);
+ if(d.state==='completed')return renderCompleted(d);
+ if(d.state==='locked')return renderMessage('🔒','Examen preparado',d.message||'La profesora todavía no lo ha abierto.');
+ if(d.state==='closed')return renderMessage('🔒','Examen cerrado','La convocatoria ya está cerrada.');
+ if(d.state==='expired')return renderMessage('⌛','Intento cerrado','Tu intento ya no está disponible.');
+ renderMessage('ℹ️','CENQAL Exam','Estado del examen: '+esc(d.state));
+}
+function renderMessage(icon,title,msg){
+ document.getElementById('screen').innerHTML=`<section class="card center"><div class="big">${icon}</div><h2>${esc(title)}</h2><p class="message">${esc(msg)}</p></section>`;
+}
+function renderQuestion(d){
+ const pct=Math.round(((d.position-1)/d.question_count)*100);
+ document.getElementById('screen').innerHTML=`<section class="card">
+ <div class="row"><span class="pill">TEMA ${d.topic_number}</span><span class="timer" id="timer">${fmt(d.remaining_seconds)}</span></div>
+ <div class="row small muted" style="margin-top:10px"><span>Pregunta ${d.position} de ${d.question_count}</span><span>30 min totales</span></div>
+ <div class="progress"><div style="width:${pct}%"></div></div>
+ <div class="question">${esc(d.question.text)}</div>
+ <div class="answers">${d.question.options.map((o,i)=>`<button class="answer" onclick="answer(${i})"><b>${'ABCD'[i]}</b><span>${esc(o.text)}</span></button>`).join('')}</div>
+ <div class="notice">Durante el examen no se indica si una respuesta es correcta. Cada respuesta queda guardada al marcarla.</div>
+ </section>`;
+ startTimer(d.remaining_seconds);
+}
+async function answer(i){
+ if(busy)return;busy=true;document.querySelectorAll('.answer').forEach(b=>b.disabled=true);
+ try{const d=await rpc('cenqal_exam_answer',{p_token:TOKEN,p_choice_index:i});vibrate('success');render(d)}
+ catch(e){vibrate('error');busy=false;alert('No se ha podido guardar la respuesta. Pulsa Aceptar y vuelve a intentarlo.\\n\\n'+e.message);document.querySelectorAll('.answer').forEach(b=>b.disabled=false);return}
+ busy=false;
+}
+function renderCompleted(d){
+ const score=Number(d.score_out_of_10||0),f=feedback(score);
+ document.getElementById('screen').innerHTML=`<section class="card center">
+ <div class="big">${f[0]}</div><h2>Examen finalizado</h2>
+ <div class="score">${score.toFixed(1)}<span style="font-size:18px"> / 10</span></div>
+ <p><b>${d.correct_count}/${d.question_count}</b> respuestas correctas</p>
+ <h3>${f[1]}</h3><p class="message">${f[2]}</p>
+ <div class="notice">Tus respuestas han quedado registradas. Las soluciones y explicaciones solo aparecerán cuando la profesora libere la revisión.</div>
+ <button class="action" onclick="openGym()">🏋️ Ir al Gimnasio</button>
+ ${d.review_available?'<button class="action secondary" onclick="showReview()">📚 Ver revisión razonada</button>':'<button class="action secondary" onclick="loadState()">🔄 Comprobar si ya está disponible la revisión</button>'}
+ </section>`;
+}
+function openGym(){const u='https://bettercallberilio.github.io/cenqal-gym/';try{tg?.openLink(u)}catch(e){location.href=u}}
+async function showReview(){
+ document.getElementById('screen').innerHTML='<div class="loading">Cargando revisión…</div>';
+ try{
+  const d=await rpc('cenqal_exam_review',{p_token:TOKEN});
+  if(!d?.ok){renderMessage('🔒','Revisión no disponible','La profesora todavía no ha liberado las soluciones.');return}
+  document.getElementById('screen').innerHTML=`<section class="card"><span class="pill">REVISIÓN</span><h2>Tu examen · ${Number(d.score_out_of_10||0).toFixed(1)}/10</h2>
+  <p class="muted">${d.correct_count}/${d.question_count} correctas</p>
+  ${d.answers.map(a=>`<div class="review"><div class="${a.is_correct?'good':'bad'}"><b>${a.is_correct?'✅':'❌'} Pregunta ${a.position}</b></div>
+  <p><b>${esc(a.question)}</b></p><p class="small"><b>Tu respuesta:</b> ${esc(a.selected_text)}</p>${a.is_correct?'':`<p class="small"><b>Respuesta correcta:</b> ${esc(a.correct_text)}</p>`}
+  <p class="small"><b>¿Por qué?</b> ${esc(a.explanation)}</p><span class="pill">${esc(a.concept||'Concepto')}</span></div>`).join('')}
+  <button class="action secondary" onclick="loadState()">← Volver al resultado</button></section>`;
+ }catch(e){renderMessage('⚠️','No puedo cargar la revisión',e.message)}
+}
+window.fallbackLogin=fallbackLogin;window.loadState=loadState;window.answer=answer;window.showReview=showReview;window.openGym=openGym;
+if(!SBURL||!SBKEY)configError();else loadState();
+</script>
+</body>
+</html>
