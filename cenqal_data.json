@@ -2,9 +2,10 @@
   "cenqal": {
     "nombre": "CENQAL",
     "descripcion": "Base de conocimiento de Química de los Alimentos",
-    "version": "1.0",
+    "version": "1.1",
     "ultima_actualizacion": "2026-09-06"
   },
+
   "temas": [
     {
       "id": 1,
@@ -47,7 +48,303 @@
       "estado": "proximamente"
     }
   ],
+
+  "conceptos": [
+    {
+      "id": "T1-C01",
+      "tema_id": 1,
+      "titulo": "Enlace covalente",
+      "descripcion": "Enlace químico producido por la compartición de pares de electrones entre átomos. Constituye la base estructural de las moléculas orgánicas presentes en los alimentos, como glúcidos, lípidos, proteínas, vitaminas y compuestos aromáticos.",
+      "clave": "Determina la estructura molecular y, por tanto, gran parte de la reactividad química de los componentes de los alimentos.",
+      "ejemplos": [
+        "Enlaces C-C y C-H de los ácidos grasos",
+        "Enlaces C-O de los glúcidos",
+        "Enlace peptídico de las proteínas"
+      ],
+      "palabras_clave": [
+        "enlace covalente",
+        "electrones",
+        "molécula",
+        "estructura"
+      ]
+    },
+
+    {
+      "id": "T1-C02",
+      "tema_id": 1,
+      "titulo": "Enlace iónico",
+      "descripcion": "Interacción electrostática entre especies con cargas eléctricas opuestas. En los alimentos aparece especialmente en sales minerales, proteínas cargadas, polisacáridos ionizados y sistemas cuyo comportamiento depende del pH.",
+      "clave": "Las interacciones iónicas influyen en la solubilidad, la estructura de proteínas y polisacáridos y la estabilidad de numerosos sistemas alimentarios.",
+      "ejemplos": [
+        "Na+ y Cl- en cloruro sódico",
+        "Interacción del calcio con pectinas",
+        "Interacciones entre grupos cargados de proteínas"
+      ],
+      "palabras_clave": [
+        "iones",
+        "carga",
+        "sales",
+        "electrostática"
+      ]
+    },
+
+    {
+      "id": "T1-C03",
+      "tema_id": 1,
+      "titulo": "Electronegatividad",
+      "descripcion": "Tendencia relativa de un átomo a atraer hacia sí los electrones compartidos en un enlace químico. Las diferencias de electronegatividad generan enlaces con distinto grado de polaridad.",
+      "clave": "Permite comprender por qué determinadas moléculas poseen regiones parcialmente positivas y negativas y cómo interaccionan con el agua.",
+      "ejemplos": [
+        "Alta electronegatividad del oxígeno",
+        "Polarización del enlace O-H",
+        "Polarización de grupos carbonilo"
+      ],
+      "palabras_clave": [
+        "electronegatividad",
+        "polaridad",
+        "electrones"
+      ]
+    },
+
+    {
+      "id": "T1-C04",
+      "tema_id": 1,
+      "titulo": "Polaridad molecular",
+      "descripcion": "Distribución desigual de la densidad electrónica dentro de una molécula que origina regiones con cargas parciales positivas y negativas.",
+      "clave": "La polaridad condiciona la solubilidad, hidratación, extracción y distribución de numerosas sustancias presentes en los alimentos.",
+      "ejemplos": [
+        "Agua",
+        "Etanol",
+        "Azúcares",
+        "Ácidos orgánicos"
+      ],
+      "palabras_clave": [
+        "polaridad",
+        "dipolo",
+        "solubilidad",
+        "hidratación"
+      ]
+    },
+
+    {
+      "id": "T1-C05",
+      "tema_id": 1,
+      "titulo": "Puente de hidrógeno",
+      "descripcion": "Interacción intermolecular especialmente importante cuando un átomo de hidrógeno unido a un átomo electronegativo interacciona con otra región electronegativa próxima.",
+      "clave": "Es una de las interacciones fundamentales para comprender las propiedades del agua y la estructura de proteínas, polisacáridos y otros componentes alimentarios.",
+      "ejemplos": [
+        "Interacciones entre moléculas de agua",
+        "Estabilización de estructuras proteicas",
+        "Interacciones agua-almidón"
+      ],
+      "palabras_clave": [
+        "puente de hidrógeno",
+        "agua",
+        "proteínas",
+        "polisacáridos"
+      ]
+    },
+
+    {
+      "id": "T1-C06",
+      "tema_id": 1,
+      "titulo": "Fuerzas de Van der Waals",
+      "descripcion": "Conjunto de interacciones intermoleculares débiles que aparecen entre átomos o moléculas debido a dipolos permanentes, inducidos o instantáneos.",
+      "clave": "Aunque individualmente son débiles, su efecto acumulativo puede contribuir de forma importante a la estructura y estabilidad de macromoléculas y sistemas alimentarios.",
+      "ejemplos": [
+        "Interacciones entre cadenas hidrocarbonadas",
+        "Estabilización de estructuras proteicas",
+        "Interacciones entre moléculas apolares"
+      ],
+      "palabras_clave": [
+        "Van der Waals",
+        "London",
+        "dipolo",
+        "interacciones débiles"
+      ]
+    },
+
+    {
+      "id": "T1-C07",
+      "tema_id": 1,
+      "titulo": "Interacciones hidrofóbicas",
+      "descripcion": "Asociación aparente de regiones apolares en presencia de agua como consecuencia de la tendencia del sistema a minimizar el contacto entre superficies apolares y el medio acuoso.",
+      "clave": "Son fundamentales en el plegamiento de proteínas, formación de micelas, membranas, emulsiones y organización de lípidos.",
+      "ejemplos": [
+        "Plegamiento de proteínas",
+        "Formación de micelas",
+        "Agrupación de cadenas hidrocarbonadas"
+      ],
+      "palabras_clave": [
+        "hidrofóbico",
+        "apolar",
+        "proteínas",
+        "lípidos",
+        "micelas"
+      ]
+    },
+
+    {
+      "id": "T1-C08",
+      "tema_id": 1,
+      "titulo": "Agua como molécula polar",
+      "descripcion": "La geometría angular de la molécula de agua y la elevada electronegatividad del oxígeno producen un momento dipolar permanente.",
+      "clave": "La polaridad del agua explica gran parte de su capacidad como disolvente y su intensa asociación mediante puentes de hidrógeno.",
+      "ejemplos": [
+        "Disolución de sales",
+        "Hidratación de azúcares",
+        "Interacción con proteínas"
+      ],
+      "palabras_clave": [
+        "agua",
+        "polaridad",
+        "dipolo",
+        "disolvente"
+      ]
+    },
+
+    {
+      "id": "T1-C09",
+      "tema_id": 1,
+      "titulo": "Hidratación",
+      "descripcion": "Proceso mediante el cual moléculas o iones quedan rodeados e interaccionan con moléculas de agua.",
+      "clave": "La hidratación afecta a la solubilidad, textura, movilidad molecular y comportamiento funcional de proteínas, sales, azúcares y polisacáridos.",
+      "ejemplos": [
+        "Hidratación de proteínas",
+        "Hidratación del almidón",
+        "Solvatación de iones"
+      ],
+      "palabras_clave": [
+        "hidratación",
+        "agua",
+        "solvatación",
+        "solubilidad"
+      ]
+    },
+
+    {
+      "id": "T1-C10",
+      "tema_id": 1,
+      "titulo": "Agua libre y agua ligada",
+      "descripcion": "El agua de un alimento presenta distintos grados de movilidad e interacción con la matriz. Parte del agua se encuentra fuertemente asociada a grupos polares o superficies, mientras otra fracción posee mayor movilidad.",
+      "clave": "La cantidad total de agua no indica por sí sola su disponibilidad para microorganismos o reacciones químicas.",
+      "ejemplos": [
+        "Agua asociada a proteínas",
+        "Agua retenida por polisacáridos",
+        "Agua móvil en tejidos vegetales"
+      ],
+      "palabras_clave": [
+        "agua ligada",
+        "agua libre",
+        "movilidad",
+        "matriz alimentaria"
+      ]
+    },
+
+    {
+      "id": "T1-C11",
+      "tema_id": 1,
+      "titulo": "Actividad de agua",
+      "descripcion": "Magnitud termodinámica relacionada con la disponibilidad energética del agua en un alimento. Se expresa como la relación entre la presión de vapor del agua en el alimento y la presión de vapor del agua pura a la misma temperatura.",
+      "formula": "aw = p / p0",
+      "clave": "La actividad de agua es uno de los parámetros fundamentales para predecir estabilidad microbiológica, velocidad de determinadas reacciones y vida útil de los alimentos.",
+      "ejemplos": [
+        "Deshidratación",
+        "Adición de sal",
+        "Adición de azúcar",
+        "Concentración de alimentos"
+      ],
+      "palabras_clave": [
+        "actividad de agua",
+        "aw",
+        "conservación",
+        "vida útil",
+        "microorganismos"
+      ]
+    },
+
+    {
+      "id": "T1-C12",
+      "tema_id": 1,
+      "titulo": "Contenido de humedad",
+      "descripcion": "Cantidad total de agua contenida en un alimento, expresada habitualmente respecto a la masa total o a la materia seca.",
+      "clave": "Dos alimentos con un contenido de humedad similar pueden presentar actividades de agua muy diferentes.",
+      "ejemplos": [
+        "Determinación gravimétrica de humedad",
+        "Alimentos frescos",
+        "Alimentos deshidratados"
+      ],
+      "palabras_clave": [
+        "humedad",
+        "agua total",
+        "materia seca",
+        "análisis"
+      ]
+    },
+
+    {
+      "id": "T1-C13",
+      "tema_id": 1,
+      "titulo": "Isoterma de sorción",
+      "descripcion": "Relación, a temperatura constante, entre el contenido de agua de un alimento y su actividad de agua en condiciones de equilibrio.",
+      "clave": "Las isotermas de sorción permiten estudiar estabilidad, secado, almacenamiento, selección de envases y tendencia de un alimento a captar o perder humedad.",
+      "ejemplos": [
+        "Diseño de alimentos deshidratados",
+        "Selección de envases",
+        "Predicción de ganancia de humedad"
+      ],
+      "palabras_clave": [
+        "isoterma",
+        "sorción",
+        "adsorción",
+        "desorción",
+        "actividad de agua"
+      ]
+    },
+
+    {
+      "id": "T1-C14",
+      "tema_id": 1,
+      "titulo": "Efecto de los solutos sobre el agua",
+      "descripcion": "La presencia de sales, azúcares y otros solutos modifica las propiedades del agua al establecer interacciones con sus moléculas y reducir su potencial químico.",
+      "clave": "Este fenómeno explica parte del efecto conservador de altas concentraciones de sal o azúcar.",
+      "ejemplos": [
+        "Mermeladas",
+        "Salazones",
+        "Jarabes",
+        "Leches concentradas"
+      ],
+      "palabras_clave": [
+        "solutos",
+        "sal",
+        "azúcar",
+        "actividad de agua",
+        "conservación"
+      ]
+    },
+
+    {
+      "id": "T1-C15",
+      "tema_id": 1,
+      "titulo": "Movilidad molecular y estabilidad de los alimentos",
+      "descripcion": "La movilidad de agua y otras moléculas dentro de una matriz alimentaria condiciona la velocidad con la que pueden producirse numerosas transformaciones físicas, químicas y microbiológicas.",
+      "clave": "La estabilidad de un alimento depende no solo de su composición, sino también del estado físico y de la movilidad de sus componentes.",
+      "ejemplos": [
+        "Alimentos deshidratados",
+        "Alimentos congelados",
+        "Matrices amorfas",
+        "Cambios durante el almacenamiento"
+      ],
+      "palabras_clave": [
+        "movilidad molecular",
+        "estabilidad",
+        "matriz",
+        "almacenamiento"
+      ]
+    }
+  ],
+
   "articulos": [],
-  "conceptos": [],
+
   "fuentes": []
 }
