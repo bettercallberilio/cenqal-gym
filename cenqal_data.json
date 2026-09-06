@@ -5,7 +5,48 @@
     "version": "1.0",
     "ultima_actualizacion": "2026-09-06"
   },
-  "temas": [],
+  "temas": [
+    {
+      "id": 1,
+      "titulo": "Enlace, interacciones y agua",
+      "estado": "activo"
+    },
+    {
+      "id": 2,
+      "titulo": "Química orgánica, grupos funcionales y glúcidos",
+      "estado": "activo"
+    },
+    {
+      "id": 3,
+      "titulo": "Hidratos de carbono y transformaciones",
+      "estado": "proximamente"
+    },
+    {
+      "id": 4,
+      "titulo": "Aminoácidos, proteínas y enzimas",
+      "estado": "proximamente"
+    },
+    {
+      "id": 5,
+      "titulo": "Lípidos, emulsiones y oxidación",
+      "estado": "proximamente"
+    },
+    {
+      "id": 6,
+      "titulo": "Sistemas dispersos, disoluciones y aditivos",
+      "estado": "proximamente"
+    },
+    {
+      "id": 7,
+      "titulo": "Micronutrientes, pH, equilibrio y biodisponibilidad",
+      "estado": "proximamente"
+    },
+    {
+      "id": 8,
+      "titulo": "Energía, cinética, redox, conservación y vida útil",
+      "estado": "proximamente"
+    }
+  ],
   "articulos": [],
   "conceptos": [],
   "fuentes": []
