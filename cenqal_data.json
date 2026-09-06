@@ -1,1 +1,12 @@
-
+{
+  "cenqal": {
+    "nombre": "CENQAL",
+    "descripcion": "Base de conocimiento de Química de los Alimentos",
+    "version": "1.0",
+    "ultima_actualizacion": "2026-09-06"
+  },
+  "temas": [],
+  "articulos": [],
+  "conceptos": [],
+  "fuentes": []
+}
