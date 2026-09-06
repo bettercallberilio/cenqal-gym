@@ -1,1 +1,777 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>CENQAL | Química de los Alimentos</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --fondo: #07111f;
+      --fondo2: #0c192b;
+      --tarjeta: rgba(17, 31, 51, 0.92);
+      --borde: rgba(255,255,255,0.10);
+      --texto: #f5f7fa;
+      --secundario: #aab7c8;
+      --verde: #64d8a4;
+      --azul: #69a9ff;
+      --amarillo: #ffd166;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 10% 0%, #15355b 0%, transparent 35%),
+        radial-gradient(circle at 100% 20%, #123b35 0%, transparent 30%),
+        var(--fondo);
+      color: var(--texto);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 28px 20px 20px;
+      border-bottom: 1px solid var(--borde);
+      background: rgba(5, 13, 25, 0.82);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .cabecera {
+      max-width: 1100px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo h1 {
+      font-size: 2rem;
+      letter-spacing: 3px;
+      color: var(--verde);
+    }
+
+    .logo p {
+      color: var(--secundario);
+      margin-top: 5px;
+      font-size: 0.9rem;
+    }
+
+    .boton-gym {
+      text-decoration: none;
+      color: #06121c;
+      background: var(--verde);
+      padding: 11px 17px;
+      border-radius: 12px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 35px 20px 70px;
+    }
+
+    .hero {
+      padding: 32px;
+      background: linear-gradient(
+        135deg,
+        rgba(50, 100, 170, 0.23),
+        rgba(40, 160, 120, 0.14)
+      );
+      border: 1px solid var(--borde);
+      border-radius: 22px;
+      margin-bottom: 28px;
+    }
+
+    .hero h2 {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      color: var(--secundario);
+      line-height: 1.6;
+      max-width: 800px;
+    }
+
+    .buscador {
+      margin-top: 23px;
+    }
+
+    .buscador input {
+      width: 100%;
+      padding: 15px 17px;
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      background: rgba(0,0,0,0.25);
+      color: white;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .buscador input:focus {
+      border-color: var(--verde);
+    }
+
+    .estadisticas {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+
+    .stat {
+      background: var(--tarjeta);
+      border: 1px solid var(--borde);
+      border-radius: 15px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.8rem;
+      color: var(--verde);
+    }
+
+    .stat span {
+      font-size: 0.8rem;
+      color: var(--secundario);
+    }
+
+    h3.seccion {
+      font-size: 1.4rem;
+      margin: 32px 0 18px;
+    }
+
+    .temas {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .tema {
+      background: var(--tarjeta);
+      border: 1px solid var(--borde);
+      border-radius: 17px;
+      padding: 20px;
+      transition: 0.2s;
+    }
+
+    .tema:hover {
+      transform: translateY(-2px);
+      border-color: rgba(100,216,164,0.5);
+    }
+
+    .tema-numero {
+      color: var(--azul);
+      font-size: 0.78rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .tema h4 {
+      font-size: 1rem;
+      line-height: 1.4;
+      margin-bottom: 13px;
+    }
+
+    .estado {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.73rem;
+      font-weight: bold;
+    }
+
+    .activo {
+      background: rgba(100,216,164,0.15);
+      color: var(--verde);
+    }
+
+    .proximamente {
+      background: rgba(255,209,102,0.12);
+      color: var(--amarillo);
+    }
+
+    .panel-vacio {
+      border: 1px dashed var(--borde);
+      border-radius: 15px;
+      padding: 23px;
+      color: var(--secundario);
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .resultado {
+      background: var(--tarjeta);
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 10px;
+    }
+
+    .resultado h4 {
+      color: var(--verde);
+      margin-bottom: 7px;
+    }
+
+    .resultado p {
+      color: var(--secundario);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    #mensajeError {
+      display: none;
+      background: rgba(255, 80, 80, 0.12);
+      border: 1px solid rgba(255, 100, 100, 0.3);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    footer {
+      color: var(--secundario);
+      text-align: center;
+      padding: 25px;
+      border-top: 1px solid var(--borde);
+      font-size: 0.8rem;
+    }
+
+    @media(max-width: 700px) {
+      .cabecera {
+        align-items: flex-start;
+      }
+
+      .logo h1 {
+        font-size: 1.5rem;
+      }
+
+      .hero {
+        padding: 23px 18px;
+      }
+
+      .hero h2 {
+        font-size: 1.55rem;
+      }
+
+      .estadisticas {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .temas {
+        grid-template-columns: 1fr;
+      }
+
+      .boton-gym {
+        padding: 9px 12px;
+        font-size: 0.82rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="cabecera">
+
+    <div class="logo">
+      <h1>CENQAL</h1>
+      <p>Conocimiento y Evidencia en Química de los Alimentos</p>
+    </div>
+
+    <a class="boton-gym" href="index.html">
+      ⚗️ Ir al Gym
+    </a>
+
+  </div>
+</header>
+
+
+<main>
+
+  <div class="hero">
+
+    <h2>Base de conocimiento de Química de los Alimentos</h2>
+
+    <p>
+      CENQAL organiza conceptos, mecanismos, evidencia científica,
+      literatura y recursos relacionados con la química de los alimentos.
+      Utiliza el buscador para localizar información dentro de la base de
+      conocimiento.
+    </p>
+
+    <div class="buscador">
+      <input
+        id="busqueda"
+        type="search"
+        placeholder="🔎 Buscar en CENQAL..."
+      >
+    </div>
+
+  </div>
+
+
+  <div id="mensajeError">
+    No se ha podido cargar la base de datos CENQAL.
+  </div>
+
+
+  <div class="estadisticas">
+
+    <div class="stat">
+      <strong id="nTemas">0</strong>
+      <span>TEMAS</span>
+    </div>
+
+    <div class="stat">
+      <strong id="nConceptos">0</strong>
+      <span>CONCEPTOS</span>
+    </div>
+
+    <div class="stat">
+      <strong id="nArticulos">0</strong>
+      <span>ARTÍCULOS</span>
+    </div>
+
+    <div class="stat">
+      <strong id="nFuentes">0</strong>
+      <span>FUENTES</span>
+    </div>
+
+  </div>
+
+
+  <h3 class="seccion">🧪 Temario CENQAL</h3>
+
+  <div id="listaTemas" class="temas"></div>
+
+
+  <div id="zonaResultados" style="display:none;">
+
+    <h3 class="seccion">🔎 Resultados de búsqueda</h3>
+
+    <div id="resultados"></div>
+
+  </div>
+
+
+  <h3 class="seccion">🧬 Conceptos</h3>
+
+  <div id="listaConceptos"></div>
+
+
+  <h3 class="seccion">📚 Literatura científica</h3>
+
+  <div id="listaArticulos"></div>
+
+
+  <h3 class="seccion">🔗 Fuentes</h3>
+
+  <div id="listaFuentes"></div>
+
+</main>
+
+
+<footer>
+  CENQAL · Química de los Alimentos · 2026
+</footer>
+
+
+<script>
+
+let datosCenqal = null;
+
+
+async function cargarCenqal() {
+
+  try {
+
+    const respuesta = await fetch(
+      "cenqal_data.json?fecha=" + Date.now()
+    );
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudo cargar el archivo JSON");
+    }
+
+    datosCenqal = await respuesta.json();
+
+    mostrarDatos();
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById("mensajeError").style.display = "block";
+
+  }
+
+}
+
+
+
+function mostrarDatos() {
+
+  const temas = datosCenqal.temas || [];
+  const conceptos = datosCenqal.conceptos || [];
+  const articulos = datosCenqal.articulos || [];
+  const fuentes = datosCenqal.fuentes || [];
+
+
+  document.getElementById("nTemas").textContent =
+    temas.length;
+
+  document.getElementById("nConceptos").textContent =
+    conceptos.length;
+
+  document.getElementById("nArticulos").textContent =
+    articulos.length;
+
+  document.getElementById("nFuentes").textContent =
+    fuentes.length;
+
+
+  mostrarTemas(temas);
+  mostrarConceptos(conceptos);
+  mostrarArticulos(articulos);
+  mostrarFuentes(fuentes);
+
+}
+
+
+
+function mostrarTemas(temas) {
+
+  const contenedor =
+    document.getElementById("listaTemas");
+
+  contenedor.innerHTML = "";
+
+
+  temas.forEach(tema => {
+
+    const tarjeta =
+      document.createElement("div");
+
+    tarjeta.className = "tema";
+
+
+    const estadoTexto =
+      tema.estado === "activo"
+        ? "Disponible"
+        : "Próximamente";
+
+
+    const claseEstado =
+      tema.estado === "activo"
+        ? "activo"
+        : "proximamente";
+
+
+    tarjeta.innerHTML = `
+
+      <div class="tema-numero">
+        TEMA ${tema.id}
+      </div>
+
+      <h4>${tema.titulo}</h4>
+
+      <span class="estado ${claseEstado}">
+        ${estadoTexto}
+      </span>
+
+    `;
+
+
+    contenedor.appendChild(tarjeta);
+
+  });
+
+}
+
+
+
+function mostrarConceptos(conceptos) {
+
+  const contenedor =
+    document.getElementById("listaConceptos");
+
+  contenedor.innerHTML = "";
+
+
+  if (conceptos.length === 0) {
+
+    contenedor.innerHTML =
+      '<div class="panel-vacio">La base de conceptos comenzará a incorporarse próximamente.</div>';
+
+    return;
+
+  }
+
+
+  conceptos.forEach(item => {
+
+    const div =
+      document.createElement("div");
+
+    div.className = "resultado";
+
+    div.innerHTML = `
+
+      <h4>${item.titulo || item.nombre || "Concepto"}</h4>
+
+      <p>${item.descripcion || ""}</p>
+
+    `;
+
+    contenedor.appendChild(div);
+
+  });
+
+}
+
+
+
+function mostrarArticulos(articulos) {
+
+  const contenedor =
+    document.getElementById("listaArticulos");
+
+  contenedor.innerHTML = "";
+
+
+  if (articulos.length === 0) {
+
+    contenedor.innerHTML =
+      '<div class="panel-vacio">Aquí aparecerá la literatura científica incorporada a CENQAL.</div>';
+
+    return;
+
+  }
+
+
+  articulos.forEach(item => {
+
+    const div =
+      document.createElement("div");
+
+    div.className = "resultado";
+
+    div.innerHTML = `
+
+      <h4>${item.titulo || "Artículo científico"}</h4>
+
+      <p>
+        ${item.autores || ""}
+        ${item.ano ? " · " + item.ano : ""}
+      </p>
+
+    `;
+
+    contenedor.appendChild(div);
+
+  });
+
+}
+
+
+
+function mostrarFuentes(fuentes) {
+
+  const contenedor =
+    document.getElementById("listaFuentes");
+
+  contenedor.innerHTML = "";
+
+
+  if (fuentes.length === 0) {
+
+    contenedor.innerHTML =
+      '<div class="panel-vacio">Las fuentes bibliográficas se mostrarán aquí.</div>';
+
+    return;
+
+  }
+
+
+  fuentes.forEach(item => {
+
+    const div =
+      document.createElement("div");
+
+    div.className = "resultado";
+
+    div.innerHTML = `
+
+      <h4>${item.nombre || item.titulo || "Fuente"}</h4>
+
+      <p>${item.descripcion || ""}</p>
+
+    `;
+
+    contenedor.appendChild(div);
+
+  });
+
+}
+
+
+
+document
+  .getElementById("busqueda")
+  .addEventListener("input", function() {
+
+    if (!datosCenqal) return;
+
+
+    const texto =
+      this.value
+      .trim()
+      .toLowerCase();
+
+
+    const zona =
+      document.getElementById("zonaResultados");
+
+    const resultados =
+      document.getElementById("resultados");
+
+
+    if (texto.length < 2) {
+
+      zona.style.display = "none";
+      resultados.innerHTML = "";
+
+      return;
+
+    }
+
+
+    const encontrados = [];
+
+
+    (datosCenqal.temas || []).forEach(item => {
+
+      if (
+        JSON.stringify(item)
+        .toLowerCase()
+        .includes(texto)
+      ) {
+
+        encontrados.push({
+          tipo: "Tema",
+          titulo: item.titulo,
+          descripcion:
+            "Tema " + item.id + " de CENQAL"
+        });
+
+      }
+
+    });
+
+
+    (datosCenqal.conceptos || []).forEach(item => {
+
+      if (
+        JSON.stringify(item)
+        .toLowerCase()
+        .includes(texto)
+      ) {
+
+        encontrados.push({
+          tipo: "Concepto",
+          titulo:
+            item.titulo ||
+            item.nombre ||
+            "Concepto",
+          descripcion:
+            item.descripcion || ""
+        });
+
+      }
+
+    });
+
+
+    (datosCenqal.articulos || []).forEach(item => {
+
+      if (
+        JSON.stringify(item)
+        .toLowerCase()
+        .includes(texto)
+      ) {
+
+        encontrados.push({
+          tipo: "Artículo",
+          titulo:
+            item.titulo ||
+            "Artículo científico",
+          descripcion:
+            item.autores || ""
+        });
+
+      }
+
+    });
+
+
+    zona.style.display = "block";
+    resultados.innerHTML = "";
+
+
+    if (encontrados.length === 0) {
+
+      resultados.innerHTML =
+        '<div class="panel-vacio">No se han encontrado resultados.</div>';
+
+      return;
+
+    }
+
+
+    encontrados.forEach(item => {
+
+      const div =
+        document.createElement("div");
+
+      div.className = "resultado";
+
+      div.innerHTML = `
+
+        <h4>
+          ${item.tipo} · ${item.titulo}
+        </h4>
+
+        <p>${item.descripcion}</p>
+
+      `;
+
+      resultados.appendChild(div);
+
+    });
+
+  });
+
+
+
+cargarCenqal();
+
+</script>
+
+</body>
+</html>
