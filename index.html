@@ -24,14 +24,14 @@ const QUESTIONS = [{"id":"T1-Q01","difficulty":"medium","concept":"Configuració
 const tg = window.Telegram?.WebApp;
 if(tg){try{tg.ready();tg.expand();tg.setHeaderColor('secondary_bg_color');}catch(e){}}
 const TOPICS=[
- {n:1,title:'Enlace, interacciones y agua',subtitle:'40 preguntas · nivel medio/alto',available:true},
- {n:2,title:'Química orgánica, grupos funcionales y glúcidos',subtitle:'40 preguntas · nivel medio/alto',available:true},
- {n:3,title:'Hidratos de carbono y transformaciones',subtitle:'Próximamente',available:false},
- {n:4,title:'Aminoácidos, proteínas y enzimas',subtitle:'Próximamente',available:false},
- {n:5,title:'Lípidos, emulsiones y oxidación',subtitle:'Próximamente',available:false},
- {n:6,title:'Sistemas dispersos, disoluciones y aditivos',subtitle:'Próximamente',available:false},
- {n:7,title:'Micronutrientes, pH, equilibrio y biodisponibilidad',subtitle:'Próximamente',available:false},
- {n:8,title:'Energía, cinética, redox, conservación y vida útil',subtitle:'Próximamente',available:false}
+ {n:1,title:'Enlace químico y propiedades del agua',subtitle:'40 preguntas · nivel medio/alto',available:true},
+ {n:2,title:'Química orgánica, grupos funcionales e hidratos de carbono',subtitle:'40 preguntas · nivel medio/alto',available:true},
+ {n:3,title:'Aminoácidos y proteínas',subtitle:'Próximamente',available:false},
+ {n:4,title:'Lípidos',subtitle:'Próximamente',available:false},
+ {n:5,title:'Enzimas',subtitle:'Próximamente',available:false},
+ {n:6,title:'Sistemas dispersos, disoluciones y termoquímica',subtitle:'Próximamente',available:false},
+ {n:7,title:'Cinética, equilibrio químico y ácido-base',subtitle:'Próximamente',available:false},
+ {n:8,title:'Oxidación-reducción y transferencia de electrones',subtitle:'Próximamente',available:false}
 ];
 const letters=['A','B','C','D'];
 let state={view:'topics',topic:1,session:null,currentQuestion:null,answered:false};
