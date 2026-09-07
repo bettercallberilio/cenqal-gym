@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#101820">
+<title>CENQAL · Calendario</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:var(--tg-theme-bg-color,#f3f5f7);
+  --card:var(--tg-theme-secondary-bg-color,#ffffff);
+  --text:var(--tg-theme-text-color,#17202a);
+  --muted:var(--tg-theme-hint-color,#66737f);
+  --accent:var(--tg-theme-button-color,#1f7a5c);
+  --accentText:var(--tg-theme-button-text-color,#ffffff);
+  --line:rgba(110,120,130,.22);
+  --class:#1f7a5c; --challenge:#845ec2; --special:#d97706;
+  --noclass:#6b7280; --exam:#b91c1c; --holiday:#2563eb; --info:#7c3aed;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
+button{font:inherit}
+.app{max-width:860px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 12px calc(32px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.logo{width:48px;height:48px;border-radius:15px;background:var(--accent);color:var(--accentText);display:grid;place-items:center;font-size:26px}
+.brand h1{font-size:20px;margin:0}.brand p{font-size:12px;color:var(--muted);margin:2px 0 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin:10px 0;box-shadow:0 4px 18px rgba(0,0,0,.035)}
+.hero h2{font-size:21px;margin:0 0 5px}.hero p{margin:0;color:var(--muted);line-height:1.45}
+.next{border-left:5px solid var(--accent)}
+.next .date{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.next h3{margin:5px 0 4px;font-size:18px}.next p{margin:0;color:var(--muted);line-height:1.4}
+.filters{display:flex;gap:7px;overflow:auto;padding:2px 0 6px;scrollbar-width:none}.filters::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:8px 11px;font-size:12px;font-weight:700}
+.chip.active{background:var(--accent);color:var(--accentText);border-color:var(--accent)}
+.monthTabs{display:flex;gap:7px;overflow:auto;margin:9px 0;scrollbar-width:none}.monthTabs::-webkit-scrollbar{display:none}
+.monthBtn{border:1px solid var(--line);background:var(--card);color:var(--text);padding:8px 12px;border-radius:12px;font-weight:750}
+.monthBtn.active{background:var(--accent);color:var(--accentText);border-color:var(--accent)}
+.monthTitle{display:flex;align-items:center;justify-content:space-between;gap:8px}.monthTitle h2{font-size:19px;margin:0}.monthTitle span{font-size:12px;color:var(--muted)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px}
+.wd{text-align:center;font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;padding:4px 0}
+.day{min-height:59px;border:1px solid var(--line);border-radius:11px;padding:6px;background:color-mix(in srgb,var(--card) 94%,transparent);position:relative}
+.day.empty{opacity:.28}.day.today{outline:2px solid var(--accent);outline-offset:-2px}.day.has{cursor:pointer}
+.num{font-size:12px;font-weight:800}.dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:7px}
+.dot{width:7px;height:7px;border-radius:50%}
+.dot.class{background:var(--class)}.dot.challenge{background:var(--challenge)}.dot.excursion{background:var(--special)}
+.dot.no_class{background:var(--noclass)}.dot.exam{background:var(--exam)}.dot.holiday{background:var(--holiday)}.dot.info{background:var(--info)}
+.list{display:grid;gap:8px;margin-top:12px}
+.event{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;grid-template-columns:8px 1fr;gap:10px}
+.bar{border-radius:99px;background:var(--muted)}.event.class .bar{background:var(--class)}.event.challenge .bar{background:var(--challenge)}
+.event.excursion .bar{background:var(--special)}.event.no_class .bar{background:var(--noclass)}.event.exam .bar{background:var(--exam)}
+.event.holiday .bar{background:var(--holiday)}.event.info .bar{background:var(--info)}
+.event .meta{font-size:11px;color:var(--muted);font-weight:750;text-transform:uppercase}.event h3{font-size:15px;margin:3px 0 4px}
+.event p{font-size:12px;color:var(--muted);line-height:1.4;margin:0}.badge{display:inline-block;margin-top:7px;border:1px solid var(--line);border-radius:999px;padding:4px 7px;font-size:10px}
+.legend{display:flex;gap:8px;flex-wrap:wrap}.legend span{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.infoBox{font-size:12px;color:var(--muted);line-height:1.45}
+.loading{text-align:center;color:var(--muted);padding:25px 0}
+.error{color:#b42318;font-size:12px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="logo">📅</div>
+    <div class="brand"><h1>CENQAL Calendar</h1><p>Química de los Alimentos · 2026/27</p></div>
+  </div>
+
+  <div class="card hero">
+    <h2>Tu semestre, de un vistazo</h2>
+    <p>Clases, días sin docencia, excursión, retos activos y fechas límite. Los retos se incorporan automáticamente cuando la profesora los activa.</p>
+  </div>
+
+  <div id="next" class="card next"><div class="loading">Cargando próxima actividad…</div></div>
+
+  <div class="filters">
+    <button class="chip active" data-filter="all">Todo</button>
+    <button class="chip" data-filter="class">Clases</button>
+    <button class="chip" data-filter="challenge">Retos</button>
+    <button class="chip" data-filter="special">Especiales</button>
+    <button class="chip" data-filter="exam">Evaluación</button>
+  </div>
+
+  <div class="monthTabs" id="monthTabs"></div>
+
+  <div class="card">
+    <div class="monthTitle"><h2 id="monthName"></h2><span>Viernes · 16:00–20:00</span></div>
+    <div class="week" id="calendar"></div>
+    <div class="list" id="eventList"></div>
+  </div>
+
+  <div class="card">
+    <div class="legend">
+      <span><i style="background:var(--class)"></i>Clase</span>
+      <span><i style="background:var(--challenge)"></i>Reto</span>
+      <span><i style="background:var(--special)"></i>Excursión</span>
+      <span><i style="background:var(--noclass)"></i>Sin clase</span>
+      <span><i style="background:var(--exam)"></i>Evaluación</span>
+      <span><i style="background:var(--holiday)"></i>Vacaciones</span>
+    </div>
+  </div>
+
+  <div class="card infoBox">
+    🔔 Los avisos se configuran en Mr. Berilio mediante <b>/avisos</b>. La Mini App sirve para consultar la planificación; Telegram es quien envía las notificaciones.
+  </div>
+</div>
+
+<script>
+const tg=window.Telegram?.WebApp;
+if(tg){try{tg.ready();tg.expand();}catch(e){}}
+
+const params=new URLSearchParams(location.search);
+const SBURL=(params.get('sburl')||'').replace(/\/$/,'');
+const SBKEY=params.get('sbkey')||'';
+
+const MONTHS=[
+  {y:2026,m:8,label:'Septiembre'},
+  {y:2026,m:9,label:'Octubre'},
+  {y:2026,m:10,label:'Noviembre'},
+  {y:2026,m:11,label:'Diciembre'},
+  {y:2027,m:0,label:'Enero'}
+];
+let selected=0, filter='all', events=[];
+
+const fallback=[
+ ['event:QA-2026-09-18','class','Clase presencial · Química de los Alimentos','Inicio de la asignatura. Sesión presencial de 16:00 a 20:00.','2026-09-18T16:00:00+02:00','2026-09-18T20:00:00+02:00'],
+ ['event:QA-2026-09-25','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-09-25T16:00:00+02:00','2026-09-25T20:00:00+02:00'],
+ ['event:QA-2026-10-02','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-10-02T16:00:00+02:00','2026-10-02T20:00:00+02:00'],
+ ['event:QA-2026-10-09','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-10-09T16:00:00+02:00','2026-10-09T20:00:00+02:00'],
+ ['event:QA-2026-10-16','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-10-16T16:00:00+02:00','2026-10-16T20:00:00+02:00'],
+ ['event:QA-2026-10-23','no_class','Sin clase presencial · trabajo CENQAL activo','No hay clase presencial. Las tareas y retos continúan. Esta sesión se recupera mediante la excursión del 8 de enero.','2026-10-23T16:00:00+02:00','2026-10-23T20:00:00+02:00'],
+ ['event:QA-2026-10-30','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-10-30T16:00:00+01:00','2026-10-30T20:00:00+01:00'],
+ ['event:QA-2026-11-06','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-11-06T16:00:00+01:00','2026-11-06T20:00:00+01:00'],
+ ['event:QA-2026-11-13','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-11-13T16:00:00+01:00','2026-11-13T20:00:00+01:00'],
+ ['event:QA-2026-11-20','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-11-20T16:00:00+01:00','2026-11-20T20:00:00+01:00'],
+ ['event:QA-2026-11-27','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-11-27T16:00:00+01:00','2026-11-27T20:00:00+01:00'],
+ ['event:QA-2026-12-04','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-12-04T16:00:00+01:00','2026-12-04T20:00:00+01:00'],
+ ['event:QA-2026-12-11','class','Clase presencial · Química de los Alimentos','Sesión presencial de 16:00 a 20:00.','2026-12-11T16:00:00+01:00','2026-12-11T20:00:00+01:00'],
+ ['event:QA-2026-12-18','class','Clase presencial · Química de los Alimentos','Última sesión presencial ordinaria antes de Navidad.','2026-12-18T16:00:00+01:00','2026-12-18T20:00:00+01:00'],
+ ['event:UEMC-NAVIDAD-2026','holiday','Vacaciones de Navidad · UEMC','Del 24 de diciembre de 2026 al 10 de enero de 2027.','2026-12-24T00:00:00+01:00','2027-01-10T23:59:59+01:00'],
+ ['event:QA-2027-01-08','excursion','Excursión · sesión de recuperación','Recupera la sesión del 23 de octubre. Bloque reservado 16:00–20:00; horario concreto por confirmar.','2027-01-08T16:00:00+01:00','2027-01-08T20:00:00+01:00'],
+ ['event:UEMC-AMARILLA-2027-01','info','Semana amarilla · sin docencia ordinaria','Del 11 al 15 de enero: tutorías de convocatoria ordinaria.','2027-01-11T00:00:00+01:00','2027-01-15T23:59:59+01:00']
+].map(x=>({event_key:x[0],event_type:x[1],title:x[2],description:x[3],starts_at:x[4],ends_at:x[5],source:'fallback',priority:0}));
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function dt(x){return new Date(x)}
+function eventOnDay(e,y,m,d){
+  const target=new Date(y,m,d,12,0,0);
+  const a=dt(e.starts_at);
+  const b=e.ends_at?dt(e.ends_at):a;
+  const lo=new Date(a.getFullYear(),a.getMonth(),a.getDate(),0,0,0);
+  const hi=new Date(b.getFullYear(),b.getMonth(),b.getDate(),23,59,59);
+  return target>=lo&&target<=hi;
+}
+function fmtDate(x){
+  return new Intl.DateTimeFormat('es-ES',{weekday:'long',day:'numeric',month:'long'}).format(dt(x));
+}
+function fmtTime(x){
+  if(!x)return '';
+  return new Intl.DateTimeFormat('es-ES',{hour:'2-digit',minute:'2-digit'}).format(dt(x));
+}
+function typeGroup(t){
+  if(t==='class')return 'class';
+  if(t==='challenge')return 'challenge';
+  if(t==='exam')return 'exam';
+  return 'special';
+}
+function icon(t){
+  return ({class:'🟢',challenge:'🎯',exam:'📝',excursion:'🚌',no_class:'⚪',holiday:'🎄',info:'🟡'})[t]||'📌';
+}
+function label(t){
+  return ({class:'Clase',challenge:'Reto',exam:'Evaluación',excursion:'Excursión',no_class:'Sin clase',holiday:'Vacaciones',info:'Información'})[t]||'Evento';
+}
+function visible(e){return filter==='all'||typeGroup(e.event_type)===filter}
+function monthEvents(y,m){
+  const lo=new Date(y,m,1,0,0,0), hi=new Date(y,m+1,0,23,59,59);
+  return events.filter(e=>{
+    const a=dt(e.starts_at), b=e.ends_at?dt(e.ends_at):a;
+    return a<=hi&&b>=lo&&visible(e);
+  });
+}
+
+async function load(){
+  events=[...fallback];
+  if(SBURL&&SBKEY){
+    try{
+      const r=await fetch(SBURL+'/rest/v1/rpc/cenqal_calendar_public_feed',{
+        method:'POST',
+        headers:{apikey:SBKEY,Authorization:'Bearer '+SBKEY,'Content-Type':'application/json'},
+        body:'{}'
+      });
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const live=await r.json();
+      if(Array.isArray(live)){
+        const map=new Map();
+        [...fallback,...live].forEach(e=>map.set(e.event_key,e));
+        events=[...map.values()];
+      }
+    }catch(err){
+      console.warn('Calendar feed fallback:',err);
+    }
+  }
+  events.sort((a,b)=>dt(a.starts_at)-dt(b.starts_at)||Number(b.priority||0)-Number(a.priority||0));
+  pickInitialMonth();
+  renderAll();
+}
+
+function pickInitialMonth(){
+  const now=new Date();
+  const idx=MONTHS.findIndex(o=>o.y===now.getFullYear()&&o.m===now.getMonth());
+  if(idx>=0)selected=idx;
+  else if(now<new Date(2026,8,1))selected=0;
+  else selected=MONTHS.length-1;
+}
+
+function renderNext(){
+  const now=new Date();
+  const n=events.filter(e=>dt(e.starts_at)>=now&&e.event_type!=='holiday').sort((a,b)=>dt(a.starts_at)-dt(b.starts_at))[0];
+  const el=document.getElementById('next');
+  if(!n){el.innerHTML='<div class="date">Planificación</div><h3>Semestre finalizado</h3><p>No quedan actividades futuras en este calendario.</p>';return}
+  const times=n.ends_at?`${fmtTime(n.starts_at)}–${fmtTime(n.ends_at)}`:fmtTime(n.starts_at);
+  el.className='card next '+n.event_type;
+  el.innerHTML=`<div class="date">Próximo · ${esc(fmtDate(n.starts_at))}</div>
+    <h3>${icon(n.event_type)} ${esc(n.title)}</h3>
+    <p>${times?esc(times)+' · ':''}${esc(n.description||'')}</p>`;
+}
+
+function renderTabs(){
+  const el=document.getElementById('monthTabs');
+  el.innerHTML=MONTHS.map((o,i)=>`<button class="monthBtn ${i===selected?'active':''}" data-month="${i}">${o.label}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.month);renderAll()});
+}
+
+function renderCalendar(){
+  const {y,m,label:ml}=MONTHS[selected];
+  document.getElementById('monthName').textContent=ml+' '+y;
+  const cal=document.getElementById('calendar');
+  const wds=['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+  let html=wds.map(x=>`<div class="wd">${x}</div>`).join('');
+  const first=new Date(y,m,1);
+  const offset=(first.getDay()+6)%7;
+  const count=new Date(y,m+1,0).getDate();
+  const now=new Date();
+  for(let i=0;i<offset;i++)html+='<div class="day empty"></div>';
+  for(let d=1;d<=count;d++){
+    const de=events.filter(e=>eventOnDay(e,y,m,d)&&visible(e));
+    const today=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
+    html+=`<div class="day ${de.length?'has':''} ${today?'today':''}" data-day="${d}">
+      <div class="num">${d}</div><div class="dots">${de.slice(0,5).map(e=>`<i class="dot ${e.event_type}"></i>`).join('')}</div></div>`;
+  }
+  cal.innerHTML=html;
+  cal.querySelectorAll('.day.has').forEach(x=>x.onclick=()=>{
+    const d=Number(x.dataset.day);
+    const card=[...document.querySelectorAll('.event')].find(e=>Number(e.dataset.day)===d);
+    if(card)card.scrollIntoView({behavior:'smooth',block:'center'});
+  });
+}
+
+function renderList(){
+  const {y,m}=MONTHS[selected];
+  const list=document.getElementById('eventList');
+  const es=monthEvents(y,m);
+  if(!es.length){list.innerHTML='<div class="loading">No hay actividades de este tipo en este mes.</div>';return}
+  list.innerHTML=es.map(e=>{
+    const x=dt(e.starts_at), day=x.getDate();
+    const times=e.event_type==='holiday'||e.event_type==='info'
+      ? (e.ends_at?`${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)}`:fmtDate(e.starts_at))
+      : `${fmtDate(e.starts_at)}${e.ends_at?' · '+fmtTime(e.starts_at)+'–'+fmtTime(e.ends_at):' · '+fmtTime(e.starts_at)}`;
+    return `<div class="event ${e.event_type}" data-day="${day}">
+      <div class="bar"></div><div>
+      <div class="meta">${icon(e.event_type)} ${label(e.event_type)} · ${esc(times)}</div>
+      <h3>${esc(e.title)}</h3>
+      <p>${esc(e.description||'')}</p>
+      ${e.challenge_code?`<span class="badge">${esc(e.challenge_code)}</span>`:''}
+      </div></div>`;
+  }).join('');
+}
+
+function renderAll(){renderNext();renderTabs();renderCalendar();renderList()}
+
+document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');filter=b.dataset.filter;renderAll();
+});
+
+load();
+</script>
+</body>
+</html>
