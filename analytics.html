@@ -5,290 +5,1717 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3c5d">
 <title>CENQAL Analytics</title>
+
 <style>
 :root{
-  --bg:#f4f7fb; --card:#ffffff; --ink:#16202a; --muted:#667587;
-  --line:#dfe7ef; --blue:#0b3c5d; --green:#147a63; --amber:#b7791f;
-  --red:#b42318; --soft-blue:#eaf3f9; --soft-green:#eaf7f2;
-  --soft-amber:#fff6df; --soft-red:#fff0ef; --shadow:0 8px 24px rgba(17,48,76,.08);
+  --bg:#f4f7fb;
+  --card:#fff;
+  --ink:#17222d;
+  --muted:#6b7785;
+  --line:#dfe7ef;
+  --blue:#0b3c5d;
+  --green:#147a63;
+  --amber:#aa6d12;
+  --red:#b42318;
+  --softgreen:#eaf7f2;
+  --softamber:#fff6df;
+  --softred:#fff0ef;
+  --softgray:#eef2f6;
+  --shadow:0 8px 24px rgba(17,48,76,.08)
 }
+
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:var(--bg);
+  color:var(--ink)
+}
+
 button,input,select{font:inherit}
-.top{position:sticky;top:0;z-index:20;background:rgba(11,60,93,.96);color:#fff;padding:14px 18px;box-shadow:0 4px 18px rgba(0,0,0,.12)}
-.toprow{max-width:1500px;margin:auto;display:flex;gap:14px;align-items:center;justify-content:space-between}
-.brand{display:flex;gap:12px;align-items:center}
-.atom{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#fff;color:var(--blue);font-weight:900}
-.brand h1{font-size:18px;margin:0}.brand p{margin:2px 0 0;font-size:12px;opacity:.82}
-.refresh{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;padding:9px 12px;border-radius:10px;cursor:pointer}
-main{max-width:1500px;margin:0 auto;padding:20px}
-.notice{display:none;margin-bottom:14px;padding:12px 14px;border-radius:12px;background:var(--soft-red);color:var(--red);border:1px solid #f4c7c2}
-.metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
-.metric{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
-.metric .label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-.metric .value{font-size:25px;font-weight:800;margin-top:5px;color:var(--blue)}
-.metric small{display:block;color:var(--muted);margin-top:4px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
-.panelhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line)}
-.panelhead h2{font-size:15px;margin:0;color:var(--blue)}
-.controls{display:flex;gap:8px;flex-wrap:wrap}
-input,select{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;color:var(--ink);outline:none}
-input:focus,select:focus{border-color:#75a9c9;box-shadow:0 0 0 3px rgba(117,169,201,.17)}
-.components{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;padding:14px}
-.comp{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfdff}
-.comp b{display:block;font-size:13px;color:var(--blue)} .comp strong{font-size:20px;display:block;margin-top:5px}
-.comp small{color:var(--muted)}
-.tablewrap{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:1050px}
-th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
-th{position:sticky;top:0;background:#f8fbfd;color:#4c6172;font-size:11px;text-transform:uppercase;letter-spacing:.035em}
-tbody tr{cursor:pointer} tbody tr:hover{background:#f6fafc}
-.student{font-weight:750}.code{font-size:11px;color:var(--muted);margin-top:2px}
-.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:750;white-space:nowrap}
-.green{background:var(--soft-green);color:var(--green)} .yellow{background:var(--soft-amber);color:var(--amber)}
-.red{background:var(--soft-red);color:var(--red)} .gray{background:#eef2f6;color:#687585}
-.score{font-weight:800;font-variant-numeric:tabular-nums}.muted{color:var(--muted)}
-.progress{height:7px;background:#eaf0f5;border-radius:999px;overflow:hidden;margin-top:5px;width:90px}
-.progress i{height:100%;display:block;background:var(--green);border-radius:999px}
-.legend{padding:12px 16px;font-size:12px;color:var(--muted);display:flex;gap:15px;flex-wrap:wrap}
-.drawerback{display:none;position:fixed;inset:0;background:rgba(18,34,49,.38);z-index:40}
-.drawer{position:absolute;top:0;right:0;height:100%;width:min(650px,96vw);background:#fff;box-shadow:-15px 0 45px rgba(0,0,0,.15);overflow:auto}
-.drawerhead{position:sticky;top:0;background:#fff;z-index:2;padding:17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
-.drawerhead h3{margin:0;color:var(--blue)}.close{border:0;background:#eef3f7;border-radius:10px;width:38px;height:38px;cursor:pointer}
-.drawerbody{padding:16px}
-.detailgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.dcard{border:1px solid var(--line);border-radius:13px;padding:11px;background:#fbfdff}.dcard label{font-size:11px;color:var(--muted);font-weight:700}.dcard strong{font-size:20px;display:block;margin-top:4px}
-.sectiontitle{font-size:13px;color:var(--blue);margin:18px 0 8px}
-.grade{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:7px 0;display:flex;justify-content:space-between;gap:10px}
-.grade small{color:var(--muted);display:block;margin-top:2px}
-.empty{padding:30px;text-align:center;color:var(--muted)}
-.spinner{display:none;position:fixed;inset:0;background:rgba(244,247,251,.72);z-index:100;place-items:center}
-.spinner.show{display:grid}.spin{width:42px;height:42px;border:4px solid #d9e5ed;border-top-color:var(--blue);border-radius:50%;animation:rot 1s linear infinite}
-@keyframes rot{to{transform:rotate(360deg)}}
-@media(max-width:1100px){.metrics{grid-template-columns:repeat(3,1fr)}.components{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:650px){main{padding:12px}.metrics{grid-template-columns:repeat(2,1fr)}.components{grid-template-columns:repeat(2,1fr)}.metric .value{font-size:21px}.top{padding:11px}.brand p{display:none}.controls{width:100%}.controls input,.controls select{flex:1;min-width:120px}.panelhead{align-items:flex-start;flex-direction:column}.detailgrid{grid-template-columns:repeat(2,1fr)}}
+
+.top{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:#0b3c5df5;
+  color:#fff;
+  padding:14px 18px;
+  box-shadow:0 4px 18px #0002
+}
+
+.toprow{
+  max-width:1500px;
+  margin:auto;
+  display:flex;
+  gap:14px;
+  align-items:center;
+  justify-content:space-between
+}
+
+.brand{
+  display:flex;
+  gap:12px;
+  align-items:center
+}
+
+.atom{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  color:var(--blue);
+  font-weight:900
+}
+
+.brand h1{
+  font-size:18px;
+  margin:0
+}
+
+.brand p{
+  margin:2px 0 0;
+  font-size:12px;
+  opacity:.82
+}
+
+.refresh{
+  border:1px solid #ffffff59;
+  background:transparent;
+  color:#fff;
+  padding:9px 12px;
+  border-radius:10px;
+  cursor:pointer
+}
+
+main{
+  max-width:1500px;
+  margin:auto;
+  padding:20px
+}
+
+.notice{
+  display:none;
+  margin-bottom:14px;
+  padding:12px 14px;
+  border-radius:12px;
+  background:var(--softred);
+  color:var(--red);
+  border:1px solid #f4c7c2
+}
+
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:16px
+}
+
+.metric,.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow)
+}
+
+.metric{
+  border-radius:16px;
+  padding:14px
+}
+
+.metric .label{
+  font-size:11px;
+  color:var(--muted);
+  font-weight:750;
+  text-transform:uppercase;
+  letter-spacing:.04em
+}
+
+.metric .value{
+  font-size:25px;
+  font-weight:850;
+  margin-top:5px;
+  color:var(--blue)
+}
+
+.metric small{
+  display:block;
+  color:var(--muted);
+  margin-top:4px
+}
+
+.panel{
+  border-radius:18px;
+  margin-bottom:16px;
+  overflow:hidden
+}
+
+.panelhead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:15px 16px;
+  border-bottom:1px solid var(--line)
+}
+
+.panelhead h2{
+  font-size:15px;
+  margin:0;
+  color:var(--blue)
+}
+
+.grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px
+}
+
+.components{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  padding:14px
+}
+
+.comp{
+  border:1px solid var(--line);
+  border-radius:13px;
+  padding:12px;
+  background:#fbfdff
+}
+
+.comp b{
+  display:block;
+  font-size:13px;
+  color:var(--blue)
+}
+
+.comp strong{
+  font-size:20px;
+  display:block;
+  margin-top:5px
+}
+
+.comp small,.muted{
+  color:var(--muted)
+}
+
+.topicwrap{
+  padding:14px
+}
+
+.topicrow{
+  display:grid;
+  grid-template-columns:52px 1fr 55px;
+  align-items:center;
+  gap:10px;
+  margin:10px 0
+}
+
+.topicrow b{
+  font-size:12px;
+  color:var(--blue)
+}
+
+.bar{
+  height:10px;
+  background:#e8eef3;
+  border-radius:999px;
+  overflow:hidden
+}
+
+.bar i{
+  height:100%;
+  display:block;
+  background:var(--green);
+  border-radius:999px
+}
+
+.topicrow span{
+  text-align:right;
+  font-weight:800;
+  font-size:12px
+}
+
+.controls{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap
+}
+
+input,select{
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:10px;
+  padding:9px 10px;
+  color:var(--ink);
+  outline:none
+}
+
+.tablewrap{
+  overflow:auto
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1160px
+}
+
+th,td{
+  padding:11px 12px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  font-size:13px
+}
+
+th{
+  background:#f8fbfd;
+  color:#4c6172;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.035em
+}
+
+tbody tr{
+  cursor:pointer
+}
+
+tbody tr:hover{
+  background:#f6fafc
+}
+
+.student{
+  font-weight:800
+}
+
+.code{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap
+}
+
+.green{
+  background:var(--softgreen);
+  color:var(--green)
+}
+
+.yellow{
+  background:var(--softamber);
+  color:var(--amber)
+}
+
+.red{
+  background:var(--softred);
+  color:var(--red)
+}
+
+.gray{
+  background:var(--softgray);
+  color:#65717f
+}
+
+.score{
+  font-weight:850;
+  font-variant-numeric:tabular-nums
+}
+
+.progress{
+  height:7px;
+  background:#eaf0f5;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:5px;
+  width:90px
+}
+
+.progress i{
+  height:100%;
+  display:block;
+  background:var(--green)
+}
+
+.trend{
+  font-weight:800
+}
+
+.up{color:var(--green)}
+.down{color:var(--red)}
+.flat{color:#65717f}
+
+.legend{
+  padding:12px 16px;
+  font-size:12px;
+  color:var(--muted);
+  display:flex;
+  gap:15px;
+  flex-wrap:wrap
+}
+
+.drawerback{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:#12223161;
+  z-index:40
+}
+
+.drawer{
+  position:absolute;
+  right:0;
+  top:0;
+  height:100%;
+  width:min(720px,97vw);
+  background:#fff;
+  box-shadow:-15px 0 45px #0002;
+  overflow:auto
+}
+
+.drawerhead{
+  position:sticky;
+  top:0;
+  background:#fff;
+  z-index:2;
+  padding:17px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between
+}
+
+.drawerhead h3{
+  margin:0;
+  color:var(--blue)
+}
+
+.close{
+  border:0;
+  background:#eef3f7;
+  border-radius:10px;
+  width:38px;
+  height:38px;
+  cursor:pointer
+}
+
+.drawerbody{
+  padding:16px
+}
+
+.detailgrid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:14px
+}
+
+.dcard{
+  border:1px solid var(--line);
+  border-radius:13px;
+  padding:11px;
+  background:#fbfdff
+}
+
+.dcard label{
+  font-size:11px;
+  color:var(--muted);
+  font-weight:750
+}
+
+.dcard strong{
+  font-size:20px;
+  display:block;
+  margin-top:4px
+}
+
+.sectiontitle{
+  font-size:13px;
+  color:var(--blue);
+  margin:18px 0 8px;
+  font-weight:850
+}
+
+.grade{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 12px;
+  margin:7px 0;
+  display:flex;
+  justify-content:space-between;
+  gap:10px
+}
+
+.grade small{
+  color:var(--muted);
+  display:block;
+  margin-top:2px
+}
+
+.chartbox{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  overflow:hidden;
+  background:#fbfdff
+}
+
+.spark{
+  width:100%;
+  height:190px;
+  display:block
+}
+
+.empty{
+  padding:25px;
+  text-align:center;
+  color:var(--muted)
+}
+
+.spinner{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:#f4f7fbbd;
+  z-index:100;
+  place-items:center
+}
+
+.spinner.show{
+  display:grid
+}
+
+.spin{
+  width:42px;
+  height:42px;
+  border:4px solid #d9e5ed;
+  border-top-color:var(--blue);
+  border-radius:50%;
+  animation:rot 1s linear infinite
+}
+
+@keyframes rot{
+  to{transform:rotate(360deg)}
+}
+
+@media(max-width:1100px){
+  .metrics{grid-template-columns:repeat(3,1fr)}
+  .grid2{grid-template-columns:1fr}
+}
+
+@media(max-width:650px){
+  main{padding:12px}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .components{grid-template-columns:repeat(2,1fr)}
+  .detailgrid{grid-template-columns:repeat(2,1fr)}
+  .panelhead{align-items:flex-start;flex-direction:column}
+  .controls{width:100%}
+  .controls input,.controls select{flex:1;min-width:120px}
+  .brand p{display:none}
+}
 </style>
 </head>
+
 <body>
+
 <div class="top">
   <div class="toprow">
     <div class="brand">
       <div class="atom">Be</div>
-      <div><h1>CENQAL Analytics</h1><p>Cuadro de mando docente · Química de los Alimentos</p></div>
+      <div>
+        <h1>CENQAL Analytics</h1>
+        <p>Evolución académica y seguimiento docente</p>
+      </div>
     </div>
+
     <button class="refresh" id="refreshBtn">↻ Actualizar</button>
   </div>
 </div>
 
 <main>
-  <div class="notice" id="notice"></div>
 
-  <section class="metrics">
-    <div class="metric"><div class="label">Alumnos</div><div class="value" id="mStudents">—</div><small>activos</small></div>
-    <div class="metric"><div class="label">Con evidencias</div><div class="value" id="mEvidence">—</div><small>seguimiento disponible</small></div>
-    <div class="metric"><div class="label">Evidencias</div><div class="value" id="mAvgEvidence">—</div><small>media no baremada /10</small></div>
-    <div class="metric"><div class="label">Proyección</div><div class="value" id="mOfficial">—</div><small>media oficial provisional /10</small></div>
-    <div class="metric"><div class="label">Revisión</div><div class="value" id="mRisk">—</div><small>amarillo + rojo</small></div>
-    <div class="metric"><div class="label">Evaluación</div><div class="value" id="mConfig">—</div><small>ponderación configurada</small></div>
-  </section>
+<div class="notice" id="notice"></div>
 
-  <section class="panel">
-    <div class="panelhead"><h2>Componentes de evaluación</h2><span class="muted" id="generated"></span></div>
-    <div class="components" id="components"></div>
-  </section>
+<section class="metrics">
 
-  <section class="panel">
-    <div class="panelhead">
-      <h2>Seguimiento del grupo</h2>
-      <div class="controls">
-        <input id="search" placeholder="Buscar alumno o código">
-        <select id="riskFilter">
-          <option value="all">Todos</option>
-          <option value="red">🔴 Revisión prioritaria</option>
-          <option value="yellow">🟡 Atención</option>
-          <option value="green">🟢 Seguimiento normal</option>
-          <option value="gray">⚪ Sin evidencias</option>
-        </select>
-        <select id="sort">
-          <option value="risk">Ordenar: riesgo</option>
-          <option value="name">Nombre</option>
-          <option value="officialDesc">Nota provisional ↓</option>
-          <option value="evidenceDesc">Evidencias ↓</option>
-        </select>
-      </div>
-    </div>
-    <div class="tablewrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Alumno</th><th>Estado</th><th>Evidencias</th><th>Nota oficial provisional</th>
-            <th>% evaluado</th><th>Requisito</th><th>PP / rango</th><th>Medallas</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-    <div class="legend">
-      <span>🟢 seguimiento normal</span><span>🟡 conviene revisar</span><span>🔴 revisión prioritaria</span>
-      <span>⚪ todavía sin evidencias</span><span>La gamificación se muestra separada de la nota académica.</span>
-    </div>
-  </section>
+<div class="metric">
+  <div class="label">Alumnos</div>
+  <div class="value" id="mStudents">—</div>
+  <small>activos</small>
+</div>
+
+<div class="metric">
+  <div class="label">Con evidencias</div>
+  <div class="value" id="mEvidence">—</div>
+  <small>seguimiento disponible</small>
+</div>
+
+<div class="metric">
+  <div class="label">Evidencias</div>
+  <div class="value" id="mAvgEvidence">—</div>
+  <small>media no baremada /10</small>
+</div>
+
+<div class="metric">
+  <div class="label">Proyección</div>
+  <div class="value" id="mOfficial">—</div>
+  <small>media oficial provisional /10</small>
+</div>
+
+<div class="metric">
+  <div class="label">Caída detectada</div>
+  <div class="value" id="mDecline">—</div>
+  <small>últimas 3 vs 3 anteriores</small>
+</div>
+
+<div class="metric">
+  <div class="label">Evaluación</div>
+  <div class="value" id="mConfig">—</div>
+  <small>ponderación configurada</small>
+</div>
+
+</section>
+
+<div class="grid2">
+
+<section class="panel">
+
+<div class="panelhead">
+  <h2>Componentes oficiales</h2>
+  <span class="muted" id="generated"></span>
+</div>
+
+<div class="components" id="components"></div>
+
+</section>
+
+<section class="panel">
+
+<div class="panelhead">
+  <h2>Rendimiento del grupo por tema</h2>
+  <span class="muted">8 bloques CENQAL</span>
+</div>
+
+<div class="topicwrap" id="classTopics"></div>
+
+</section>
+
+</div>
+
+<section class="panel">
+
+<div class="panelhead">
+
+<h2>Seguimiento del grupo</h2>
+
+<div class="controls">
+
+<input id="search" placeholder="Buscar alumno o código">
+
+<select id="riskFilter">
+<option value="all">Todos</option>
+<option value="decline">📉 Caída</option>
+<option value="red">🔴 Revisión prioritaria</option>
+<option value="yellow">🟡 Atención</option>
+<option value="green">🟢 Normal</option>
+<option value="gray">⚪ Sin evidencias</option>
+</select>
+
+<select id="sort">
+<option value="risk">Ordenar: riesgo</option>
+<option value="trend">Mayor caída</option>
+<option value="name">Nombre</option>
+<option value="officialDesc">Nota provisional ↓</option>
+</select>
+
+</div>
+
+</div>
+
+<div class="tablewrap">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Alumno</th>
+<th>Estado</th>
+<th>Evidencias</th>
+<th>Nota oficial</th>
+<th>% evaluado</th>
+<th>Tendencia</th>
+<th>Requisito</th>
+<th>PP / rango</th>
+<th>Medallas</th>
+</tr>
+
+</thead>
+
+<tbody id="tbody"></tbody>
+
+</table>
+
+</div>
+
+<div class="legend">
+<span>📉 caída = media de las últimas 3 evidencias al menos 1 punto inferior a las 3 anteriores</span>
+<span>La alerta es orientativa; la decisión sigue siendo docente.</span>
+</div>
+
+</section>
+
 </main>
 
 <div class="drawerback" id="drawerBack">
-  <aside class="drawer">
-    <div class="drawerhead">
-      <div><h3 id="dName">Alumno</h3><div class="muted" id="dMeta"></div></div>
-      <button class="close" id="closeDrawer">×</button>
-    </div>
-    <div class="drawerbody" id="drawerBody"></div>
-  </aside>
+
+<aside class="drawer">
+
+<div class="drawerhead">
+
+<div>
+<h3 id="dName">Alumno</h3>
+<div class="muted" id="dMeta"></div>
 </div>
 
-<div class="spinner" id="spinner"><div class="spin"></div></div>
+<button class="close" id="closeDrawer">×</button>
+
+</div>
+
+<div class="drawerbody" id="drawerBody"></div>
+
+</aside>
+
+</div>
+
+<div class="spinner" id="spinner">
+<div class="spin"></div>
+</div>
 
 <script>
+
 const $=s=>document.querySelector(s);
+
 const params=new URLSearchParams(location.search);
+
 const SBURL=(params.get('sburl')||'').replace(/\/$/,'');
+
 const SBKEY=params.get('sbkey')||'';
+
 const TOKEN=params.get('token')||'';
+
 history.replaceState(null,'',location.pathname);
 
-let DATA={students:[],components:[],component_scores:[],gamification:[]};
+let DATA={
+  students:[],
+  components:[],
+  component_scores:[],
+  gamification:[],
+  topic_scores:[],
+  class_topic_scores:[]
+};
+
 let TOKEN_MEMORY=TOKEN;
 
-function n(v,d=2){const x=Number(v);return Number.isFinite(x)?x.toFixed(d):'—'}
-function avg(arr){const a=arr.filter(x=>Number.isFinite(Number(x))).map(Number);return a.length?a.reduce((s,x)=>s+x,0)/a.length:null}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function risk(s){
-  const gate=String(s.gate_status||'OK').toUpperCase(), e=Number(s.evidence_average), p=Number(s.provisional_normalized);
-  if(gate==='FAILED'||(Number.isFinite(e)&&e<5)||(Number.isFinite(p)&&p<5))return 'red';
-  if((Number.isFinite(e)&&e<6)||(Number.isFinite(p)&&p<6))return 'yellow';
-  if(s.evidence_average==null&&s.provisional_normalized==null)return 'gray';
-  return 'green';
+function n(v,d=2){
+  const x=Number(v);
+  return Number.isFinite(x)?x.toFixed(d):'—'
 }
-function riskLabel(r){return {red:'🔴 Revisión',yellow:'🟡 Atención',green:'🟢 Normal',gray:'⚪ Sin evidencias'}[r]||r}
-function gateLabel(g){g=String(g||'OK').toUpperCase();return g==='FAILED'?'❌ No superado':g==='PENDING'?'⏳ Pendiente':'✅ Cumplido'}
-function setLoading(x){$('#spinner').classList.toggle('show',!!x)}
-function notice(msg){const el=$('#notice');el.textContent=msg;el.style.display=msg?'block':'none'}
+
+function avg(a){
+  const x=a.filter(v=>Number.isFinite(Number(v))).map(Number);
+  return x.length?x.reduce((s,v)=>s+v,0)/x.length:null
+}
+
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g,m=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[m]))
+}
+
+function risk(s){
+
+  const g=String(s.gate_status||'OK').toUpperCase();
+
+  const e=Number(s.evidence_average);
+
+  const p=Number(s.provisional_normalized);
+
+  if(
+    g==='FAILED' ||
+    (Number.isFinite(e)&&e<5) ||
+    (Number.isFinite(p)&&p<5)
+  ){
+    return'red'
+  }
+
+  if(
+    (Number.isFinite(e)&&e<6) ||
+    (Number.isFinite(p)&&p<6)
+  ){
+    return'yellow'
+  }
+
+  if(
+    s.evidence_average==null &&
+    s.provisional_normalized==null
+  ){
+    return'gray'
+  }
+
+  return'green'
+}
+
+function riskLabel(r){
+
+  return{
+    red:'🔴 Revisión',
+    yellow:'🟡 Atención',
+    green:'🟢 Normal',
+    gray:'⚪ Sin evidencias'
+  }[r]
+
+}
+
+function gateLabel(g){
+
+  g=String(g||'OK').toUpperCase();
+
+  return g==='FAILED'
+    ?'❌ No superado'
+    :g==='PENDING'
+      ?'⏳ Pendiente'
+      :'✅ Cumplido'
+
+}
+
+function trendLabel(s){
+
+  const st=String(s.trend_status||'INSUFFICIENT');
+
+  if(st==='DECLINE'){
+    return'<span class="trend down">📉 '+n(s.trend_delta)+'</span>'
+  }
+
+  if(st==='IMPROVING'){
+    return'<span class="trend up">📈 +'+n(s.trend_delta)+'</span>'
+  }
+
+  if(st==='STABLE'){
+    return'<span class="trend flat">→ '+n(s.trend_delta)+'</span>'
+  }
+
+  return'<span class="muted">—</span>'
+
+}
+
+function setLoading(x){
+  $('#spinner').classList.toggle('show',!!x)
+}
+
+function notice(m){
+
+  const e=$('#notice');
+
+  e.textContent=m;
+
+  e.style.display=m?'block':'none'
+
+}
 
 async function rpc(name,body){
-  if(!SBURL||!SBKEY||!TOKEN_MEMORY)throw new Error('Falta autorización del panel. Ábrelo desde Telegram.');
-  const r=await fetch(`${SBURL}/rest/v1/rpc/${name}`,{
-    method:'POST',
-    headers:{'Content-Type':'application/json','apikey':SBKEY,'Authorization':`Bearer ${SBKEY}`},
-    body:JSON.stringify(body)
-  });
-  if(!r.ok)throw new Error(`Supabase ${r.status}`);
+
+  if(!SBURL||!SBKEY||!TOKEN_MEMORY){
+    throw new Error(
+      'Falta autorización. Abre Analytics desde Telegram.'
+    )
+  }
+
+  const r=await fetch(
+    `${SBURL}/rest/v1/rpc/${name}`,
+    {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SBKEY,
+        'Authorization':`Bearer ${SBKEY}`
+      },
+      body:JSON.stringify(body)
+    }
+  );
+
+  if(!r.ok){
+    throw new Error(`Supabase ${r.status}`)
+  }
+
   const d=await r.json();
-  if(d&&d.ok===false&&d.error==='invalid_or_expired_token')throw new Error('La sesión docente ha caducado. Vuelve a abrir Analytics desde Telegram.');
-  return d;
+
+  if(d&&d.ok===false){
+
+    throw new Error(
+      d.error==='invalid_or_expired_token'
+      ?'La sesión ha caducado. Vuelve a abrir Analytics desde Telegram.'
+      :d.error
+    )
+
+  }
+
+  return d
+
 }
 
 function renderMetrics(){
-  const ss=DATA.students||[], withEv=ss.filter(s=>Number(s.evidence_count||0)>0);
-  const rr=ss.map(risk);
-  $('#mStudents').textContent=ss.length;
-  $('#mEvidence').textContent=withEv.length;
-  $('#mAvgEvidence').textContent=n(avg(withEv.map(s=>s.evidence_average)));
-  $('#mOfficial').textContent=n(avg(withEv.map(s=>s.provisional_normalized)));
-  $('#mRisk').textContent=rr.filter(x=>x==='red'||x==='yellow').length;
-  $('#mConfig').textContent=n(DATA.config_status?.configured_official_weight,0)+'%';
-  $('#generated').textContent=DATA.generated_at?'Actualizado '+new Date(DATA.generated_at).toLocaleString('es-ES'):'';
+
+  const s=DATA.students||[];
+
+  const w=s.filter(
+    x=>Number(x.evidence_count||0)>0
+  );
+
+  $('#mStudents').textContent=s.length;
+
+  $('#mEvidence').textContent=w.length;
+
+  $('#mAvgEvidence').textContent=
+    n(avg(w.map(x=>x.evidence_average)));
+
+  $('#mOfficial').textContent=
+    n(avg(w.map(x=>x.provisional_normalized)));
+
+  $('#mDecline').textContent=
+    s.filter(x=>x.trend_status==='DECLINE').length;
+
+  $('#mConfig').textContent=
+    n(DATA.config_status?.configured_official_weight,0)+'%';
+
+  $('#generated').textContent=
+    DATA.generated_at
+    ?'Actualizado '+new Date(DATA.generated_at)
+      .toLocaleString('es-ES')
+    :'';
+
 }
+
 function renderComponents(){
-  const official=(DATA.components||[]).filter(c=>c.official&&c.active);
-  const scores=DATA.component_scores||[];
-  $('#components').innerHTML=official.map(c=>{
-    const vals=scores.filter(x=>x.component_code===c.code&&x.component_score!=null).map(x=>Number(x.component_score));
-    const gate=c.required_to_pass?` · requisito ≥${n(c.minimum_score,1)}`:'';
-    return `<div class="comp"><b>${esc(c.name)}</b><strong>${n(avg(vals))}</strong><small>media grupo /10 · ${n(c.weight_percent,0)}%${gate}</small></div>`;
-  }).join('')||'<div class="empty">Sin configuración.</div>';
+
+  const off=(DATA.components||[])
+    .filter(c=>c.official&&c.active);
+
+  const sc=DATA.component_scores||[];
+
+  $('#components').innerHTML=
+    off.map(c=>{
+
+      const v=sc
+        .filter(
+          x=>
+          x.component_code===c.code &&
+          x.component_score!=null
+        )
+        .map(x=>Number(x.component_score));
+
+      return`
+        <div class="comp">
+          <b>${esc(c.name)}</b>
+          <strong>${n(avg(v))}</strong>
+          <small>
+          media /10 · ${n(c.weight_percent,0)}%
+          ${c.required_to_pass?' · requisito':''}
+          </small>
+        </div>
+      `
+
+    }).join('')
+
 }
-function gameFor(uid){return (DATA.gamification||[]).find(g=>String(g.telegram_user_id)===String(uid))||{}}
+
+function renderClassTopics(){
+
+  const m=new Map(
+    (DATA.class_topic_scores||[])
+    .map(x=>[Number(x.topic_number),x])
+  );
+
+  let h='';
+
+  for(let t=1;t<=8;t++){
+
+    const x=m.get(t);
+
+    const v=x?Number(x.class_topic_score):null;
+
+    const p=
+      Number.isFinite(v)
+      ?Math.max(0,Math.min(100,v*10))
+      :0;
+
+    h+=`
+      <div class="topicrow">
+        <b>T${t}</b>
+        <div class="bar">
+          <i style="width:${p}%"></i>
+        </div>
+        <span>${n(v,1)}</span>
+      </div>
+    `
+
+  }
+
+  $('#classTopics').innerHTML=h
+
+}
+
+function gameFor(uid){
+
+  return(DATA.gamification||[])
+  .find(
+    g=>String(g.telegram_user_id)===String(uid)
+  )||{}
+
+}
+
 function filtered(){
-  const q=$('#search').value.trim().toLowerCase(), rf=$('#riskFilter').value, sort=$('#sort').value;
-  let xs=(DATA.students||[]).filter(s=>{
-    const hay=(String(s.full_name||'')+' '+String(s.student_code||'')).toLowerCase();
-    return (!q||hay.includes(q))&&(rf==='all'||risk(s)===rf);
+
+  const q=
+    $('#search').value.trim().toLowerCase();
+
+  const f=
+    $('#riskFilter').value;
+
+  const sort=
+    $('#sort').value;
+
+  let x=(DATA.students||[])
+  .filter(s=>{
+
+    const hay=
+      (
+        String(s.full_name||'')+
+        ' '+
+        String(s.student_code||'')
+      ).toLowerCase();
+
+    const ok=
+      f==='all' ||
+      (
+        f==='decline'
+        ?s.trend_status==='DECLINE'
+        :risk(s)===f
+      );
+
+    return(
+      (!q||hay.includes(q)) &&
+      ok
+    )
+
   });
-  const ro={red:0,yellow:1,gray:2,green:3};
-  xs.sort((a,b)=>{
-    if(sort==='name')return String(a.full_name||'').localeCompare(String(b.full_name||''),'es');
-    if(sort==='officialDesc')return (Number(b.provisional_normalized)||-99)-(Number(a.provisional_normalized)||-99);
-    if(sort==='evidenceDesc')return (Number(b.evidence_average)||-99)-(Number(a.evidence_average)||-99);
-    return (ro[risk(a)]-ro[risk(b)])||String(a.full_name||'').localeCompare(String(b.full_name||''),'es');
+
+  const ro={
+    red:0,
+    yellow:1,
+    gray:2,
+    green:3
+  };
+
+  x.sort((a,b)=>{
+
+    if(sort==='name'){
+      return String(a.full_name||'')
+      .localeCompare(
+        String(b.full_name||''),
+        'es'
+      )
+    }
+
+    if(sort==='trend'){
+
+      const av=
+        a.trend_delta==null
+        ?99
+        :Number(a.trend_delta);
+
+      const bv=
+        b.trend_delta==null
+        ?99
+        :Number(b.trend_delta);
+
+      return av-bv
+
+    }
+
+    if(sort==='officialDesc'){
+
+      return(
+        (Number(b.provisional_normalized)||-99)-
+        (Number(a.provisional_normalized)||-99)
+      )
+
+    }
+
+    return(
+      (ro[risk(a)]-ro[risk(b)]) ||
+      (
+        (a.trend_status==='DECLINE'?-1:0)-
+        (b.trend_status==='DECLINE'?-1:0)
+      ) ||
+      String(a.full_name||'')
+      .localeCompare(
+        String(b.full_name||''),
+        'es'
+      )
+    )
+
   });
-  return xs;
+
+  return x
+
 }
+
 function renderTable(){
-  const xs=filtered();
-  $('#tbody').innerHTML=xs.map(s=>{
-    const r=risk(s), g=gameFor(s.telegram_user_id), pct=Math.max(0,Math.min(100,Number(s.graded_official_weight)||0));
-    return `<tr data-uid="${esc(s.telegram_user_id)}">
-      <td><div class="student">${esc(s.full_name||s.student_code||s.telegram_user_id)}</div><div class="code">${esc(s.student_code||'')} ${s.group_name?'· '+esc(s.group_name):''}</div></td>
-      <td><span class="badge ${r}">${riskLabel(r)}</span></td>
-      <td><span class="score">${n(s.evidence_average)}</span><div class="code">${Number(s.evidence_count||0)} registros</div></td>
-      <td><span class="score">${n(s.provisional_normalized)}</span></td>
-      <td><span class="score">${n(s.graded_official_weight,0)}%</span><div class="progress"><i style="width:${pct}%"></i></div></td>
-      <td>${gateLabel(s.gate_status)}</td>
-      <td><b>${Number(g.pp||0)} PP</b><div class="code">${esc(g.level_name||'Aspirante')}</div></td>
-      <td>${Number(g.medals||0)} / 8</td>
-    </tr>`;
-  }).join('')||'<tr><td colspan="8" class="empty">No hay alumnos en este filtro.</td></tr>';
-  document.querySelectorAll('#tbody tr[data-uid]').forEach(tr=>tr.addEventListener('click',()=>openStudent(tr.dataset.uid)));
+
+  const x=filtered();
+
+  $('#tbody').innerHTML=
+    x.map(s=>{
+
+      const r=risk(s);
+
+      const g=gameFor(
+        s.telegram_user_id
+      );
+
+      const pct=
+        Math.max(
+          0,
+          Math.min(
+            100,
+            Number(
+              s.graded_official_weight
+            )||0
+          )
+        );
+
+      return`
+      <tr data-uid="${esc(s.telegram_user_id)}">
+
+      <td>
+        <div class="student">
+          ${esc(
+            s.full_name||
+            s.student_code||
+            s.telegram_user_id
+          )}
+        </div>
+
+        <div class="code">
+          ${esc(s.student_code||'')}
+          ${s.group_name
+            ?'· '+esc(s.group_name)
+            :''
+          }
+        </div>
+      </td>
+
+      <td>
+        <span class="badge ${r}">
+          ${riskLabel(r)}
+        </span>
+      </td>
+
+      <td class="score">
+        ${n(s.evidence_average)}
+        <div class="code">
+          ${Number(s.evidence_count||0)}
+          registros
+        </div>
+      </td>
+
+      <td class="score">
+        ${n(
+          s.provisional_normalized
+        )}
+      </td>
+
+      <td>
+        <span class="score">
+          ${n(
+            s.graded_official_weight,
+            0
+          )}%
+        </span>
+
+        <div class="progress">
+          <i style="width:${pct}%"></i>
+        </div>
+      </td>
+
+      <td>
+        ${trendLabel(s)}
+      </td>
+
+      <td>
+        ${gateLabel(
+          s.gate_status
+        )}
+      </td>
+
+      <td>
+        <b>
+          ${Number(g.pp||0)} PP
+        </b>
+
+        <div class="code">
+          ${esc(
+            g.level_name||
+            'Aspirante'
+          )}
+        </div>
+      </td>
+
+      <td>
+        ${Number(g.medals||0)}/8
+      </td>
+
+      </tr>
+      `
+
+    }).join('')
+    ||
+    `
+    <tr>
+      <td colspan="9" class="empty">
+        No hay alumnos en este filtro.
+      </td>
+    </tr>
+    `;
+
+  document
+  .querySelectorAll(
+    '#tbody tr[data-uid]'
+  )
+  .forEach(
+    tr=>
+    tr.onclick=
+      ()=>openStudent(
+        tr.dataset.uid
+      )
+  )
+
+}
+
+function sparkSVG(timeline){
+
+  const a=(timeline||[])
+  .filter(
+    x=>x.effective_score!=null
+  );
+
+  if(a.length<2){
+
+    return`
+      <div class="empty">
+      Aún no hay suficientes notas
+      para dibujar una evolución.
+      </div>
+    `
+
+  }
+
+  const W=620;
+  const H=190;
+  const P=24;
+
+  const pts=
+    a.map(
+      (x,i)=>{
+
+        const xx=
+          P+
+          i*
+          (W-2*P)/
+          (a.length-1);
+
+        const yy=
+          H-P-
+          (
+            Number(
+              x.effective_score
+            )/10
+          )*
+          (H-2*P);
+
+        return[
+          xx,
+          yy,
+          x
+        ]
+
+      }
+    );
+
+  const poly=
+    pts.map(
+      p=>p[0]+','+p[1]
+    ).join(' ');
+
+  const circles=
+    pts.map(
+      p=>`
+        <circle
+        cx="${p[0]}"
+        cy="${p[1]}"
+        r="4">
+
+        <title>
+        ${esc(p[2].item_title)}:
+        ${n(p[2].effective_score)}/10
+        </title>
+
+        </circle>
+      `
+    ).join('');
+
+  return`
+    <div class="chartbox">
+
+    <svg
+    class="spark"
+    viewBox="0 0 ${W} ${H}"
+    preserveAspectRatio="none">
+
+    <line
+    x1="${P}"
+    y1="${H-P}"
+    x2="${W-P}"
+    y2="${H-P}"
+    stroke="#cfd9e2"/>
+
+    <line
+    x1="${P}"
+    y1="${P}"
+    x2="${P}"
+    y2="${H-P}"
+    stroke="#cfd9e2"/>
+
+    <polyline
+    points="${poly}"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="3"
+    style="color:#0b3c5d"/>
+
+    ${circles}
+
+    </svg>
+
+    </div>
+  `
+
+}
+
+function studentTopics(list){
+
+  const m=
+    new Map(
+      (list||[])
+      .map(
+        x=>[
+          Number(x.topic_number),
+          x
+        ]
+      )
+    );
+
+  let h='';
+
+  for(let t=1;t<=8;t++){
+
+    const x=m.get(t);
+
+    const v=
+      x
+      ?Number(x.topic_score)
+      :null;
+
+    const p=
+      Number.isFinite(v)
+      ?Math.max(
+        0,
+        Math.min(
+          100,
+          v*10
+        )
+      )
+      :0;
+
+    h+=`
+      <div class="topicrow">
+
+      <b>T${t}</b>
+
+      <div class="bar">
+        <i style="width:${p}%"></i>
+      </div>
+
+      <span>
+        ${n(v,1)}
+      </span>
+
+      </div>
+    `
+
+  }
+
+  return h
+
 }
 
 async function openStudent(uid){
-  setLoading(true);notice('');
+
+  setLoading(true);
+
+  notice('');
+
   try{
-    const d=await rpc('cenqal_analytics_web_student',{p_token:TOKEN_MEMORY,p_telegram_user_id:Number(uid)});
-    const s=d.student||{}, comps=d.components||[], grades=d.grades||[], game=d.gamification||{};
-    $('#dName').textContent=s.full_name||s.student_code||'Alumno';
-    $('#dMeta').textContent=[s.student_code,s.group_name].filter(Boolean).join(' · ');
-    const compHtml=comps.map(c=>`<div class="grade"><div><b>${esc(c.component_name||c.component_code)}</b><small>${c.official?`${n(c.component_weight_percent,0)}% oficial`:'evidencia no baremada'}</small></div><div class="score">${n(c.component_score)}/10</div></div>`).join('');
-    const gradeHtml=grades.slice(0,30).map(g=>`<div class="grade"><div><b>${esc(g.item_title||g.item_code)}</b><small>${esc(g.component_name||g.component_code)}${g.teacher_override_score!=null?' · corrección docente':''}</small></div><div class="score">${n(g.effective_score)}/10</div></div>`).join('');
+
+    const d=
+      await rpc(
+        'cenqal_analytics_web_student',
+        {
+          p_token:TOKEN_MEMORY,
+          p_telegram_user_id:Number(uid)
+        }
+      );
+
+    const s=
+      d.student||{};
+
+    const c=
+      d.components||[];
+
+    const g=
+      d.gamification||{};
+
+    const grades=
+      d.grades||[];
+
+    $('#dName').textContent=
+      s.full_name||
+      s.student_code||
+      'Alumno';
+
+    $('#dMeta').textContent=
+      [
+        s.student_code,
+        s.group_name
+      ]
+      .filter(Boolean)
+      .join(' · ');
+
+    const ch=
+      c.map(
+        x=>`
+          <div class="grade">
+
+          <div>
+
+          <b>
+            ${esc(
+              x.component_name||
+              x.component_code
+            )}
+          </b>
+
+          <small>
+            ${
+              x.official
+              ?`${n(
+                x.component_weight_percent,
+                0
+              )}% oficial`
+              :'evidencia'
+            }
+          </small>
+
+          </div>
+
+          <div class="score">
+            ${n(
+              x.component_score
+            )}/10
+          </div>
+
+          </div>
+        `
+      ).join('');
+
+    const gh=
+      grades.slice(0,30)
+      .map(
+        x=>`
+          <div class="grade">
+
+          <div>
+
+          <b>
+            ${esc(
+              x.item_title||
+              x.item_code
+            )}
+          </b>
+
+          <small>
+
+          ${esc(
+            x.component_name||
+            x.component_code
+          )}
+
+          ${
+            x.topic_number
+            ?' · T'+x.topic_number
+            :''
+          }
+
+          ${
+            x.teacher_override_score!=null
+            ?' · corrección docente'
+            :''
+          }
+
+          </small>
+
+          </div>
+
+          <div class="score">
+            ${n(
+              x.effective_score
+            )}/10
+          </div>
+
+          </div>
+        `
+      ).join('');
+
     $('#drawerBody').innerHTML=`
-      <div class="detailgrid">
-        <div class="dcard"><label>Evidencias</label><strong>${n(s.evidence_average)}</strong></div>
-        <div class="dcard"><label>Nota provisional</label><strong>${n(s.provisional_normalized)}</strong></div>
-        <div class="dcard"><label>Evaluado</label><strong>${n(s.graded_official_weight,0)}%</strong></div>
-        <div class="dcard"><label>PP</label><strong>${Number(game.pp||0)}</strong></div>
-        <div class="dcard"><label>Rango</label><strong style="font-size:14px">${esc(game.level_name||'Aspirante')}</strong></div>
-        <div class="dcard"><label>Medallas</label><strong>${Number(game.medals||0)}/8</strong></div>
-      </div>
-      <div class="badge ${risk(s)}">${riskLabel(risk(s))}</div>
-      <div style="margin-top:8px">${gateLabel(s.gate_status)}</div>
-      <div class="sectiontitle">Componentes</div>${compHtml||'<div class="muted">Sin componentes calificados.</div>'}
-      <div class="sectiontitle">Historial de evidencias</div>${gradeHtml||'<div class="muted">Sin notas registradas.</div>'}
-      <div class="sectiontitle">Trazabilidad</div>
-      <div class="muted">Las correcciones docentes se conservan como override y el historial original permanece almacenado en CENQAL.</div>
+
+    <div class="detailgrid">
+
+    <div class="dcard">
+      <label>Evidencias</label>
+      <strong>
+        ${n(s.evidence_average)}
+      </strong>
+    </div>
+
+    <div class="dcard">
+      <label>Nota provisional</label>
+      <strong>
+        ${n(
+          s.provisional_normalized
+        )}
+      </strong>
+    </div>
+
+    <div class="dcard">
+      <label>Evaluado</label>
+      <strong>
+        ${n(
+          s.graded_official_weight,
+          0
+        )}%
+      </strong>
+    </div>
+
+    <div class="dcard">
+      <label>Tendencia</label>
+
+      <strong style="font-size:15px">
+
+      ${
+        s.trend_status==='DECLINE'
+        ?'📉 caída'
+        :s.trend_status==='IMPROVING'
+          ?'📈 mejora'
+          :s.trend_status==='STABLE'
+            ?'→ estable'
+            :'—'
+      }
+
+      </strong>
+
+    </div>
+
+    <div class="dcard">
+
+      <label>PP / rango</label>
+
+      <strong style="font-size:14px">
+
+      ${Number(g.pp||0)}
+      ·
+      ${esc(
+        g.level_name||
+        'Aspirante'
+      )}
+
+      </strong>
+
+    </div>
+
+    <div class="dcard">
+
+      <label>Medallas</label>
+
+      <strong>
+        ${Number(g.medals||0)}/8
+      </strong>
+
+    </div>
+
+    </div>
+
+    <div class="sectiontitle">
+      Evolución temporal
+    </div>
+
+    ${sparkSVG(d.timeline)}
+
+    <div class="sectiontitle">
+      Dominio por temas
+    </div>
+
+    <div class="topicwrap">
+      ${studentTopics(
+        d.topic_scores
+      )}
+    </div>
+
+    <div class="sectiontitle">
+      Componentes
+    </div>
+
+    ${
+      ch||
+      '<div class="muted">Sin componentes.</div>'
+    }
+
+    <div class="sectiontitle">
+      Últimas evidencias
+    </div>
+
+    ${
+      gh||
+      '<div class="muted">Sin notas.</div>'
+    }
+
     `;
-    $('#drawerBack').style.display='block';
-  }catch(e){notice(e.message)}
-  finally{setLoading(false)}
+
+    $('#drawerBack').style.display=
+      'block';
+
+  }
+
+  catch(e){
+
+    notice(e.message)
+
+  }
+
+  finally{
+
+    setLoading(false)
+
+  }
+
 }
-function closeDrawer(){ $('#drawerBack').style.display='none' }
+
+function closeDrawer(){
+
+  $('#drawerBack').style.display=
+    'none'
+
+}
 
 async function load(){
-  setLoading(true);notice('');
+
+  setLoading(true);
+
+  notice('');
+
   try{
-    const d=await rpc('cenqal_analytics_web_snapshot',{p_token:TOKEN_MEMORY});
-    DATA=d||{};
-    renderMetrics();renderComponents();renderTable();
-  }catch(e){notice(e.message)}
-  finally{setLoading(false)}
+
+    DATA=
+      await rpc(
+        'cenqal_analytics_web_snapshot',
+        {
+          p_token:TOKEN_MEMORY
+        }
+      );
+
+    renderMetrics();
+
+    renderComponents();
+
+    renderClassTopics();
+
+    renderTable();
+
+  }
+
+  catch(e){
+
+    notice(e.message)
+
+  }
+
+  finally{
+
+    setLoading(false)
+
+  }
+
 }
 
-$('#refreshBtn').addEventListener('click',load);
-$('#search').addEventListener('input',renderTable);
-$('#riskFilter').addEventListener('change',renderTable);
-$('#sort').addEventListener('change',renderTable);
-$('#closeDrawer').addEventListener('click',closeDrawer);
-$('#drawerBack').addEventListener('click',e=>{if(e.target===$('#drawerBack'))closeDrawer()});
+$('#refreshBtn').onclick=
+  load;
+
+$('#search').oninput=
+  renderTable;
+
+$('#riskFilter').onchange=
+  renderTable;
+
+$('#sort').onchange=
+  renderTable;
+
+$('#closeDrawer').onclick=
+  closeDrawer;
+
+$('#drawerBack').onclick=
+  e=>{
+    if(e.target===$('#drawerBack')){
+      closeDrawer()
+    }
+  };
 
 load();
+
 </script>
+
 </body>
 </html>
