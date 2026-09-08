@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#11110f">
-<title>CENQAL Atlas</title>
+<title>CENQAL Atlas · v57.1</title>
 <style>
 :root{
  --ink:#11110f;--paper:#f3efe6;--card:#fffdf8;--muted:#777268;--line:#d9d1c3;
@@ -54,7 +54,18 @@ textarea{min-height:105px;resize:vertical;line-height:1.45}.short{min-height:72p
 .empty{padding:28px 10px;text-align:center;color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 13px;font-size:12px;z-index:100;max-width:85%;display:none}
 .back{border:0;background:none;padding:5px 0;font-weight:800}.hidden{display:none!important}
-@media(min-width:650px){.grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(4,1fr)}}
+.previewBar{border:2px solid var(--ink);background:#fff7df;padding:12px;margin:10px 0 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.previewBar strong{font-family:Georgia,serif;font-size:17px}.previewBar small{color:var(--muted)}
+.previewBtns{display:flex;gap:8px;flex-wrap:wrap}.previewBtns .action{flex:1;min-width:145px}
+.reviewActions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+.reviewActions .action{width:100%}
+.action.bad{background:var(--bad)}
+.action.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.readonlyField textarea,.readonlyField input{background:#f7f4ed;color:var(--ink)}
+@media(min-width:650px){
+ .grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(4,1fr)}
+ .reviewActions{grid-template-columns:repeat(3,1fr)}
+}
 </style>
 </head>
 <body>
@@ -70,7 +81,7 @@ const qp=new URLSearchParams(location.search);
 const SBURL=qp.get('sburl')||'';
 const SBKEY=qp.get('sbkey')||'';
 const TOKEN=qp.get('token')||'';
-let DATA=null, VIEW='home', CURRENT=null;
+let DATA=null, VIEW='home', CURRENT=null, PREVIEW_GROUP=null;
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const val=id=>document.getElementById(id)?.value??'';
@@ -97,6 +108,34 @@ function nav(active){
  </div>`;
 }
 function go(v){VIEW=v;CURRENT=null;render();window.scrollTo({top:0,behavior:'smooth'})}
+
+function previewNav(active){
+ return `<div class="nav">
+ <button class="${active==='home'?'active':''}" onclick="previewGo('home')">🗺️ Atlas</button>
+ <button class="${active==='session'?'active':''}" onclick="previewGo('session')">⏱️ Sesión</button>
+ <button class="${active==='model'?'active':''}" onclick="previewGo('model')">📐 Modelo póster</button>
+ <button onclick="exitStudentPreview()">← Panel docente</button>
+ </div>`;
+}
+function openStudentPreview(group){
+ PREVIEW_GROUP=group;CURRENT=null;VIEW='preview_home';render();window.scrollTo({top:0,behavior:'smooth'})
+}
+function exitStudentPreview(){
+ PREVIEW_GROUP=null;CURRENT=null;VIEW='home';render();window.scrollTo({top:0,behavior:'smooth'})
+}
+function previewGo(v){
+ CURRENT=null;VIEW='preview_'+v;render();window.scrollTo({top:0,behavior:'smooth'})
+}
+function openPreviewFood(code){
+ CURRENT=code;VIEW='preview_food';render();window.scrollTo({top:0,behavior:'smooth'})
+}
+function previewOnly(){
+ toast('👁 Vista alumno · solo lectura')
+}
+function previewField(id,label,help,short=false){
+ const e=entryFor(CURRENT);
+ return `<div class="readonlyField"><label class="label">${label}</label><div class="help">${help}</div><textarea class="${short?'short':''}" readonly>${esc(e[id]||'')}</textarea></div>`;
+}
 function entryFor(code){return (DATA.entries||[]).find(e=>e.food_code===code)||{food_code:code,progress_percent:0,status:'not_started'}}
 function foodFor(code){return (DATA.foods||[]).find(f=>f.food_code===code)}
 function statusText(s){return ({not_started:'No iniciado',in_progress:'En curso',profiled:'Perfilado',ready_review:'Listo para revisión',reviewed:'Revisado',final:'Final'})[s]||s}
@@ -249,6 +288,10 @@ function renderModel(){
 }
 
 function renderTeacher(){
+ if(VIEW==='preview_home')return renderTeacherPreviewHome();
+ if(VIEW==='preview_food')return renderTeacherPreviewFood();
+ if(VIEW==='preview_session')return renderTeacherPreviewSession();
+ if(VIEW==='preview_model')return renderTeacherPreviewModel();
  if(VIEW==='model')return renderModelTeacher();
  if(VIEW==='students')return renderStudents();
  if(VIEW==='history')return renderHistory();
@@ -268,6 +311,13 @@ function renderTeacherHome(){
  const a=groupSummary('A'),b=groupSummary('B');
  document.getElementById('root').innerHTML=`${nav('home')}
  <div class="hero"><div class="kicker">Panel docente</div><h2>Gran Atlas CENQAL</h2><p>26 alimentos · 2 equipos · trazabilidad de las sesiones de dos horas.</p></div>
+ <div class="previewBar">
+   <div><strong>👁 Comprobar experiencia del alumnado</strong><br><small>Abre una simulación de solo lectura con los mismos botones y contenidos que verá cada equipo.</small></div>
+   <div class="previewBtns">
+     <button class="action alt" onclick="openStudentPreview('A')">👁 Vista alumno A</button>
+     <button class="action alt" onclick="openStudentPreview('B')">👁 Vista alumno B</button>
+   </div>
+ </div>
  ${[a,b].map(x=>`<div class="card teacherGroup"><div class="kicker">${esc(x.g.name||'')}</div><h2 class="sectionTitle">${x.fs.length} alimentos · ${x.avg}%</h2>
  <div class="stats"><div class="stat"><b>${x.members}</b><span>ALUMNOS</span></div><div class="stat"><b>${x.reviewed}</b><span>REVISADOS</span></div><div class="stat"><b>${x.avg}%</b><span>PROGRESO</span></div></div>
  <p class="help">Última sesión cerrada: ${x.last?`${fmt(x.last.closed_at)} · ${esc(foodFor(x.last.food_code)?.name)}`:'—'}</p>
@@ -306,14 +356,128 @@ function renderTeacherFood(){
  ${[['Matriz','matrix_text'],['Moléculas','molecules_text'],['Proceso','processing_text'],['Transformaciones','transformations_text'],['Agua / aᵥ','water_aw_text'],['Química → percepción','sensory_text'],['Estabilidad','stability_text'],['Control tecnológico','industry_text'],['Esquema','scheme_text'],['Conclusión','conclusion_text'],['Dato','surprising_fact_text'],['Fuentes','sources_text']].map(x=>`<div class="reviewBox"><b>${x[0]}</b><p>${esc(e[x[1]]||'—')}</p></div>`).join('')}
  ${e.poster_url?`<p><a href="${esc(e.poster_url)}" target="_blank">↗ Abrir póster del equipo</a></p>`:''}
  </div>
- <div class="card"><h3 class="sectionTitle">Revisión docente</h3><textarea id="t_feedback">${esc(e.teacher_feedback||'')}</textarea>
- <div class="row" style="margin-top:8px"><select id="t_status"><option value="reviewed">Revisado</option><option value="in_progress">Devolver a trabajo</option><option value="final">Final</option></select><button class="action" onclick="teacherReview('${esc(f.group_code)}','${esc(f.food_code)}')">Guardar revisión</button></div></div>
+ <div class="card"><h3 class="sectionTitle">Revisión docente</h3>
+ <div class="help">Estado actual: <b>${esc(statusText(e.status))}</b>. Escribe el comentario y pulsa directamente la acción que corresponda.</div>
+ <textarea id="t_feedback">${esc(e.teacher_feedback||'')}</textarea>
+ <div class="reviewActions">
+   <button class="action warn" onclick="teacherReview('${esc(f.group_code)}','${esc(f.food_code)}','in_progress')">↩️ Devolver a trabajo</button>
+   <button class="action good" onclick="teacherReview('${esc(f.group_code)}','${esc(f.food_code)}','reviewed')">✅ Marcar revisado</button>
+   <button class="action" onclick="teacherReview('${esc(f.group_code)}','${esc(f.food_code)}','final')">🏁 Validar como final</button>
+ </div></div>
  <div class="card"><h3 class="sectionTitle">Sesiones sobre este alimento</h3>${ss.map(s=>`<div class="sessionItem"><b>${fmt(s.started_at)}</b><div>${esc(s.objective)}</div>${s.work_done?`<div class="help">${esc(s.work_done)}</div>`:''}</div>`).join('')||'—'}</div>`;
 }
-async function teacherReview(g,c){
- try{let d=await rpc('cenqal_atlas_teacher_review',{p_token:TOKEN,p_group_code:g,p_food_code:c,p_status:val('t_status'),p_feedback:val('t_feedback')});if(!d.ok)throw new Error(d.error);toast('Revisión guardada');await refresh(true)}
- catch(e){toast('⚠️ '+e.message)}
+async function teacherReview(g,c,status){
+ try{
+   let d=await rpc('cenqal_atlas_teacher_review',{p_token:TOKEN,p_group_code:g,p_food_code:c,p_status:status,p_feedback:val('t_feedback')});
+   if(!d.ok)throw new Error(d.error);
+   toast(status==='in_progress'?'↩️ Devuelta al equipo':status==='final'?'✅ Ficha validada como final':'✅ Revisión guardada');
+   await refresh(true)
+ }catch(e){toast('⚠️ '+e.message)}
 }
+
+function previewFoods(){
+ return (DATA.foods||[]).filter(f=>f.group_code===PREVIEW_GROUP);
+}
+function previewGroup(){
+ return (DATA.groups||[]).find(g=>g.group_code===PREVIEW_GROUP)||{};
+}
+function renderTeacherPreviewHome(){
+ const g=previewGroup(),fs=previewFoods();
+ const done=fs.filter(f=>['reviewed','final'].includes(entryFor(f.food_code).status)).length;
+ const avg=overall(PREVIEW_GROUP);
+ const open=(DATA.sessions||[]).find(s=>s.group_code===PREVIEW_GROUP&&s.status==='open');
+ document.getElementById('root').innerHTML=`${previewNav('home')}
+ <div class="previewBar"><div><strong>👁 Vista alumno · Grupo ${esc(PREVIEW_GROUP)}</strong><br><small>Simulación docente de solo lectura. Ningún botón modifica el trabajo.</small></div><button class="action small" onclick="exitStudentPreview()">← Volver al panel</button></div>
+ <div class="hero"><div class="kicker">${esc(g.name||('Grupo '+PREVIEW_GROUP))}</div><h2>26 alimentos.<br>Química que transforma.</h2><p>${esc(g.subtitle||'')}</p></div>
+ ${open?`<div class="banner session"><strong>⏱️ Sesión abierta · ${esc(foodFor(open.food_code)?.name)}</strong><small>Desde ${fmt(open.started_at)} · ${esc(open.objective)}</small></div>`:''}
+ <div class="stats"><div class="stat"><b>${fs.length}</b><span>ALIMENTOS</span></div><div class="stat"><b>${done}</b><span>REVISADOS</span></div><div class="stat"><b>${avg}%</b><span>PROGRESO</span></div></div>
+ <h2 class="sectionTitle">Archivo de procesados</h2>
+ <div class="grid">${fs.map(f=>{
+   const e=entryFor(f.food_code);
+   return `<article class="card food" onclick="openPreviewFood('${esc(f.food_code)}')">
+    <div class="foodHead"><div class="num">${esc(f.food_code)} · ${esc(statusText(e.status))}</div><h3>${esc(f.name)}</h3><div class="sub">${esc(f.subtitle||'')}</div></div>
+    <p class="question">${esc(f.research_question)}</p>
+    <div class="chips">${(f.chemistry_focus||[]).slice(0,5).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
+    <div class="foodFoot"><div class="progress"><i style="width:${e.progress_percent||0}%"></i></div><span class="pct">${e.progress_percent||0}%</span></div>
+   </article>`;
+ }).join('')}</div>`;
+}
+
+function renderTeacherPreviewFood(){
+ const f=foodFor(CURRENT),e=entryFor(CURRENT);if(!f)return previewGo('home');
+ const open=(DATA.sessions||[]).find(s=>s.group_code===PREVIEW_GROUP&&s.status==='open');
+ document.getElementById('root').innerHTML=`${previewNav('home')}
+ <div class="previewBar"><div><strong>👁 Vista alumno · Grupo ${esc(PREVIEW_GROUP)}</strong><br><small>Solo lectura. Estás viendo los controles que tendrá el alumnado.</small></div><button class="action small" onclick="exitStudentPreview()">← Panel docente</button></div>
+ <button class="back" onclick="previewGo('home')">← Volver al Atlas</button>
+ <div class="hero"><div class="kicker">${esc(f.food_code)} · ${esc(statusText(e.status))} · ${e.progress_percent||0}%</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
+ <div class="chips">${(f.chemistry_focus||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
+ ${open?`<div class="banner session"><strong>⏱️ Hay una sesión abierta con ${esc(foodFor(open.food_code)?.name)}</strong><small>${esc(open.objective)}</small></div>`:`<button class="action alt" onclick="previewOnly()">⏱️ Iniciar sesión con este alimento</button>`}
+ <div class="card">
+ ${previewField('identity_text','01 · Identidad del producto','Qué es, origen, materias primas y por qué el procesado define su identidad.',true)}
+ ${previewField('matrix_text','02 · Matriz y composición','Describe la matriz alimentaria y los componentes que realmente importan para entender el proceso. Evita una tabla nutricional sin interpretación.')}
+ ${previewField('molecules_text','03 · Moléculas protagonistas','Incluye al menos tres moléculas/estructuras, fórmulas o familias químicas y explica su papel.')}
+ ${previewField('processing_text','04 · Diagrama del procesado','Secuencia materia prima → operaciones → producto. Incluye tiempo, temperatura, pH, sal, microorganismos u otras variables críticas.')}
+ ${previewField('transformations_text','05 · Transformaciones químicas','Mecanismos: reacción, enzima, fermentación, gelificación, cristalización, oxidación, Maillard, hidrólisis, etc.')}
+ ${previewField('water_aw_text','06 · Agua y aᵥ','Contenido/estado del agua, actividad de agua cuando sea relevante y consecuencias para movilidad, textura o estabilidad.')}
+ ${previewField('sensory_text','07 · Química → percepción','Relaciona los cambios químicos con aroma, sabor, color y textura. Deben aparecer cadenas causales.')}
+ ${previewField('stability_text','08 · Qué puede salir mal','Deterioro, inestabilidad, defectos de procesado y mecanismos que los explican.')}
+ ${previewField('industry_text','09 · Control tecnológico','Cómo controla la industria el fenómeno: variables, formulación, proceso, conservación o calidad.')}
+ ${previewField('scheme_text','10 · Esquema integrador','Diseña el esquema visual central del póster: estructura → interacción/reacción → propiedad → consecuencia.')}
+ ${previewField('conclusion_text','11 · Conclusión crítica','Tres ideas que explican el producto y una idea inicial que el grupo haya corregido.')}
+ ${previewField('surprising_fact_text','12 · Dato que sorprende','Un hallazgo breve y verificable que merezca ocupar un lugar visual destacado.',true)}
+ ${previewField('sources_text','13 · Evidencia científica','Mínimo 3 fuentes académicas; al menos una reciente. DOI/PMID/URL y base consultada. CENQAL/Mr. Berilio es punto de partida, no sustituto de la fuente original.')}
+ <label class="label">Enlace al póster</label><div class="help">Canva, Drive u otro enlace de trabajo del equipo.</div><input readonly value="${esc(e.poster_url||'')}" placeholder="https://…">
+ ${e.teacher_feedback?`<div class="banner"><strong>👩‍🏫 Revisión docente</strong><small>${esc(e.teacher_feedback)}</small></div>`:''}
+ </div>
+ <div class="formActions"><button class="action" onclick="previewOnly()">💾 Guardar ficha</button><button class="action alt" onclick="previewOnly()">📨 Enviar a revisión</button></div>`;
+}
+
+function renderTeacherPreviewSession(){
+ const s=(DATA.sessions||[]).find(x=>x.group_code===PREVIEW_GROUP&&x.status==='open');
+ if(!s){
+  document.getElementById('root').innerHTML=`${previewNav('session')}
+  <div class="previewBar"><div><strong>👁 Vista alumno · Grupo ${esc(PREVIEW_GROUP)}</strong><br><small>Solo lectura.</small></div><button class="action small" onclick="exitStudentPreview()">← Panel docente</button></div>
+  <div class="hero"><div class="kicker">Cuaderno de equipo</div><h2>No hay sesión abierta</h2><p>El alumno abrirá un alimento y pulsará “Iniciar sesión”. El reloj y el alimento quedarán registrados.</p></div>`;
+  return;
+ }
+ const f=foodFor(s.food_code);
+ document.getElementById('root').innerHTML=`${previewNav('session')}
+ <div class="previewBar"><div><strong>👁 Vista alumno · Grupo ${esc(PREVIEW_GROUP)}</strong><br><small>Solo lectura.</small></div><button class="action small" onclick="exitStudentPreview()">← Panel docente</button></div>
+ <div class="hero"><div class="kicker">Sesión de trabajo · ${fmt(s.started_at)}</div><h2>${esc(f?.name)}</h2><p>${esc(s.objective)}</p></div>
+ <div class="card session"><div class="sessionTime">⏱️ Trabajo en curso</div><p class="help">Así ve el alumnado una sesión abierta.</p></div>
+ <div class="card">
+ <label class="label">Qué hemos hecho hoy</label><textarea readonly>${esc(s.work_done||'')}</textarea>
+ <label class="label">Conclusiones alcanzadas</label><textarea readonly>${esc(s.conclusions||'')}</textarea>
+ <label class="label">Qué queda pendiente</label><textarea readonly class="short">${esc(s.pending||'')}</textarea>
+ </div>
+ <div class="formActions"><button class="action good" onclick="previewOnly()">✅ Cerrar sesión y registrar</button><button class="action alt" onclick="openPreviewFood('${esc(s.food_code)}')">Editar ficha</button></div>`;
+}
+
+function renderTeacherPreviewModel(){
+ document.getElementById('root').innerHTML=`${previewNav('model')}
+ <div class="previewBar"><div><strong>👁 Vista alumno · Grupo ${esc(PREVIEW_GROUP)}</strong><br><small>Solo lectura.</small></div><button class="action small" onclick="exitStudentPreview()">← Panel docente</button></div>
+ <div class="hero"><div class="kicker">Modelo común del Gran Atlas</div><h2>Un póster científico.<br>No una pared de texto.</h2><p>Todos siguen la misma arquitectura científica, pero cada equipo decide su maquetación, lenguaje visual, esquemas y jerarquía.</p></div>
+ <div class="card">
+ <div class="row"><div><b>A2 vertical</b><div class="help">420 × 594 mm · 300 dpi si se rasteriza</div></div><span class="tag">1 ficha = 1 alimento</span></div>
+ <div class="poster">
+  <div class="title">PRODUCTO<br><small>La gran pregunta química</small></div>
+  <div class="ph"><b>01 · ORIGEN / MATRIZ</b><br>materias primas + composición útil</div>
+  <div class="ph"><b>02 · MOLÉCULAS</b><br>estructuras + protagonistas</div>
+  <div class="ph"><b>03 · PROCESO</b><br>diagrama con variables</div>
+  <div class="ph"><b>04 · QUÉ CAMBIA</b><br>reacciones + mecanismos</div>
+  <div class="ph"><b>05 · QUÍMICA → PERCEPCIÓN</b><br>color · aroma · textura</div>
+  <div class="ph"><b>06 · ESTABILIDAD</b><br>qué puede salir mal</div>
+  <div class="ph wide"><b>ESQUEMA CENTRAL</b><br>estructura → interacción/reacción → propiedad → consecuencia + evidencia</div>
+ </div></div>
+ <div class="card"><h3 class="sectionTitle">Normas de diseño</h3>
+ <p>• Máximo orientativo: <b>700–900 palabras.</b><br>
+ • Al menos <b>40 % del póster debe ser visual</b>.<br>
+ • Una sola idea principal por bloque. Evitar párrafos largos.<br>
+ • Debe aparecer al menos <b>una estructura molecular, un diagrama de proceso y tres cadenas causales</b>.<br>
+ • Mínimo <b>3 fuentes académicas fiables</b>, una de ellas reciente.</p></div>
+ <div class="card"><h3 class="sectionTitle">Pregunta que debe responder cada ficha</h3><p class="question">“¿Qué le hacemos a esta materia y qué cambia molecularmente para que aparezca este alimento?”</p></div>`;
+}
+
 function renderModelTeacher(){const old=DATA.role;DATA.role='student';renderModel();DATA.role=old}
 async function refresh(keep=false){
  try{DATA=await rpc('cenqal_atlas_state',{p_token:TOKEN});if(!keep&&VIEW==='food')VIEW='home';render()}
