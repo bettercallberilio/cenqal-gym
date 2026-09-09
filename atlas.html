@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#11110f">
-<title>CENQAL Atlas · v57.1</title>
+<title>CENQAL Atlas · v57.2</title>
 <style>
 :root{
  --ink:#11110f;--paper:#f3efe6;--card:#fffdf8;--muted:#777268;--line:#d9d1c3;
@@ -62,6 +62,11 @@ textarea{min-height:105px;resize:vertical;line-height:1.45}.short{min-height:72p
 .action.bad{background:var(--bad)}
 .action.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .readonlyField textarea,.readonlyField input{background:#f7f4ed;color:var(--ink)}
+.publishBox{border-top:4px solid var(--good)}
+.publishState{padding:11px 12px;border:1px solid var(--line);margin:8px 0 12px;background:#f7f4ed}
+.publishState.good{border-color:var(--good)}
+.publishState strong{display:block;margin-bottom:4px}
+.resourceId{font-size:10px;color:var(--muted);word-break:break-all}
 @media(min-width:650px){
  .grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(4,1fr)}
  .reviewActions{grid-template-columns:repeat(3,1fr)}
@@ -81,7 +86,7 @@ const qp=new URLSearchParams(location.search);
 const SBURL=qp.get('sburl')||'';
 const SBKEY=qp.get('sbkey')||'';
 const TOKEN=qp.get('token')||'';
-let DATA=null, VIEW='home', CURRENT=null, PREVIEW_GROUP=null;
+let DATA=null, VIEW='home', CURRENT=null, PREVIEW_GROUP=null, PUBDATA={ok:true,publications:[]};
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const val=id=>document.getElementById(id)?.value??'';
@@ -93,10 +98,29 @@ async function rpc(name,body){
  const txt=await r.text();let d;try{d=txt?JSON.parse(txt):{}}catch(e){throw new Error(txt||'Error de servidor')}
  if(!r.ok)throw new Error(d?.message||d?.error||`HTTP ${r.status}`);return d;
 }
+async function loadPublicationState(){
+ if(DATA?.role!=='teacher'){PUBDATA={ok:true,publications:[]};return}
+ try{
+   const d=await rpc('cenqal_atlas_publication_status_v572',{p_token:TOKEN});
+   PUBDATA=d?.ok?d:{ok:false,publications:[]};
+ }catch(e){
+   console.warn('ATLAS PUBLICATION STATUS',e);
+   PUBDATA={ok:false,publications:[]};
+ }
+}
+function publicationFor(group,food){
+ return (PUBDATA?.publications||[]).find(p=>p.group_code===group&&p.food_code===food)||null;
+}
 async function load(){
  if(!TOKEN){document.getElementById('root').innerHTML='<div class="empty">🔒 Abre CENQAL Atlas desde Mr. Berilio.</div>';return}
- try{DATA=await rpc('cenqal_atlas_state',{p_token:TOKEN});if(!DATA?.ok)throw new Error(DATA?.error||'Acceso no válido');render()}
- catch(e){document.getElementById('root').innerHTML=`<div class="empty">⚠️ ${esc(e.message)}<br><br>Vuelve a abrir Atlas desde Telegram.</div>`}
+ try{
+   DATA=await rpc('cenqal_atlas_state',{p_token:TOKEN});
+   if(!DATA?.ok)throw new Error(DATA?.error||'Acceso no válido');
+   await loadPublicationState();
+   render()
+ }catch(e){
+   document.getElementById('root').innerHTML=`<div class="empty">⚠️ ${esc(e.message)}<br><br>Vuelve a abrir Atlas desde Telegram.</div>`
+ }
 }
 function nav(active){
  const teacher=DATA.role==='teacher';
@@ -350,6 +374,30 @@ function renderHistory(){
 function renderTeacherFood(){
  const f=foodFor(CURRENT),e=entryFor(CURRENT);if(!f)return go('home');
  const ss=(DATA.sessions||[]).filter(s=>s.food_code===CURRENT&&s.group_code===f.group_code);
+ const pub=publicationFor(f.group_code,f.food_code);
+ const published=pub?.publication_status==='published';
+
+ let publicationHtml='';
+ if(published){
+   publicationHtml=`<div class="card publishBox"><h3 class="sectionTitle">Publicación en CENQAL</h3>
+   <div class="publishState good"><strong>🌐 Publicada como conocimiento validado</strong>
+   <div class="help">Publicada: ${fmt(pub.published_at)}</div>
+   ${pub.resource_id?`<div class="resourceId">ID recurso: ${esc(pub.resource_id)}</div>`:''}</div>
+   <button class="action bad" onclick="withdrawAtlas('${esc(f.group_code)}','${esc(f.food_code)}')">↩️ Retirar publicación</button>
+   <div class="help" style="margin-top:8px">Retirar no borra la ficha del Atlas. El recurso deja de estar validado para las búsquedas de Mr. Berilio.</div>
+   </div>`;
+ }else if(e.status==='final'){
+   publicationHtml=`<div class="card publishBox"><h3 class="sectionTitle">Publicación en CENQAL</h3>
+   ${pub?.publication_status==='withdrawn'?`<div class="publishState"><strong>↩️ Publicación retirada</strong><div class="help">Puedes volver a publicarla cuando quieras. La ficha sigue intacta.</div></div>`:
+   `<div class="publishState"><strong>✅ Ficha final validada</strong><div class="help">Ya puede incorporarse a la base de conocimiento CENQAL.</div></div>`}
+   <button class="action good" onclick="publishAtlas('${esc(f.group_code)}','${esc(f.food_code)}')">🌐 ${pub?.publication_status==='withdrawn'?'Volver a publicar':'Publicar'} en CENQAL</button>
+   </div>`;
+ }else{
+   publicationHtml=`<div class="card publishBox"><h3 class="sectionTitle">Publicación en CENQAL</h3>
+   <div class="publishState"><strong>🔒 Aún no publicable</strong><div class="help">Primero debes validar esta ficha como <b>Final</b>. Solo después aparecerá el botón de publicación.</div></div>
+   </div>`;
+ }
+
  document.getElementById('root').innerHTML=`${nav('home')}<button class="back" onclick="go('home')">← Volver</button>
  <div class="hero"><div class="kicker">${esc(f.group_code)} · ${esc(f.food_code)} · ${e.progress_percent||0}%</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
  <div class="card"><h3 class="sectionTitle">Ficha del grupo</h3>
@@ -364,15 +412,60 @@ function renderTeacherFood(){
    <button class="action good" onclick="teacherReview('${esc(f.group_code)}','${esc(f.food_code)}','reviewed')">✅ Marcar revisado</button>
    <button class="action" onclick="teacherReview('${esc(f.group_code)}','${esc(f.food_code)}','final')">🏁 Validar como final</button>
  </div></div>
+ ${publicationHtml}
  <div class="card"><h3 class="sectionTitle">Sesiones sobre este alimento</h3>${ss.map(s=>`<div class="sessionItem"><b>${fmt(s.started_at)}</b><div>${esc(s.objective)}</div>${s.work_done?`<div class="help">${esc(s.work_done)}</div>`:''}</div>`).join('')||'—'}</div>`;
 }
 async function teacherReview(g,c,status){
+ const pub=publicationFor(g,c);
+ if(pub?.publication_status==='published' && status!=='final'){
+   alert('Esta ficha está publicada en CENQAL. Antes de devolverla a trabajo o marcarla solo como revisada, retira primero la publicación.');
+   return;
+ }
  try{
    let d=await rpc('cenqal_atlas_teacher_review',{p_token:TOKEN,p_group_code:g,p_food_code:c,p_status:status,p_feedback:val('t_feedback')});
    if(!d.ok)throw new Error(d.error);
    toast(status==='in_progress'?'↩️ Devuelta al equipo':status==='final'?'✅ Ficha validada como final':'✅ Revisión guardada');
    await refresh(true)
  }catch(e){toast('⚠️ '+e.message)}
+}
+
+async function publishAtlas(g,c){
+ if(!confirm('¿Publicar esta ficha en CENQAL como conocimiento validado?')){
+   return;
+ }
+ try{
+   const d=await rpc('cenqal_atlas_publish_v572',{
+     p_token:TOKEN,
+     p_group_code:g,
+     p_food_code:c
+   });
+   if(!d?.ok){
+     if(d?.error==='not_final')throw new Error('La ficha debe estar validada como Final.');
+     throw new Error(d?.detail||d?.error||'No se ha podido publicar');
+   }
+   toast('🌐 Publicada en CENQAL');
+   await refresh(true);
+ }catch(e){
+   toast('⚠️ '+e.message)
+ }
+}
+
+async function withdrawAtlas(g,c){
+ if(!confirm('¿Retirar esta ficha de la base validada de CENQAL? La ficha del Atlas NO se borrará.')){
+   return;
+ }
+ try{
+   const d=await rpc('cenqal_atlas_withdraw_v572',{
+     p_token:TOKEN,
+     p_group_code:g,
+     p_food_code:c
+   });
+   if(!d?.ok)throw new Error(d?.detail||d?.error||'No se ha podido retirar');
+   toast('↩️ Publicación retirada');
+   await refresh(true);
+ }catch(e){
+   toast('⚠️ '+e.message)
+ }
 }
 
 function previewFoods(){
@@ -480,10 +573,16 @@ function renderTeacherPreviewModel(){
 
 function renderModelTeacher(){const old=DATA.role;DATA.role='student';renderModel();DATA.role=old}
 async function refresh(keep=false){
- try{DATA=await rpc('cenqal_atlas_state',{p_token:TOKEN});if(!keep&&VIEW==='food')VIEW='home';render()}
- catch(e){toast('⚠️ '+e.message)}
+ try{
+   DATA=await rpc('cenqal_atlas_state',{p_token:TOKEN});
+   await loadPublicationState();
+   if(!keep&&VIEW==='food')VIEW='home';
+   render()
+ }catch(e){toast('⚠️ '+e.message)}
 }
 load();
 </script>
 </body>
 </html>
+
+
