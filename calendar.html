@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="es">
 <head>
@@ -5,15 +6,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>CENQAL · Agenda</title>
 <style>
-  :root{--bg:#f5f6f8;--card:#ffffff;--text:#171a1f;--muted:#68707c;--line:#e7e9ee;--accent:#5035a5;--accent2:#e9e3ff;--ok:#197a50;--warn:#b26a00;--danger:#b33a3a}
-  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-  .wrap{max-width:760px;margin:auto;padding:18px 14px 34px}.top{background:linear-gradient(135deg,#34236f,#6a48c9);color:white;border-radius:24px;padding:22px;box-shadow:0 8px 24px rgba(36,25,75,.18)}
-  .brand{font-size:12px;letter-spacing:.14em;font-weight:800;opacity:.84}.date{font-size:29px;font-weight:850;margin-top:7px;line-height:1.12}.sub{opacity:.88;margin-top:6px;font-size:14px}
-  .tabs{display:flex;gap:8px;margin:16px 0;overflow:auto}.tab{border:0;border-radius:999px;padding:10px 14px;background:#fff;color:#444;font-weight:750;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.06)}.tab.active{background:var(--accent);color:white}
-  .section{margin:18px 2px 8px;font-size:13px;font-weight:850;letter-spacing:.06em;color:#4e5560}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:15px;margin:10px 0;box-shadow:0 2px 7px rgba(20,24,30,.04)}
-  .row{display:flex;gap:11px;align-items:flex-start}.ico{font-size:24px;line-height:1}.grow{flex:1}.title{font-size:16px;font-weight:820;line-height:1.22}.meta{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.35}.desc{font-size:14px;margin-top:8px;line-height:1.45}.badge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;margin-top:8px;background:var(--accent2);color:#3c2884}
-  .empty{background:white;border:1px dashed #cfd4dc;border-radius:16px;padding:18px;color:var(--muted);text-align:center}.notice{border-left:5px solid var(--accent)}.danger{border-left:5px solid var(--danger)}.today{border-left:5px solid var(--ok)}
-  .foot{color:var(--muted);font-size:12px;text-align:center;margin-top:22px}.error{color:var(--danger);background:#fff1f1;padding:12px;border-radius:12px;margin-top:14px}.loading{padding:28px;text-align:center;color:var(--muted)}
+  :root{--bg:#f5f6f8;--card:#ffffff;--text:#171a1f;--muted:#68707c;--line:#e7e9ee;--accent:#5035a5;--accent2:#e9e3ff;--ok:#197a50;--warn:#b26a00;--danger:#b33a3a;--blue:#2368a2}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  .wrap{max-width:760px;margin:auto;padding:18px 14px 34px}
+  .top{background:linear-gradient(135deg,#34236f,#6a48c9);color:white;border-radius:24px;padding:22px;box-shadow:0 8px 24px rgba(36,25,75,.18)}
+  .brand{font-size:12px;letter-spacing:.14em;font-weight:800;opacity:.84}
+  .date{font-size:29px;font-weight:850;margin-top:7px;line-height:1.12}
+  .sub{opacity:.9;margin-top:6px;font-size:14px;line-height:1.35}
+  .tabs{display:flex;gap:8px;margin:16px 0;overflow:auto;padding-bottom:2px}
+  .tab{border:0;border-radius:999px;padding:10px 14px;background:#fff;color:#444;font-weight:750;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .tab.active{background:var(--accent);color:white}
+  .section{margin:18px 2px 8px;font-size:13px;font-weight:850;letter-spacing:.06em;color:#4e5560}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:15px;margin:10px 0;box-shadow:0 2px 7px rgba(20,24,30,.04)}
+  .row{display:flex;gap:11px;align-items:flex-start}.ico{font-size:24px;line-height:1}.grow{flex:1}
+  .title{font-size:16px;font-weight:820;line-height:1.22}.meta{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.35}.desc{font-size:14px;margin-top:8px;line-height:1.45}
+  .badge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;margin-top:8px;background:var(--accent2);color:#3c2884}
+  .empty{background:white;border:1px dashed #cfd4dc;border-radius:16px;padding:18px;color:var(--muted);text-align:center;line-height:1.45}
+  .notice{border-left:5px solid var(--accent)}.danger{border-left:5px solid var(--danger)}.today{border-left:5px solid var(--ok)}.exam{border-left:5px solid #8c2a2a}.atlas{border-left:5px solid var(--blue)}.portfolio{border-left:5px solid #9a6a00}.challenge{border-left:5px solid #6d43b8}.startup{border-left:5px solid var(--ok)}
+  .foot{color:var(--muted);font-size:12px;text-align:center;margin-top:22px;line-height:1.45}.error{color:var(--danger);background:#fff1f1;padding:12px;border-radius:12px;margin-top:14px}.loading{padding:28px;text-align:center;color:var(--muted)}
   button.refresh{width:100%;margin-top:14px;border:0;border-radius:14px;padding:12px;background:white;font-weight:800;color:#4d397f;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 </style>
 </head>
@@ -27,6 +38,7 @@
 
   <div class="tabs">
     <button class="tab active" data-view="today">Hoy</button>
+    <button class="tab" data-view="week">Esta semana</button>
     <button class="tab" data-view="pending">Pendientes</button>
     <button class="tab" data-view="upcoming">Próximamente</button>
     <button class="tab" data-view="notices">Avisos</button>
@@ -34,70 +46,883 @@
 
   <div id="content" class="loading">Cargando CENQAL Calendar…</div>
   <button class="refresh" onclick="loadAll()">↻ Actualizar agenda</button>
-  <div class="foot">Los avisos personales y las calificaciones siguen llegando de forma privada por Mr. Berilio.</div>
+  <div class="foot">La Semana 1 es de puesta en marcha. La evaluación comienza en la Semana 2. Los avisos personales y las calificaciones siguen llegando de forma privada por Mr. Berilio.</div>
 </div>
+
 <script>
 const p=new URLSearchParams(location.search);
 const SBURL=(p.get('sburl')||'').replace(/\/$/,'');
 const SBKEY=p.get('sbkey')||'';
-let events=[], challenges=[], currentView='today';
-const fmtDate=new Intl.DateTimeFormat('es-ES',{weekday:'long',day:'numeric',month:'long'});
-const fmtTime=new Intl.DateTimeFormat('es-ES',{hour:'2-digit',minute:'2-digit'});
-const fmtShort=new Intl.DateTimeFormat('es-ES',{weekday:'short',day:'2-digit',month:'2-digit'});
-const today=new Date(); today.setHours(0,0,0,0);
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function parseDate(x){if(!x)return null;const d=new Date(x);return isNaN(d)?null:d}
-function sameDay(a,b){return a&&b&&a.getFullYear()==b.getFullYear()&&a.getMonth()==b.getMonth()&&a.getDate()==b.getDate()}
-function icon(t){return ({class:'🟢',practice:'🧪',activity:'🎯',challenge:'📰',exam:'📝',excursion:'🚌',no_class:'⚪',holiday:'🎄',info:'📢'})[t]||'📌'}
-function label(t){return ({class:'Clase',practice:'Práctica',activity:'Actividad',challenge:'Reto',exam:'Examen',excursion:'Excursión',no_class:'Sin clase',holiday:'Festivo',info:'Aviso'})[t]||'Evento'}
+
+let events=[];
+let challenges=[];
+let weeklyChallenges=[];
+let virtualEvents=[];
+let currentView='today';
+
+const fmtDate=new Intl.DateTimeFormat('es-ES',{
+  weekday:'long',
+  day:'numeric',
+  month:'long'
+});
+
+const fmtTime=new Intl.DateTimeFormat('es-ES',{
+  hour:'2-digit',
+  minute:'2-digit'
+});
+
+const fmtShort=new Intl.DateTimeFormat('es-ES',{
+  weekday:'short',
+  day:'2-digit',
+  month:'2-digit'
+});
+
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#039;'
+  }[c]));
+}
+
+function parseDate(x){
+  if(!x)return null;
+  const d=new Date(x);
+  return isNaN(d)?null:d;
+}
+
+function sameDay(a,b){
+  return a&&b&&
+    a.getFullYear()===b.getFullYear()&&
+    a.getMonth()===b.getMonth()&&
+    a.getDate()===b.getDate();
+}
+
+function mondayOf(d){
+  const x=new Date(d);
+  x.setHours(0,0,0,0);
+  const day=(x.getDay()+6)%7;
+  x.setDate(x.getDate()-day);
+  return x;
+}
+
+function sundayOf(d){
+  const x=mondayOf(d);
+  x.setDate(x.getDate()+6);
+  x.setHours(23,59,59,999);
+  return x;
+}
+
+function weekKey(d){
+  const x=mondayOf(d);
+  return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+}
+
+function atTime(d,h,m=0){
+  const x=new Date(d);
+  x.setHours(h,m,0,0);
+  return x;
+}
+
+function isoLocal(d){
+  return d?d.toISOString():null;
+}
+
+function academicYear(){
+  const d=new Date();
+  const y=d.getFullYear();
+  return d.getMonth()>=7?`${y}-${y+1}`:`${y-1}-${y}`;
+}
+
+function norm(s){
+  return String(s||'')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function icon(t){
+  return ({
+    class:'🟢',
+    practice:'🧪',
+    activity:'📌',
+    challenge:'🎯',
+    exam:'📝',
+    portfolio:'📘',
+    atlas:'🗺️',
+    excursion:'🚌',
+    no_class:'⚪',
+    holiday:'🎄',
+    info:'📢',
+    startup:'🎓'
+  })[t]||'📌';
+}
+
+function label(t){
+  return ({
+    class:'Clase',
+    practice:'Práctica',
+    activity:'Actividad',
+    challenge:'Reto semanal',
+    exam:'Examen',
+    portfolio:'Portfolio',
+    atlas:'Atlas de Química',
+    excursion:'Excursión',
+    no_class:'Sin clase',
+    holiday:'Festivo',
+    info:'Aviso',
+    startup:'Puesta en marcha'
+  })[t]||'Evento';
+}
+
+function cardClass(t){
+  return ({
+    exam:'exam',
+    atlas:'atlas',
+    portfolio:'portfolio',
+    challenge:'challenge',
+    startup:'startup',
+    info:'notice'
+  })[t]||'';
+}
+
 async function sb(table,query){
-  if(!SBURL||!SBKEY)throw new Error('Falta la configuración de CENQAL Calendar.');
-  const r=await fetch(`${SBURL}/rest/v1/${table}?${query}`,{headers:{apikey:SBKEY,Authorization:`Bearer ${SBKEY}`}});
-  if(!r.ok)throw new Error(`${table}: ${r.status}`);return await r.json();
-}
-async function loadAll(){
-  document.getElementById('todayTitle').textContent=fmtDate.format(new Date()).replace(/^./,c=>c.toUpperCase());
-  document.getElementById('todaySub').textContent='Tu agenda académica CENQAL de un vistazo';
-  document.getElementById('content').innerHTML='<div class="loading">Actualizando agenda…</div>';
-  let errs=[];
-  try{events=await sb('cenqal_calendar_events','select=id,event_code,event_type,title,description,starts_at,ends_at,location,priority,active&active=eq.true&order=starts_at.asc&limit=250')}catch(e){events=[];errs.push(e.message)}
-  try{challenges=await sb('cenqal_challenges','select=id,challenge_code,title,portfolio_number,deadline,active&active=eq.true&order=deadline.asc&limit=50')}catch(e){challenges=[];errs.push(e.message)}
-  render();
-  if(errs.length && !events.length && !challenges.length){document.getElementById('content').innerHTML=`<div class="error">⚠️ No he podido cargar la agenda. ${esc(errs.join(' · '))}</div>`}
-}
-function eventCard(e,extra=''){
-  const d=parseDate(e.starts_at), end=parseDate(e.ends_at); let when=d?`${fmtShort.format(d)} · ${fmtTime.format(d)}`:'Sin fecha';
-  if(end&&d&&sameDay(d,end))when+=`–${fmtTime.format(end)}`;
-  return `<div class="card ${extra}"><div class="row"><div class="ico">${icon(e.event_type)}</div><div class="grow"><div class="title">${esc(e.title||'Evento')}</div><div class="meta">${esc(when)}${e.location?` · 📍 ${esc(e.location)}`:''}</div>${e.description?`<div class="desc">${esc(e.description)}</div>`:''}<span class="badge">${esc(label(e.event_type))}</span></div></div></div>`
-}
-function challengeCard(c){
-  const d=parseDate(c.deadline);return `<div class="card"><div class="row"><div class="ico">🎯</div><div class="grow"><div class="title">Porfolio ${esc(c.portfolio_number||'')} · ${esc(c.title||c.challenge_code||'Reto')}</div><div class="meta">${d?'Entrega '+fmtShort.format(d)+' · '+fmtTime.format(d):'Sin fecha límite'}</div><span class="badge">Pendiente del curso</span></div></div></div>`
-}
-function render(){
-  const box=document.getElementById('content'); const now=new Date();
-  const futureEvents=events.filter(e=>{const d=parseDate(e.starts_at);return d&&d>=new Date(now.getTime()-6*3600000)});
-  const futureCh=challenges.filter(c=>{const d=parseDate(c.deadline);return d&&d>=now});
-  let html='';
-  if(currentView==='today'){
-    const tod=events.filter(e=>sameDay(parseDate(e.starts_at),now));
-    const notices=events.filter(e=>e.event_type==='info'&&sameDay(parseDate(e.starts_at),now));
-    html='<div class="section">HOY</div>'+(tod.length?tod.map(e=>eventCard(e,e.event_type==='info'?'notice':'today')).join(''):'<div class="empty">✅ No hay eventos programados para hoy.</div>');
-    if(notices.length===0){const recent=events.filter(e=>e.event_type==='info'&&parseDate(e.starts_at)&&parseDate(e.starts_at)<=now).slice(-1);if(recent.length)html+='<div class="section">ÚLTIMO AVISO</div>'+recent.map(e=>eventCard(e,'notice')).join('')}
-    const next=futureEvents.filter(e=>!sameDay(parseDate(e.starts_at),now)).slice(0,3);if(next.length)html+='<div class="section">LO SIGUIENTE</div>'+next.map(e=>eventCard(e)).join('');
-  } else if(currentView==='pending'){
-    html='<div class="section">TAREAS Y ENTREGAS PENDIENTES</div>'+(futureCh.length?futureCh.slice(0,12).map(challengeCard).join(''):'<div class="empty">No hay porfolios activos con fecha pendiente.</div>');
-    const acts=futureEvents.filter(e=>['activity','exam','practice'].includes(e.event_type)).slice(0,8);if(acts.length)html+='<div class="section">OTRAS TAREAS PROGRAMADAS</div>'+acts.map(e=>eventCard(e)).join('');
-  } else if(currentView==='upcoming'){
-    html='<div class="section">PRÓXIMOS EVENTOS</div>'+(futureEvents.length?futureEvents.slice(0,18).map(e=>eventCard(e)).join(''):'<div class="empty">No hay próximos eventos cargados.</div>');
-  } else {
-    const n=events.filter(e=>e.event_type==='info').sort((a,b)=>new Date(b.starts_at)-new Date(a.starts_at)).slice(0,15);
-    html='<div class="section">AVISOS DE LA PROFESORA</div>'+(n.length?n.map(e=>eventCard(e,'notice')).join(''):'<div class="empty">No hay avisos activos.</div>');
+  if(!SBURL||!SBKEY){
+    throw new Error('Falta la configuración de CENQAL Calendar.');
   }
+
+  const r=await fetch(
+    `${SBURL}/rest/v1/${table}?${query}`,
+    {
+      headers:{
+        apikey:SBKEY,
+        Authorization:`Bearer ${SBKEY}`
+      }
+    }
+  );
+
+  if(!r.ok){
+    throw new Error(`${table}: ${r.status}`);
+  }
+
+  return await r.json();
+}
+
+function teachingWeeks(){
+  const classEvents=events
+    .filter(e=>e.event_type==='class'&&parseDate(e.starts_at))
+    .sort((a,b)=>parseDate(a.starts_at)-parseDate(b.starts_at));
+
+  const map=new Map();
+
+  classEvents.forEach(e=>{
+    const d=parseDate(e.starts_at);
+    const k=weekKey(d);
+
+    if(!map.has(k)){
+      map.set(k,{
+        key:k,
+        monday:mondayOf(d),
+        classEvent:e,
+        classAt:d
+      });
+    }
+  });
+
+  return [...map.values()].sort((a,b)=>a.monday-b.monday);
+}
+
+function buildVirtualAcademicEvents(){
+  const weeks=teachingWeeks();
+  const out=[];
+
+  if(!weeks.length)return out;
+
+  /*
+    SEMANA 1:
+    SOLO puesta en marcha.
+    NO hay:
+    - reto
+    - examen
+    - portfolio
+    - atlas evaluable
+  */
+
+  const first=weeks[0];
+
+  out.push({
+    id:'virtual-startup',
+    event_code:'VIRTUAL-STARTUP',
+    event_type:'startup',
+    title:'Semana 1 · Puesta en marcha',
+    description:'Presentación de la asignatura, guía docente, sistema de evaluación y funcionamiento de CENQAL/Mr. Berilio. Sin reto, examen, portfolio ni Atlas evaluable.',
+    starts_at:isoLocal(first.classAt),
+    ends_at:null,
+    location:first.classEvent.location||'',
+    virtual:true
+  });
+
+  /*
+    DESDE LA SEGUNDA SEMANA LECTIVA:
+
+    Semana 2 -> Tema 1
+    Semana 3 -> Tema 2
+    Semana 4 -> Tema 3
+    etc.
+
+    Tema N = semana lectiva N+1
+  */
+
+  for(let i=1;i<weeks.length;i++){
+
+    const topic=i;
+    const w=weeks[i];
+
+    const monday=atTime(w.monday,8,0);
+    const classAt=w.classAt;
+
+    const weekly=weeklyChallenges.find(
+      x=>Number(x.topic_number)===topic
+    );
+
+    const portfolio=challenges.find(
+      x=>Number(x.portfolio_number)===topic
+    );
+
+    /*
+      RETO
+    */
+
+    out.push({
+      id:`virtual-reto-${topic}`,
+      event_code:`VIRTUAL-RETO-${topic}`,
+      event_type:'challenge',
+      title:`Reto ${topic}${weekly&&weekly.title?` · ${weekly.title}`:''}`,
+      description:
+        weekly&&weekly.question
+          ?weekly.question
+          :'Reto semanal de actualidad científica correspondiente al tema.',
+      starts_at:isoLocal(monday),
+      ends_at:null,
+      location:'CENQAL / Telegram',
+      virtual:true,
+      topic_number:topic
+    });
+
+    /*
+      EXAMEN
+    */
+
+    out.push({
+      id:`virtual-exam-${topic}`,
+      event_code:`VIRTUAL-EXAM-${topic}`,
+      event_type:'exam',
+      title:`Examen Tema ${topic}`,
+      description:'Prueba semanal del tema correspondiente. Consulta Mr. Berilio para apertura, instrucciones y acceso.',
+      starts_at:isoLocal(classAt),
+      ends_at:null,
+      location:w.classEvent.location||'',
+      virtual:true,
+      topic_number:topic
+    });
+
+    /*
+      ATLAS
+    */
+
+    out.push({
+      id:`virtual-atlas-${topic}`,
+      event_code:`VIRTUAL-ATLAS-${topic}`,
+      event_type:'atlas',
+      title:`Atlas de Química ${topic}`,
+      description:'Trabajo del Atlas de Química de los Alimentos correspondiente al tema de la semana.',
+      starts_at:isoLocal(classAt),
+      ends_at:null,
+      location:'CENQAL Atlas',
+      virtual:true,
+      topic_number:topic
+    });
+
+    /*
+      PORTFOLIO
+
+      El sistema actual tiene 8 portfolios principales.
+      Se muestran desde la Semana 2.
+    */
+
+    if(topic<=8){
+
+      const pTitle=
+        portfolio&&portfolio.title
+          ?` · ${portfolio.title}`
+          :'';
+
+      const pStart=atTime(w.monday,8,5);
+
+      out.push({
+        id:`virtual-portfolio-${topic}`,
+        event_code:`VIRTUAL-PORTFOLIO-${topic}`,
+        event_type:'portfolio',
+        title:`Portfolio ${topic}${pTitle}`,
+        description:'Inicio del portfolio correspondiente. La fecha límite real aparece también en Pendientes cuando está cargada en CENQAL.',
+        starts_at:isoLocal(pStart),
+        ends_at:null,
+        location:'CENQAL',
+        virtual:true,
+        topic_number:topic
+      });
+    }
+  }
+
+  return out;
+}
+
+function mergedEvents(){
+
+  const all=[
+    ...events,
+    ...virtualEvents
+  ].filter(e=>parseDate(e.starts_at));
+
+  all.sort(
+    (a,b)=>parseDate(a.starts_at)-parseDate(b.starts_at)
+  );
+
+  const seen=new Set();
+  const out=[];
+
+  for(const e of all){
+
+    const d=parseDate(e.starts_at);
+
+    const k=
+      `${e.event_type}|${norm(e.title)}|${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+
+    if(seen.has(k))continue;
+
+    seen.add(k);
+    out.push(e);
+  }
+
+  return out;
+}
+
+function currentAcademicWeekInfo(){
+
+  const weeks=teachingWeeks();
+
+  if(!weeks.length)return null;
+
+  const now=new Date();
+  const k=weekKey(now);
+
+  const idx=weeks.findIndex(
+    w=>w.key===k
+  );
+
+  if(idx<0)return null;
+
+  if(idx===0){
+    return {
+      week:1,
+      topic:null,
+      text:'Semana 1 · puesta en marcha · sin evaluación'
+    };
+  }
+
+  return {
+    week:idx+1,
+    topic:idx,
+    text:`Semana ${idx+1} · Tema ${idx} · evaluación activa`
+  };
+}
+
+async function loadAll(){
+
+  document.getElementById('todayTitle').textContent=
+    fmtDate.format(new Date())
+    .replace(/^./,c=>c.toUpperCase());
+
+  document.getElementById('todaySub').textContent=
+    'Tu agenda académica CENQAL de un vistazo';
+
+  document.getElementById('content').innerHTML=
+    '<div class="loading">Actualizando agenda…</div>';
+
+  let errs=[];
+
+  /*
+    CALENDARIO GENERAL
+  */
+
+  try{
+    events=await sb(
+      'cenqal_calendar_events',
+      'select=id,event_code,event_type,title,description,starts_at,ends_at,location,priority,active&active=eq.true&order=starts_at.asc&limit=300'
+    );
+  }catch(e){
+    events=[];
+    errs.push(e.message);
+  }
+
+  /*
+    PORTFOLIOS
+  */
+
+  try{
+    challenges=await sb(
+      'cenqal_challenges',
+      'select=id,challenge_code,title,portfolio_number,deadline,active,target_group&active=eq.true&order=portfolio_number.asc&limit=50'
+    );
+  }catch(e){
+    challenges=[];
+    errs.push(e.message);
+  }
+
+  /*
+    RETOS SEMANALES
+  */
+
+  try{
+
+    const ay=encodeURIComponent(
+      academicYear()
+    );
+
+    weeklyChallenges=await sb(
+      'cenqal_weekly_challenges_v641',
+      `select=id,topic_number,challenge_code,title,question,week_start,status&academic_year=eq.${ay}&order=topic_number.asc&limit=30`
+    );
+
+  }catch(e){
+
+    weeklyChallenges=[];
+    errs.push(e.message);
+
+  }
+
+  /*
+    CREACIÓN DEL CALENDARIO ACADÉMICO VIRTUAL
+  */
+
+  virtualEvents=
+    buildVirtualAcademicEvents();
+
+  const info=
+    currentAcademicWeekInfo();
+
+  if(info){
+    document.getElementById('todaySub').textContent=
+      info.text;
+  }
+
+  render();
+
+  if(
+    errs.length &&
+    !events.length &&
+    !challenges.length &&
+    !weeklyChallenges.length
+  ){
+    document.getElementById('content').innerHTML=
+      `<div class="error">
+        ⚠️ No he podido cargar la agenda.
+        ${esc(errs.join(' · '))}
+      </div>`;
+  }
+}
+
+function eventCard(e,extra=''){
+
+  const d=parseDate(e.starts_at);
+  const end=parseDate(e.ends_at);
+
+  let when=
+    d
+      ?`${fmtShort.format(d)} · ${fmtTime.format(d)}`
+      :'Sin fecha';
+
+  if(end&&d&&sameDay(d,end)){
+    when+=`–${fmtTime.format(end)}`;
+  }
+
+  const klass=[
+    extra,
+    cardClass(e.event_type)
+  ].filter(Boolean).join(' ');
+
+  return `
+  <div class="card ${klass}">
+    <div class="row">
+
+      <div class="ico">
+        ${icon(e.event_type)}
+      </div>
+
+      <div class="grow">
+
+        <div class="title">
+          ${esc(e.title||'Evento')}
+        </div>
+
+        <div class="meta">
+          ${esc(when)}
+          ${e.location
+            ?` · 📍 ${esc(e.location)}`
+            :''
+          }
+        </div>
+
+        ${e.description
+          ?`<div class="desc">${esc(e.description)}</div>`
+          :''
+        }
+
+        <span class="badge">
+          ${esc(label(e.event_type))}
+        </span>
+
+      </div>
+    </div>
+  </div>`;
+}
+
+function portfolioDeadlineCard(c){
+
+  const d=parseDate(c.deadline);
+
+  return `
+  <div class="card portfolio">
+    <div class="row">
+
+      <div class="ico">
+        📘
+      </div>
+
+      <div class="grow">
+
+        <div class="title">
+          Portfolio ${esc(c.portfolio_number||'')}
+          ·
+          ${esc(c.title||c.challenge_code||'Portfolio')}
+        </div>
+
+        <div class="meta">
+          ${
+            d
+              ?'Entrega '+fmtShort.format(d)+' · '+fmtTime.format(d)
+              :'Sin fecha límite'
+          }
+        </div>
+
+        <span class="badge">
+          Entrega de portfolio
+        </span>
+
+      </div>
+    </div>
+  </div>`;
+}
+
+function render(){
+
+  const box=
+    document.getElementById('content');
+
+  const now=
+    new Date();
+
+  const all=
+    mergedEvents();
+
+  const floorNow=
+    new Date(
+      now.getTime()-6*3600000
+    );
+
+  const futureEvents=
+    all.filter(e=>{
+      const d=parseDate(e.starts_at);
+      return d&&d>=floorNow;
+    });
+
+  const futurePortfolios=
+    challenges.filter(c=>{
+      const d=parseDate(c.deadline);
+      return d&&d>=now;
+    });
+
+  let html='';
+
+  /*
+    HOY
+  */
+
+  if(currentView==='today'){
+
+    const tod=
+      all.filter(
+        e=>sameDay(
+          parseDate(e.starts_at),
+          now
+        )
+      );
+
+    html=
+      '<div class="section">HOY</div>'+
+      (
+        tod.length
+          ?tod.map(
+              e=>eventCard(
+                e,
+                e.event_type==='info'
+                  ?'notice'
+                  :'today'
+              )
+            ).join('')
+          :'<div class="empty">✅ No hay eventos programados para hoy.</div>'
+      );
+
+    const recent=
+      events
+      .filter(
+        e=>
+          e.event_type==='info'&&
+          parseDate(e.starts_at)&&
+          parseDate(e.starts_at)<=now
+      )
+      .sort(
+        (a,b)=>
+          parseDate(b.starts_at)-
+          parseDate(a.starts_at)
+      )
+      .slice(0,1);
+
+    if(recent.length){
+
+      html+=
+        '<div class="section">ÚLTIMO AVISO</div>'+
+        recent.map(
+          e=>eventCard(e,'notice')
+        ).join('');
+
+    }
+
+    const next=
+      futureEvents
+      .filter(
+        e=>
+          !sameDay(
+            parseDate(e.starts_at),
+            now
+          )
+      )
+      .slice(0,5);
+
+    if(next.length){
+
+      html+=
+        '<div class="section">LO SIGUIENTE</div>'+
+        next.map(
+          e=>eventCard(e)
+        ).join('');
+
+    }
+
+  /*
+    ESTA SEMANA
+  */
+
+  }else if(currentView==='week'){
+
+    const m=
+      mondayOf(now);
+
+    const s=
+      sundayOf(now);
+
+    const thisWeek=
+      all.filter(e=>{
+        const d=parseDate(e.starts_at);
+        return d&&d>=m&&d<=s;
+      });
+
+    const info=
+      currentAcademicWeekInfo();
+
+    html=
+      '<div class="section">ESTA SEMANA</div>';
+
+    if(info&&info.week===1){
+
+      html+=`
+        <div class="empty">
+          🎓 <b>Semana 1 · puesta en marcha</b><br>
+          Presentación, guía docente y funcionamiento de CENQAL.
+          Esta semana no hay reto, examen, portfolio ni Atlas evaluable.
+        </div>
+      `;
+
+    }
+
+    html+=
+      thisWeek.length
+        ?thisWeek.map(
+            e=>eventCard(
+              e,
+              sameDay(
+                parseDate(e.starts_at),
+                now
+              )
+                ?'today'
+                :''
+            )
+          ).join('')
+        :'<div class="empty">No hay actividades programadas esta semana.</div>';
+
+  /*
+    PENDIENTES
+  */
+
+  }else if(currentView==='pending'){
+
+    const pendingAcademic=
+      futureEvents
+      .filter(
+        e=>
+          [
+            'challenge',
+            'exam',
+            'portfolio',
+            'atlas',
+            'activity',
+            'practice'
+          ].includes(e.event_type)
+      )
+      .slice(0,20);
+
+    html=
+      '<div class="section">ACTIVIDADES ACADÉMICAS</div>'+
+      (
+        pendingAcademic.length
+          ?pendingAcademic
+            .map(
+              e=>eventCard(e)
+            )
+            .join('')
+          :'<div class="empty">No hay actividades académicas pendientes.</div>'
+      );
+
+    html+=
+      '<div class="section">ENTREGAS DE PORTFOLIO</div>'+
+      (
+        futurePortfolios.length
+          ?futurePortfolios
+            .slice(0,12)
+            .map(
+              portfolioDeadlineCard
+            )
+            .join('')
+          :'<div class="empty">No hay portfolios activos con fecha de entrega pendiente.</div>'
+      );
+
+  /*
+    PRÓXIMAMENTE
+  */
+
+  }else if(currentView==='upcoming'){
+
+    html=
+      '<div class="section">PRÓXIMOS EVENTOS</div>'+
+      (
+        futureEvents.length
+          ?futureEvents
+            .slice(0,30)
+            .map(
+              e=>eventCard(e)
+            )
+            .join('')
+          :'<div class="empty">No hay próximos eventos cargados.</div>'
+      );
+
+  /*
+    AVISOS
+  */
+
+  }else{
+
+    const n=
+      events
+      .filter(
+        e=>e.event_type==='info'
+      )
+      .sort(
+        (a,b)=>
+          new Date(b.starts_at)-
+          new Date(a.starts_at)
+      )
+      .slice(0,15);
+
+    html=
+      '<div class="section">AVISOS DE LA PROFESORA</div>'+
+      (
+        n.length
+          ?n.map(
+              e=>eventCard(
+                e,
+                'notice'
+              )
+            ).join('')
+          :'<div class="empty">No hay avisos activos.</div>'
+      );
+
+  }
+
   box.innerHTML=html;
 }
-document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');currentView=b.dataset.view;render()}));
-try{if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand()}}catch(e){}
+
+document
+  .querySelectorAll('.tab')
+  .forEach(
+    b=>b.addEventListener(
+      'click',
+      ()=>{
+
+        document
+          .querySelectorAll('.tab')
+          .forEach(
+            x=>x.classList.remove('active')
+          );
+
+        b.classList.add('active');
+
+        currentView=
+          b.dataset.view;
+
+        render();
+
+      }
+    )
+  );
+
+try{
+
+  if(
+    window.Telegram&&
+    Telegram.WebApp
+  ){
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+  }
+
+}catch(e){}
+
 loadAll();
 </script>
+
 </body>
 </html>
