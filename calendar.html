@@ -314,23 +314,6 @@ function buildVirtualAcademicEvents(){
     });
 
     /*
-      EXAMEN
-    */
-
-    out.push({
-      id:`virtual-exam-${topic}`,
-      event_code:`VIRTUAL-EXAM-${topic}`,
-      event_type:'exam',
-      title:`Examen Tema ${topic}`,
-      description:'Prueba semanal del tema correspondiente. Consulta Mr. Berilio para apertura, instrucciones y acceso.',
-      starts_at:isoLocal(classAt),
-      ends_at:null,
-      location:w.classEvent.location||'',
-      virtual:true,
-      topic_number:topic
-    });
-
-    /*
       ATLAS
     */
 
