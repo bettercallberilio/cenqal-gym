@@ -1,0 +1,3692 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>CENQAL Control</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0c3f82">
+<link rel="apple-touch-icon" href="./cenqal-apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CENQAL Control">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+:root{--navy:#0c3f82;--blue:#277bdc;--pale:#eef6ff;--green:#18a66a;--amber:#e9a51b;--red:#d84b4b;--ink:#17304f;--muted:#6d7f96;--line:#dbe7f4;--card:#fff;--bg:#f5f9fd;--violet:#7444c7;--shadow:0 10px 30px rgba(34,67,105,.08)}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit}
+.app{min-height:100vh;display:grid;grid-template-columns:240px 1fr}
+.sidebar{background:#fff;border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;gap:10px;align-items:center;padding:4px 8px 18px}
+.brandmark{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--navy),var(--green));position:relative}
+.brandmark:before,.brandmark:after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:#fff}
+.brandmark:before{left:8px;top:8px}
+.brandmark:after{right:8px;bottom:8px}
+.brand h1{font-size:21px;line-height:1;margin:0;color:var(--navy)}
+.brand small{display:block;margin-top:5px;color:var(--muted)}
+
+.nav{display:grid;gap:5px}
+.nav button{width:100%;border:0;background:transparent;text-align:left;padding:11px 12px;border-radius:11px;color:#304866;cursor:pointer}
+.nav button.active,.nav button:hover{background:var(--pale);color:var(--navy);font-weight:700}
+.nav .danger{color:#a33}
+.sidefooter{margin-top:22px;padding:12px;border-radius:12px;background:#f0fbf6;color:#2f6951;font-size:13px}
+
+.main{padding:20px 24px 42px;min-width:0}
+.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
+.courseTitle h2{margin:0;font-size:23px;color:var(--navy)}
+.courseTitle p{margin:4px 0 0;color:var(--muted)}
+.session{font-size:12px;color:var(--muted);text-align:right}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;padding:7px 10px;border-radius:999px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+
+.grid{display:grid;gap:14px}
+.metrics{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:15px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px;min-width:0}
+.metric b{font-size:28px;color:var(--navy);display:block}
+.metric span{font-size:13px;color:var(--muted)}
+.metric .label{font-weight:700;color:var(--ink);font-size:14px;margin-bottom:8px}
+.two{grid-template-columns:1.45fr 1fr}
+.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+h3{margin:0 0 12px;color:var(--navy);font-size:17px}
+.sectionTitle{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sectionTitle p{margin:0;color:var(--muted);font-size:13px}
+
+.btn{border:1px solid var(--line);background:#fff;color:var(--navy);padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.green{background:var(--green);border-color:var(--green);color:#fff}
+.btn.warn{background:#fff7e6;border-color:#f0cf86;color:#8a5a00}
+.btn.danger{background:#fff0f0;border-color:#f0b7b7;color:#a62525}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th,.table td{padding:10px 11px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.table th{background:#f8fbff;color:#536a83;font-size:12px;position:sticky;top:0}
+.table tr:last-child td{border-bottom:0}
+
+.status{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#eef4fb}
+.status.ok{background:#e9f8f0;color:#267352}
+.status.warn{background:#fff4dc;color:#8a5a00}
+.status.bad{background:#ffecec;color:#a72c2c}
+
+.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field{display:grid;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:700;color:#5d718a}
+.field input,.field select,.field textarea{border:1px solid #ccdbea;border-radius:10px;padding:10px;background:#fff;color:var(--ink);width:100%}
+.field textarea{min-height:92px;resize:vertical}
+
+.note{padding:11px 12px;border-radius:10px;background:#f6f9fc;color:#5b6f87;font-size:13px}
+.note.warn{background:#fff7e8;color:#825900}
+.note.danger{background:#fff0f0;color:#922}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+
+.view{display:none}
+.view.active{display:block}
+.viewHeader{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:14px}
+.viewHeader h2{margin:0;color:var(--navy)}
+.viewHeader p{margin:4px 0 0;color:var(--muted)}
+
+.modalBack{position:fixed;inset:0;background:rgba(15,38,67,.44);display:none;align-items:center;justify-content:center;padding:18px;z-index:1000}
+.modalBack.show{display:flex}
+.modal{background:#fff;border-radius:18px;width:min(680px,100%);max-height:92vh;overflow:auto;box-shadow:0 20px 80px rgba(0,0,0,.22);padding:20px}
+.modal h3{font-size:20px}
+.modalFooter{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}
+
+.confirmPhrase{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#f3f6fa;padding:8px 10px;border-radius:8px;font-weight:800;color:#334b67}
+
+.toast{position:fixed;right:18px;bottom:18px;background:#17304f;color:#fff;border-radius:12px;padding:12px 15px;box-shadow:var(--shadow);display:none;z-index:1100;max-width:360px}
+.toast.show{display:block}
+.toast.error{background:#9b2d2d}
+
+.loader{display:inline-block;width:15px;height:15px;border:2px solid #c9d8ea;border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.event{display:grid;grid-template-columns:78px 1fr auto;gap:11px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.event:last-child{border-bottom:0}
+.datebox{text-align:center;background:#eef6ff;border-radius:10px;padding:8px;font-weight:800;color:var(--navy)}
+.datebox small{display:block;font-weight:600;color:var(--muted)}
+
+.resetCard{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.resetCard h4{margin:0 0 6px}
+.resetCard p{margin:0 0 10px;color:var(--muted);font-size:13px}
+.resetCard.amber{background:#fffaf0}
+.resetCard.red{background:#fff4f4}
+
+.progressbar{height:9px;border-radius:999px;background:#edf3f8;overflow:hidden}
+.progressbar>span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:999px}
+
+.riskgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.riskcard{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff}
+.riskcard b{display:block;font-size:24px;margin-top:4px}
+.risk-red{border-left:5px solid var(--red)}
+.risk-yellow{border-left:5px solid var(--amber)}
+.risk-green{border-left:5px solid var(--green)}
+.risk-gray{border-left:5px solid #9aa9b8}
+
+.studentrow{cursor:pointer}
+.studentrow:hover{background:#f7fbff}
+.table td.wrap{white-space:normal;min-width:240px;max-width:560px;line-height:1.35}
+.studentHero{display:grid;grid-template-columns:1.2fr auto;gap:16px;align-items:center}
+.studentHero h2{margin:0;color:var(--navy)}
+.studentMeta{color:var(--muted);margin-top:5px}
+
+.sectionGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.miniList{display:grid;gap:8px}
+.miniRow{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:8px 0;font-size:13px}
+.miniRow:last-child{border-bottom:0}
+.kpi{font-size:24px;font-weight:800;color:var(--navy)}
+.subtle{font-size:12px;color:var(--muted)}
+
+.searchrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.searchrow input,.searchrow select{border:1px solid #ccdbea;border-radius:10px;padding:9px 10px;background:#fff;min-width:180px}
+
+.mobileOnly{display:none}
+details.card{padding:0;overflow:hidden}
+details.card>summary{list-style:none;cursor:pointer;padding:15px 16px;font-weight:800;color:var(--navy);display:flex;justify-content:space-between;gap:10px}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary:after{content:'＋';color:var(--muted)}
+details.card[open]>summary:after{content:'−'}
+details.card>.detailBody{padding:0 16px 16px}
+.nowrap{white-space:nowrap}
+
+.authGate{display:none;min-height:100vh;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 20% 10%,#e8f4ff 0,#f5f9fd 42%,#eef7f4 100%)}
+.authGate.show{display:flex}
+.authCard{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 24px 70px rgba(21,55,96,.14);padding:26px}
+.authLogo{width:96px;height:96px;border-radius:24px;display:block;margin:0 auto 14px;box-shadow:0 12px 30px rgba(12,63,130,.18)}
+.authCard h1{text-align:center;color:var(--navy);margin:0;font-size:29px}
+.authLead{text-align:center;color:var(--muted);margin:7px 0 20px}
+.authCard .field{margin-bottom:12px}
+.authCard .btn{width:100%;justify-content:center}
+.authDivider{display:flex;align-items:center;gap:10px;margin:16px 0;color:#8190a2;font-size:12px}
+.authDivider:before,.authDivider:after{content:"";height:1px;background:var(--line);flex:1}
+.authMsg{display:none;margin-bottom:12px}
+.authMsg.show{display:block}
+.installBtn{display:none;margin-top:12px}
+.installBtn.show{display:block}
+.authFoot{text-align:center;font-size:12px;color:var(--muted);margin-top:16px}
+.appHidden{display:none!important}
+
+@media(max-width:1050px){
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .two,.three,.sectionGrid{grid-template-columns:1fr}
+  .riskgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .app{grid-template-columns:1fr}
+  .sidebar{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line);padding:10px}
+  .brand{padding-bottom:8px}
+  .nav{display:flex;overflow:auto;gap:6px}
+  .nav button{width:auto;white-space:nowrap;padding:9px 10px}
+  .sidefooter{display:none}
+  .main{padding:14px}
+  .topbar{align-items:flex-start}
+  .metrics{grid-template-columns:1fr 1fr}
+  .formgrid{grid-template-columns:1fr}
+  .field.full{grid-column:auto}
+  .session{display:none}
+}
+@media(max-width:430px){
+  .metrics,.riskgrid{grid-template-columns:1fr}
+  .event{grid-template-columns:62px 1fr}
+  .event .actions{grid-column:1/-1}
+  .studentHero{grid-template-columns:1fr}
+  .mobileOnly{display:inline-flex}
+  .desktopHideMobile{display:none}
+}
+
+/* ===== CENQAL v69 · Learning Analytics ===== */
+.analyticsToolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.analyticsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.analyticsChart{position:relative;min-height:330px}
+.analyticsChart canvas{width:100%!important;height:310px!important}
+.analyticsWide{grid-column:1/-1}
+.analyticsHint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45}
+.analyticsKpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+.heatmapWrap{overflow:auto;padding-bottom:4px}
+.heatmapGrid{display:grid;grid-template-columns:76px repeat(24,28px);gap:3px;min-width:790px;align-items:center;font-size:10px}
+.heatmapHead{text-align:center;color:var(--muted);font-size:9px}
+.heatmapDay{font-weight:800;color:var(--ink);font-size:11px}
+.heatCell{height:24px;border-radius:5px;background:#edf3f8;display:flex;align-items:center;justify-content:center;color:#17304f;font-size:9px}
+.heatCell.hot{color:#fff}
+.analyticsBadge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800}
+.analyticsBadge.red{background:#ffecec;color:#a72c2c}.analyticsBadge.yellow{background:#fff4dc;color:#8a5a00}.analyticsBadge.green{background:#e9f8f0;color:#267352}.analyticsBadge.gray{background:#eef2f6;color:#68798b}
+.studentAnalytics{margin-top:14px}
+.studentAnalytics .analyticsGrid{margin-bottom:0}
+.statline{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
+.statline b{color:var(--ink)}
+@media(max-width:980px){.analyticsKpis{grid-template-columns:repeat(3,minmax(0,1fr))}.analyticsGrid{grid-template-columns:1fr}.analyticsWide{grid-column:auto}}
+@media(max-width:620px){.analyticsKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.analyticsChart{min-height:290px}.analyticsChart canvas{height:270px!important}}
+
+</style>
+</head>
+
+<body>
+
+<div class="authGate" id="authGate">
+  <div class="authCard">
+    <img class="authLogo" src="./cenqal-icon-192.png" alt="CENQAL Control">
+    <h1>CENQAL Control</h1>
+    <p class="authLead">Panel docente seguro</p>
+
+    <div class="note authMsg" id="authMsg"></div>
+
+    <div class="field">
+      <label>Correo de profesora</label>
+      <input id="authEmail" type="email" autocomplete="username" placeholder="Tu correo">
+    </div>
+
+    <div class="field">
+      <label>Contraseña</label>
+      <input id="authPassword" type="password" autocomplete="current-password" placeholder="Tu contraseña">
+    </div>
+
+    <button class="btn primary" id="loginBtn" onclick="signInPassword()">Entrar</button>
+
+    <div class="authDivider">o</div>
+
+    <button class="btn" id="magicBtn" onclick="sendMagicLink()">Enviarme un enlace de acceso por correo</button>
+
+    <button class="btn green installBtn" id="installBtn" onclick="installPWA()">⬇ Instalar CENQAL Control</button>
+
+    <div class="authFoot">
+      Solo la cuenta de profesora autorizada puede acceder.
+      Los cambios sensibles requieren confirmación adicional.
+    </div>
+  </div>
+</div>
+
+<div class="app appHidden" id="appShell">
+
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brandmark"></div>
+      <div>
+        <h1>CENQAL Control</h1>
+        <small>Panel docente seguro · v69.0</small>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button data-view="home" class="active">🏠 Inicio</button>
+      <button data-view="course">🎓 Curso</button>
+      <button data-view="students">👥 Alumnos</button>
+      <button data-view="progress">📈 Progreso</button>
+      <button data-view="learning">📊 Learning Analytics</button>
+      <button data-view="deliveries">📥 Entregas</button>
+      <button data-view="calendar">📅 Calendario</button>
+      <button data-view="challenges">🏆 Retos</button>
+      <button data-view="weekly-grade">✅ Nota de retos</button>
+      <button data-view="exams">📝 Exámenes</button>
+      <button data-view="groups">🗺️ Atlas / Grupos</button>
+      <button data-view="game">🏆 Ranking / economía</button>
+      <button data-view="evidence">📁 Evidencias</button>
+      <button data-view="audit">🧾 Auditoría</button>
+      <button data-view="system">🔧 Sistema</button>
+      <button data-view="reset">🗂️ Gestión de cursos</button>
+    </nav>
+
+    <div class="sidefooter">
+      🔐 Solo profesora. Cada cambio queda registrado y las operaciones sensibles exigen confirmación escrita.
+    </div>
+
+  </aside>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="courseTitle">
+        <h2 id="topCourse">CENQAL Control</h2>
+        <p id="topMeta">Cargando configuración…</p>
+      </div>
+
+      <div class="session">
+        <span class="pill">
+          <span class="dot"></span>
+          <span id="sessionText">Sesión segura</span>
+        </span>
+      </div>
+    </div>
+
+    <section class="view active" id="view-home">
+
+      <div class="metrics grid" id="metrics">
+        <div class="card">
+          <span class="loader"></span> Cargando…
+        </div>
+      </div>
+
+      <div class="grid two">
+
+        <div class="card">
+          <div class="sectionTitle">
+            <h3>📅 Próximos hitos</h3>
+            <button class="btn" onclick="go('calendar')">Ver calendario</button>
+          </div>
+          <div id="upcoming"></div>
+        </div>
+
+        <div class="card">
+
+          <h3>⚡ Acciones rápidas</h3>
+
+          <div class="grid two">
+            <button class="btn primary" onclick="newEvent()">＋ Añadir evento</button>
+            <button class="btn" onclick="go('students')">👥 Gestionar alumnos</button>
+            <button class="btn" onclick="go('progress')">📈 Ver progreso</button>
+            <button class="btn" onclick="go('deliveries')">📥 Revisar entregas</button>
+            <button class="btn" onclick="go('challenges')">🏆 Editar retos</button>
+            <button class="btn" onclick="go('game')">🪙 PP / Og</button>
+            <button class="btn" onclick="go('evidence')">📁 Evidencias</button>
+            <button class="btn warn" onclick="go('reset')">🗂️ Gestión de cursos</button>
+          </div>
+
+          <div class="note" style="margin-top:12px">
+            Los exámenes se muestran aquí, pero en esta versión las acciones de abrir/cerrar/revisión siguen en <b>/examen</b> por seguridad.
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+        <section class="view" id="view-course">
+      <div class="viewHeader"><div><h2>🎓 Configuración del curso</h2><p>Datos que pueden cambiar de un curso a otro.</p></div></div>
+      <div class="card"><form id="courseForm" class="formgrid">
+        <div class="field"><label>Curso académico</label><input name="academic_year" placeholder="2026-2027"></div>
+        <div class="field"><label>Grupo</label><input name="group_name"></div>
+        <div class="field"><label>Asignatura</label><input name="subject"></div>
+        <div class="field"><label>Código</label><input name="subject_code"></div>
+        <div class="field full"><label>Titulación</label><input name="degree"></div>
+        <div class="field"><label>ECTS</label><input name="ects" type="number" step="0.5"></div>
+        <div class="field"><label>Día habitual</label><select name="class_weekday"><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="7">Domingo</option></select></div>
+        <div class="field"><label>Inicio</label><input name="start_date" type="date"></div>
+        <div class="field"><label>Fin</label><input name="end_date" type="date"></div>
+        <div class="field"><label>Hora inicio</label><input name="class_start" type="time"></div>
+        <div class="field"><label>Hora fin</label><input name="class_end" type="time"></div>
+        <div class="field full"><div class="note warn">Cambiar el curso académico afectará a la sincronización de los retos después de que el bot refresque la configuración. No elimina históricos.</div></div>
+        <div class="field full"><div class="actions"><button type="button" class="btn primary" onclick="saveCourse()">Guardar con confirmación</button></div></div>
+      </form></div>
+    </section>
+<section class="view" id="view-students">
+    <div class="viewHeader">
+    <div>
+      <h2>👥 Alumnos</h2>
+      <p>Pincha en un alumno para abrir su ficha 360º: notas, exámenes, retos, porfolios, aportaciones, PP/Og, evidencias e incidencias.</p>
+    </div>
+
+   <div class="actions">
+  <button class="btn primary" onclick="newStudent()">＋ Nuevo alumno</button>
+  <button class="btn primary" onclick="enrollExistingStudent()">＋ Matricular alumno existente</button>
+  <button class="btn" onclick="loadStudents(true)">↻ Actualizar</button>
+</div>
+  </div>
+      <div class="searchrow"><input id="studentSearch" placeholder="Buscar por nombre o código" oninput="renderStudents()"><select id="studentGroupFilter" onchange="renderStudents()"><option value="">Todos los grupos</option></select></div>
+      <div class="card"><div class="tablewrap"><table class="table"><thead><tr><th>Código</th><th>Alumno</th><th>Grupo</th><th>Telegram</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="studentsBody"></tbody></table></div></div>
+    </section>
+
+    <section class="view" id="view-progress">
+      <div class="viewHeader"><div><h2>📈 Estadísticas y progreso</h2><p>Visión global del curso. Todas las filas son clicables y abren la ficha individual.</p></div><button class="btn" onclick="loadProgress(true)">↻ Actualizar</button></div>
+      <div class="metrics grid" id="progressMetrics"></div>
+      <div class="grid two" style="margin-bottom:14px">
+        <div class="card"><h3>🚦 Seguimiento del grupo</h3><div class="riskgrid" id="riskGrid"></div></div>
+        <div class="card"><h3>📊 Lectura rápida</h3><div id="progressSummary" class="miniList"></div></div>
+      </div>
+      <div class="searchrow"><input id="progressSearch" placeholder="Buscar alumno" oninput="renderProgressTable()"><select id="progressRisk" onchange="renderProgressTable()"><option value="">Todos los estados</option><option value="🔴">🔴 Prioridad</option><option value="🟡">🟡 Atención</option><option value="🟢">🟢 Normal</option><option value="⚪">⚪ Sin evidencias</option></select></div>
+      <div class="card"><div class="tablewrap"><table class="table"><thead><tr><th></th><th>Alumno</th><th>Grupo</th><th>Evidencias</th><th>Oficial</th><th>Evaluado</th><th>PP</th><th>Og</th><th>Retos</th><th>Exámenes</th><th>Porfolios</th><th></th></tr></thead><tbody id="progressBody"></tbody></table></div></div>
+    </section>
+
+    <section class="view" id="view-learning">
+      <div class="viewHeader">
+        <div>
+          <h2>📊 CENQAL Learning Analytics</h2>
+          <p>Rendimiento, semáforo, Gym, hábitos de estudio, PRE↔POST y relación práctica–examen. Uso exclusivamente docente.</p>
+        </div>
+        <div class="analyticsToolbar">
+          <button class="btn primary" onclick="exportLearningExcel(false)">⬇ Excel completo</button>
+          <button class="btn" onclick="exportLearningExcel(true)">🔬 Excel anonimizado</button>
+          <button class="btn" onclick="loadLearning(true)">↻ Actualizar</button>
+        </div>
+      </div>
+      <div class="note warn" style="margin-bottom:14px">Las asociaciones entre uso del Gym y resultados son descriptivas: ayudan a observar patrones, pero no demuestran causalidad. El tiempo activo es una estimación basada en los intervalos entre respuestas.</div>
+      <div class="metrics grid analyticsKpis" id="learningMetrics"><div class="card"><span class="loader"></span> Calculando analítica…</div></div>
+
+      <div class="analyticsGrid">
+        <div class="card analyticsChart analyticsWide">
+          <div class="sectionTitle"><h3>📈 Gráfica resumen del grupo</h3><span class="subtle">Gym y examen por tema</span></div>
+          <canvas id="groupSummaryChart"></canvas>
+          <div class="analyticsHint">Compara precisión del Gym y nota media de las pruebas T1–T8. Cada eje conserva su propia escala.</div>
+        </div>
+        <div class="card analyticsChart">
+          <div class="sectionTitle"><h3>🚦 Semáforo docente</h3><span class="subtle">motor de alertas CENQAL</span></div>
+          <canvas id="learningRiskChart"></canvas>
+          <div id="learningRiskText" class="analyticsHint"></div>
+        </div>
+        <div class="card analyticsChart">
+          <div class="sectionTitle"><h3>🧭 PRE → POST</h3><span class="subtle">aprendizaje y convergencia</span></div>
+          <canvas id="prePostChart"></canvas>
+          <div id="prePostText" class="analyticsHint"></div>
+        </div>
+        <div class="card analyticsChart">
+          <div class="sectionTitle"><h3>📅 Uso del Gym por día</h3><span class="subtle">respuestas registradas</span></div>
+          <canvas id="gymDayChart"></canvas>
+        </div>
+        <div class="card analyticsChart">
+          <div class="sectionTitle"><h3>🕐 Uso del Gym por hora</h3><span class="subtle">hora local Europe/Madrid</span></div>
+          <canvas id="gymHourChart"></canvas>
+        </div>
+        <div class="card analyticsChart analyticsWide">
+          <div class="sectionTitle"><h3>🧠 Uso del Gym ↔ rendimiento</h3><span class="subtle">minutos activos frente a media de examen</span></div>
+          <canvas id="gymEffectChart"></canvas>
+          <div id="gymEffectText" class="analyticsHint"></div>
+        </div>
+        <div class="card analyticsWide">
+          <div class="sectionTitle"><h3>🔥 Mapa de calor semanal</h3><span class="subtle">día × hora · intensidad = respuestas</span></div>
+          <div id="gymHeatmap" class="heatmapWrap"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="sectionTitle"><h3>🧪 Rendimiento por tema</h3><span class="subtle">T1–T8</span></div>
+        <div id="learningTopics"></div>
+      </div>
+
+      <div class="card">
+        <div class="sectionTitle"><h3>👥 Analítica individual</h3><span class="subtle">pulsa una fila para abrir la ficha</span></div>
+        <div class="tablewrap"><table class="table"><thead><tr>
+          <th></th><th>Alumno</th><th>Gym</th><th>Tiempo activo</th><th>Acierto</th><th>Dominio</th><th>Exámenes</th><th>Media</th><th>PRE→POST</th><th>Rank PP</th><th>Rank uso</th><th>Rank dominio</th><th></th>
+        </tr></thead><tbody id="learningStudentsBody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-deliveries">
+      <div class="viewHeader">
+        <div><h2>📥 Entregas y revisión</h2><p>Consulta centralizada de aportaciones, rúbricas, portfolios y retos. La concesión de PP y Og se confirma exclusivamente en Berilio.</p></div>
+        <div class="actions"><button class="btn primary" onclick="botPayload('cg_course')">📄 Informe del curso</button><button class="btn" onclick="exportDeliveriesCSV()">⬇ CSV</button><button class="btn" onclick="loadDeliveries(true)">↻ Actualizar</button></div>
+      </div>
+      <div class="note warn" style="margin-bottom:14px">Las preevaluaciones son orientativas. Ver una entrega aquí no concede puntos: usa <b>Revisar en Berilio</b> para validar, devolver o rechazar.</div>
+      <div class="metrics grid" id="deliveryMetrics"><div class="card"><span class="loader"></span> Cargando entregas…</div></div>
+      <div class="searchrow"><input id="deliverySearch" placeholder="Buscar alumno, título o tema" oninput="renderDeliveries()"><select id="deliveryStatus" onchange="renderDeliveries()"><option value="">Todos los estados</option><option value="pending">Pendientes</option><option value="validated">Validadas</option><option value="rejected">Rechazadas/devueltas</option></select></div>
+      <div class="card"><h3>🧪 Aportaciones a CENQAL</h3><div id="contributionsInbox"></div></div>
+      <div class="card" style="margin-top:14px"><h3>📄 Portfolios</h3><div id="portfoliosInbox"></div></div>
+      <div class="card" style="margin-top:14px"><h3>🏆 Retos y respuestas</h3><div id="challengesInbox"></div></div>
+    </section>
+
+    <section class="view" id="view-student">
+      <div class="viewHeader"><div><button class="btn" onclick="go('students')">← Alumnos</button></div><div class="actions"><button class="btn" onclick="reloadCurrentStudent()">↻ Actualizar</button><button class="btn primary" id="studentDossierBtn" onclick="requestStudentDossier()">📄 Expediente PDF</button></div></div>
+      <div class="card studentHero" id="studentHero"><div><span class="loader"></span> Cargando ficha…</div></div>
+      <div class="metrics grid" id="studentMetrics" style="margin-top:14px"></div>
+      <div class="sectionGrid" style="margin-top:14px">
+        <div class="card"><h3>🧾 Evaluación oficial</h3><div id="studentComponents"></div></div>
+        <div class="card"><h3>🎮 Actividad CENQAL</h3><div id="studentActivity"></div></div>
+      </div>
+      <div class="card studentAnalytics" id="studentLearningCard" style="display:none">
+        <div class="sectionTitle">
+          <div><h3>📈 Learning Analytics individual</h3><p>Uso del Gym, hábitos, evolución, transferencia y PRE↔POST.</p></div>
+          <div class="actions"><button class="btn" onclick="exportStudentLearningExcel()">⬇ Excel alumno</button></div>
+        </div>
+        <div class="metrics grid" id="studentLearningMetrics" style="margin-top:12px"></div>
+        <div id="studentLearningSignal" style="margin:10px 0"></div>
+        <div class="analyticsGrid">
+          <div class="analyticsChart"><h3>🧪 Gym y examen por tema</h3><canvas id="studentTopicChart"></canvas></div>
+          <div class="analyticsChart"><h3>📅 Patrón semanal de estudio</h3><canvas id="studentHabitChart"></canvas></div>
+        </div>
+        <div id="studentLearningDetail"></div>
+      </div>
+      <div class="grid" style="margin-top:14px" id="studentSections"></div>
+    </section>
+
+    <section class="view" id="view-calendar">
+      <div class="viewHeader"><div><h2>📅 Calendario</h2><p>Crear, editar o retirar eventos sin tocar GitHub ni SQL.</p></div><div class="actions"><button class="btn primary" onclick="prepareExamCalendar()">📋 Programar exámenes 2026</button><button class="btn primary" onclick="newEvent()">＋ Evento</button><button class="btn" onclick="loadCalendar(true)">↻</button></div></div>
+      <div class="card" id="calendarList"></div>
+    </section>
+
+    <section class="view" id="view-weekly-grade">
+      <div class="viewHeader"><div><h2>✅ Nota de retos semanales</h2><p>Participación sí/no en los retos publicados del curso. Cada reto cuenta una sola vez; la preevaluación no afecta a la nota.</p></div><button class="btn" onclick="loadWeeklyGrades(true)">↻ Actualizar</button></div>
+      <div class="note warn" style="margin-bottom:14px">Cálculo provisional mientras existan retos publicados pendientes de cierre. Una participación que el bot no haya registrado debe comprobarse en Telegram. Esta vista no escribe la calificación oficial.</div>
+      <div class="card" id="weeklyGradeSummary">Pulsa Actualizar para calcular la nota.</div>
+      <div class="card" style="margin-top:14px"><div class="tablewrap"><table class="table"><thead><tr><th>Alumno</th><th>Participación por reto</th><th>Realizados</th><th>Nota /10</th><th>Aporta al curso</th></tr></thead><tbody id="weeklyGradeBody"></tbody></table></div></div>
+    </section>
+
+    <section class="view" id="view-challenges">
+      <div class="viewHeader"><div><h2>🏆 Retos semanales</h2><p>Enunciado, fuente y fecha. Un reto ya publicado queda protegido frente a reprogramación.</p></div><button class="btn" onclick="loadChallenges(true)">↻ Actualizar</button></div>
+      <div class="card"><div class="tablewrap"><table class="table"><thead><tr><th>Tema</th><th>Semana</th><th>Título</th><th>Estado</th><th>Telegram</th><th></th></tr></thead><tbody id="challengesBody"></tbody></table></div></div>
+    </section>
+
+    <section class="view" id="view-exams">
+      <div class="viewHeader"><div><h2>📝 Exámenes</h2><p>Consulta de convocatorias. Operaciones críticas permanecen en Telegram en esta primera versión.</p></div><button class="btn" onclick="loadExams(true)">↻ Actualizar</button></div>
+      <div class="note warn" style="margin-bottom:12px">Para preparar, abrir, cerrar o liberar revisión utiliza <b>/examen</b>. Cuando validemos CENQAL Control con datos reales, trasladaremos esas acciones aquí con doble confirmación.</div>
+      <div class="card"><div class="tablewrap"><table class="table"><thead><tr><th>Código</th><th>Tema</th><th>Título</th><th>Estado</th><th>Apertura</th><th>Cierre</th></tr></thead><tbody id="examsBody"></tbody></table></div></div>
+    </section>
+
+    <section class="view" id="view-groups">
+      <div class="viewHeader"><div><h2>🗺️ Atlas / Grupos</h2><p>Distribución actual. El grupo de cada alumno se edita desde Alumnos.</p></div></div>
+      <div class="grid three" id="groupsGrid"></div>
+    </section>
+
+    <section class="view" id="view-game">
+      <div class="viewHeader"><div><h2>🏆 Ranking de Prestigio y economía</h2><p>La posición depende exclusivamente de los PP: +100 PP por cada prueba semanal T1–T8 aprobada. Los Óganesones son moneda y no alteran el ranking.</p></div><button class="btn" onclick="loadGame(true)">↻ Actualizar</button></div>
+      <div class="note warn" style="margin-bottom:12px">Control de coherencia: se compara el marcador PP con las pruebas aprobadas registradas. Las diferencias nunca se corrigen automáticamente; cualquier corrección exige motivo, confirmación y queda en Auditoría.</div>
+      <div id="gameMetrics" class="cards"></div>
+      <div class="card"><div class="tablewrap"><table class="table"><thead><tr><th>Pos.</th><th>Código</th><th>Alumno</th><th>Pruebas aprob.</th><th>PP actuales</th><th>PP de referencia</th><th>Control</th><th>Og</th><th>Medallas</th><th>Nivel</th><th></th></tr></thead><tbody id="gameBody"></tbody></table></div></div>
+    </section>
+
+    <section class="view" id="view-evidence">
+      <div class="viewHeader"><div><h2>📁 Evidencias</h2><p>Índice de actas, expedientes e informes PDF generados.</p></div><button class="btn" onclick="loadEvidence(true)">↻ Actualizar</button></div>
+      <div class="card"><div class="tablewrap"><table class="table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Título</th><th>Alumno</th><th>SHA-256</th><th>Ruta privada</th><th></th></tr></thead><tbody id="evidenceBody"></tbody></table></div></div>
+    </section>
+
+    <section class="view" id="view-audit">
+      <div class="viewHeader"><div><h2>🧾 Auditoría</h2><p>Historial de cambios realizados desde CENQAL Control.</p></div><button class="btn" onclick="loadAudit(true)">↻ Actualizar</button></div>
+      <div class="card"><div class="tablewrap"><table class="table"><thead><tr><th>Fecha</th><th>Acción</th><th>Entidad</th><th>ID</th><th>Motivo</th></tr></thead><tbody id="auditBody"></tbody></table></div></div>
+    </section>
+
+    <section class="view" id="view-system">
+      <div class="viewHeader"><div><h2>🔧 Sistema</h2><p>Estado de conexión y seguridad de la Mini App.</p></div><button class="btn" onclick="refreshAll()">↻ Comprobar</button></div>
+      <div class="grid two">
+        <div class="card"><h3>Estado</h3><div id="systemState"></div></div>
+        <div class="card"><h3>Seguridad</h3><div class="note">✓ Sesión temporal de 45 minutos<br>✓ anon key pública; nunca service_role<br>✓ RLS en tablas de Control<br>✓ Toda mutación exige token<br>✓ Cambios auditados<br>✓ Retiradas lógicas en calendario</div><div class="actions" style="margin-top:12px"><button class="btn danger" onclick="logout()">Cerrar sesión</button></div></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-reset">
+      <div class="viewHeader">
+        <div><h2>🗂️ Gestión de cursos</h2><p>Crear, duplicar, seleccionar, activar y archivar cursos sin borrar históricos.</p></div>
+        <button class="btn" onclick="loadCourses(true)">↻ Actualizar</button>
+      </div>
+
+      <div class="note" style="margin-bottom:14px">
+        <b>Seleccionar</b> cambia el curso que estás viendo y gestionando en este panel.
+        <b>Activar</b> cambia el curso operativo global de CENQAL y del bot.
+        Archivar nunca elimina alumnos, notas, evidencias ni movimientos PP/Og.
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="actions">
+          <button class="btn primary" onclick="openCourseWizard('create')">＋ Nuevo curso</button>
+          <button class="btn" onclick="duplicateSelectedCourse()">⧉ Duplicar seleccionado</button>
+          <button class="btn" onclick="go('course')">✏️ Editar seleccionado</button>
+          <button class="btn" onclick="newCoursePreview()">🔎 Resumen del seleccionado</button>
+        </div>
+        <div id="resetPreview" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card">
+        <div id="courseManagerSummary" style="margin-bottom:12px"></div>
+        <div class="tablewrap">
+          <table class="table">
+            <thead><tr><th>Curso</th><th>Grupo</th><th>Alumnos</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="coursesBody"><tr><td colspan="5" class="empty">Cargando cursos…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modalBack" id="modalBack"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const qs=new URLSearchParams(location.search);
+const PUBLIC_SUPABASE_URL='https://aibtvkjlmpezjsujlkvn.supabase.co';
+const PUBLIC_SUPABASE_KEY='sb_publishable_UsEwh-LJbvhXFcX1snjLWw_YlnH9A6T';
+
+let SBURL=(qs.get('sburl')||PUBLIC_SUPABASE_URL).replace(/\/$/,'');
+let SBKEY=qs.get('sbkey')||PUBLIC_SUPABASE_KEY;
+let TOKEN=qs.get('token')||'';
+let BOT=(qs.get('bot')||localStorage.getItem('cenqal_bot')||'').replace(/^@/,'');
+const TELEGRAM_MODE=Boolean(qs.get('token'));
+
+let supabaseClient=null;
+let deferredInstallPrompt=null;
+let state={
+  snapshot:null,
+  students:[],
+  calendar:[],
+  challenges:[],
+  exams:[],
+  game:[],
+  evidence:[],
+  audit:[],
+  courses:[],
+  selectedCourseId:null,
+  progress:null,
+  deliveries:null,
+  learning:null,
+  learningExport:null,
+  studentLearning:null,
+  currentStudentId:null,
+  studentDetail:null
+};
+
+if(qs.get('bot')) localStorage.setItem('cenqal_bot',BOT);
+
+try{
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+}catch(e){}
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  document.getElementById('installBtn')?.classList.add('show');
+});
+
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  document.getElementById('installBtn')?.classList.remove('show');
+});
+
+function showAuth(message='',isError=false){
+  document.getElementById('appShell')?.classList.add('appHidden');
+
+  let g=document.getElementById('authGate');
+  g?.classList.add('show');
+
+  let m=document.getElementById('authMsg');
+
+  if(m){
+    m.textContent=message||'';
+    m.className='note authMsg'+(message?' show':'')+(isError?' danger':'');
+  }
+}
+
+function hideAuth(){
+  document.getElementById('authGate')?.classList.remove('show');
+  document.getElementById('appShell')?.classList.remove('appHidden');
+}
+
+function setAuthBusy(busy){
+  for(const id of ['loginBtn','magicBtn']){
+    let b=document.getElementById(id);
+    if(b)b.disabled=busy;
+  }
+}
+
+function authMessage(msg,error=false){
+  let m=document.getElementById('authMsg');
+  if(!m)return;
+
+  m.textContent=msg;
+  m.className='note authMsg show'+(error?' danger':'');
+}
+
+function initSupabase(){
+  if(!window.supabase){
+    throw new Error('No se pudo cargar Supabase Auth. Comprueba la conexión a Internet.');
+  }
+
+  if(!supabaseClient){
+    supabaseClient=window.supabase.createClient(
+      PUBLIC_SUPABASE_URL,
+      PUBLIC_SUPABASE_KEY,
+      {
+        auth:{
+          persistSession:true,
+          autoRefreshToken:true,
+          detectSessionInUrl:true,
+          storageKey:'cenqal-control-auth-v1'
+        }
+      }
+    );
+  }
+
+  return supabaseClient;
+}
+
+async function authRpc(name,accessToken,body={}){
+  let r=await fetch(
+    `${PUBLIC_SUPABASE_URL}/rest/v1/rpc/${name}`,
+    {
+      method:'POST',
+      headers:{
+        'apikey':PUBLIC_SUPABASE_KEY,
+        'Authorization':'Bearer '+accessToken,
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify(body)
+    }
+  );
+
+  let txt=await r.text();
+  let data;
+
+  try{
+    data=txt?JSON.parse(txt):null;
+  }catch(e){
+    data=txt;
+  }
+
+  if(!r.ok){
+    throw new Error(
+      (data&&data.message)||
+      String(data)||
+      `HTTP ${r.status}`
+    );
+  }
+
+  return data;
+}
+
+async function issueControlTokenFromAuth(){
+  let sb=initSupabase();
+
+  let {
+    data:{session},
+    error
+  }=await sb.auth.getSession();
+
+  if(error)throw error;
+  if(!session?.access_token)return false;
+
+  let issued=await authRpc(
+    'cenqal_control_issue_auth_token',
+    session.access_token,
+    {}
+  );
+
+  if(!issued?.ok){
+    if(issued?.error==='not_authorized'){
+      throw new Error('Esta cuenta no está autorizada para CENQAL Control.');
+    }
+
+    throw new Error('No se pudo crear la sesión de CENQAL Control.');
+  }
+
+  TOKEN=issued.token;
+  SBURL=PUBLIC_SUPABASE_URL;
+  SBKEY=PUBLIC_SUPABASE_KEY;
+
+  return true;
+}
+
+async function signInPassword(){
+  let email=document.getElementById('authEmail')?.value.trim();
+  let password=document.getElementById('authPassword')?.value||'';
+
+  if(!email||!password){
+    authMessage('Introduce correo y contraseña.',true);
+    return;
+  }
+
+  setAuthBusy(true);
+  authMessage('Comprobando acceso…');
+
+  try{
+    let sb=initSupabase();
+
+    let {error}=await sb.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if(error)throw error;
+
+    await issueControlTokenFromAuth();
+    hideAuth();
+    await startPanel();
+
+  }catch(e){
+    authMessage(
+      e.message||'No se pudo iniciar sesión.',
+      true
+    );
+  }finally{
+    setAuthBusy(false);
+  }
+}
+
+async function sendMagicLink(){
+  let email=document.getElementById('authEmail')?.value.trim();
+
+  if(!email){
+    authMessage('Escribe primero tu correo.',true);
+    return;
+  }
+
+  setAuthBusy(true);
+
+  try{
+    let sb=initSupabase();
+    let redirectTo=location.origin+location.pathname;
+
+    let {error}=await sb.auth.signInWithOtp({
+      email,
+      options:{
+        emailRedirectTo:redirectTo,
+        shouldCreateUser:false
+      }
+    });
+
+    if(error)throw error;
+
+    authMessage(
+      'Te he enviado un enlace seguro. Ábrelo desde este dispositivo para entrar.'
+    );
+
+  }catch(e){
+    authMessage(
+      e.message||'No se pudo enviar el enlace.',
+      true
+    );
+  }finally{
+    setAuthBusy(false);
+  }
+}
+
+async function installPWA(){
+  if(!deferredInstallPrompt){
+    authMessage(
+      'Si no aparece el instalador, abre el menú del navegador y elige “Instalar app” o “Añadir a pantalla de inicio”.'
+    );
+    return;
+  }
+
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+
+  deferredInstallPrompt=null;
+  document.getElementById('installBtn')?.classList.remove('show');
+}
+
+function esc(v){
+  return String(v??'').replace(
+    /[&<>"']/g,
+    m=>({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    }[m])
+  );
+}
+
+function fmtDate(v,withTime=true){
+  if(!v)return '—';
+
+  let d=new Date(v);
+
+  if(isNaN(d))return esc(v);
+
+  return d.toLocaleString(
+    'es-ES',
+    withTime
+      ?{
+          day:'2-digit',
+          month:'2-digit',
+          year:'numeric',
+          hour:'2-digit',
+          minute:'2-digit'
+        }
+      :{
+          day:'2-digit',
+          month:'2-digit',
+          year:'numeric'
+        }
+  );
+}
+
+function dateInput(v){
+  if(!v)return '';
+
+  let d=new Date(v);
+  let z=new Date(
+    d.getTime()-d.getTimezoneOffset()*60000
+  );
+
+  return z.toISOString().slice(0,16);
+}
+
+function n(v,d=1){
+  let x=Number(v);
+  return Number.isFinite(x)
+    ?x.toFixed(d)
+    :'—';
+}
+
+function pct(v){
+  let x=Number(v);
+  return Number.isFinite(x)
+    ?`${x.toFixed(0)}%`
+    :'—';
+}
+
+function riskFor(s={}){
+  let gate=String(s.gate_status||'OK').toUpperCase();
+  let e=s.evidence_average==null
+    ?null
+    :Number(s.evidence_average);
+  let p=s.provisional_normalized==null
+    ?null
+    :Number(s.provisional_normalized);
+
+  if(
+    gate==='FAILED'||
+    (e!=null&&e<5)||
+    (p!=null&&p<5)
+  )return '🔴';
+
+  if(
+    (e!=null&&e<6)||
+    (p!=null&&p<6)
+  )return '🟡';
+
+  if(e==null&&p==null)return '⚪';
+
+  return '🟢';
+}
+
+function botPayload(payload){
+  if(!BOT){
+    toast(
+      'Falta el nombre del bot en el enlace de Control.',
+      true
+    );
+    return;
+  }
+
+  let url=
+    `https://t.me/${BOT}?start=${encodeURIComponent(payload)}`;
+
+  try{
+    Telegram.WebApp.openTelegramLink(url);
+  }catch(e){
+    window.open(url,'_blank');
+  }
+}
+
+function statusClass(v){
+  v=String(v||'').toLowerCase();
+
+  return ['open','published','active','approved','review','validated','accepted'].includes(v)
+    ?'ok'
+    :['scheduled','prepared','submitted','needs_review','pending','in_review'].includes(v)
+      ?'warn'
+      :['closed','inactive','cancelled','rejected'].includes(v)
+        ?'bad'
+        :'';
+}
+
+function toast(msg,error=false){
+  let t=document.getElementById('toast');
+
+  t.textContent=msg;
+  t.className='toast show'+(error?' error':'');
+
+  setTimeout(
+    ()=>t.className='toast',
+    3500
+  );
+}
+
+function rpcName(name){
+  return `${SBURL}/rest/v1/rpc/${name}`;
+}
+
+async function rpc(name,body={}){
+  if(!SBURL||!SBKEY||!TOKEN){
+    throw new Error(
+      'Faltan parámetros seguros de acceso.'
+    );
+  }
+
+  let r=await fetch(
+    rpcName(name),
+    {
+      method:'POST',
+      headers:{
+        'apikey':SBKEY,
+        'Authorization':'Bearer '+SBKEY,
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify(body)
+    }
+  );
+
+  let txt=await r.text();
+  let data;
+
+  try{
+    data=txt
+      ?JSON.parse(txt)
+      :null;
+  }catch(e){
+    data=txt;
+  }
+
+  if(!r.ok){
+    throw new Error(
+      (data&&data.message)||
+      String(data)||
+      `HTTP ${r.status}`
+    );
+  }
+
+  return data;
+}
+
+function go(name){
+  document.querySelectorAll('.view')
+    .forEach(x=>x.classList.remove('active'));
+
+  document.querySelectorAll('.nav button')
+    .forEach(x=>x.classList.remove('active'));
+
+  document.getElementById('view-'+name)
+    .classList.add('active');
+
+  document.querySelector(
+    `.nav button[data-view="${name}"]`
+  )?.classList.add('active');
+
+  if(name==='students')loadStudents();
+  if(name==='progress')loadProgress();
+  if(name==='learning')loadLearning();
+  if(name==='deliveries')loadDeliveries();
+  if(name==='calendar')loadCalendar();
+  if(name==='challenges')loadChallenges();
+  if(name==='weekly-grade')loadWeeklyGrades();
+  if(name==='exams')loadExams();
+  if(name==='groups')loadStudents().then(renderGroups);
+  if(name==='game')loadGame();
+  if(name==='evidence')loadEvidence();
+  if(name==='audit')loadAudit();
+  if(name==='system')renderSystem();
+  if(name==='reset')loadCourses();
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+}
+
+document.querySelectorAll('.nav button')
+  .forEach(
+    b=>b.addEventListener(
+      'click',
+      ()=>go(b.dataset.view)
+    )
+  );
+
+function closeModal(){
+  document.getElementById('modalBack')
+    .classList.remove('show');
+}
+
+document.getElementById('modalBack')
+  .addEventListener(
+    'click',
+    e=>{
+      if(e.target.id==='modalBack')
+        closeModal();
+    }
+  );
+
+function modal(html){
+  document.getElementById('modal').innerHTML=html;
+  document.getElementById('modalBack')
+    .classList.add('show');
+}
+
+function confirmModal({
+  title,
+  summary,
+  phrase='CONFIRMAR',
+  button='Confirmar',
+  danger=false,
+  onConfirm
+}){
+
+  modal(`
+    <h3>${esc(title)}</h3>
+
+    <div class="note ${danger?'danger':'warn'}">
+      ${summary}
+    </div>
+
+    <p style="font-size:13px;color:#5d718a">
+      Para continuar escribe exactamente:
+    </p>
+
+    <div class="confirmPhrase">
+      ${esc(phrase)}
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <input
+        id="confirmInput"
+        autocomplete="off"
+        placeholder="${esc(phrase)}">
+    </div>
+
+    <div class="modalFooter">
+      <button
+        class="btn"
+        onclick="closeModal()">
+        Cancelar
+      </button>
+
+      <button
+        class="btn ${danger?'danger':'primary'}"
+        id="confirmBtn">
+        ${esc(button)}
+      </button>
+    </div>
+  `);
+
+  document.getElementById('confirmBtn').onclick=
+    async()=>{
+
+      let typed=document.getElementById('confirmInput')
+        .value
+        .trim();
+
+      if(
+        typed.toUpperCase()!==
+        phrase.toUpperCase()
+      ){
+        toast(
+          'La frase de confirmación no coincide.',
+          true
+        );
+        return;
+      }
+
+      let btn=document.getElementById('confirmBtn');
+
+      btn.disabled=true;
+      btn.innerHTML=
+        '<span class="loader"></span> Procesando';
+
+      try{
+        await onConfirm(typed);
+        closeModal();
+
+      }catch(e){
+        btn.disabled=false;
+        btn.textContent=button;
+        toast(e.message,true);
+      }
+    };
+}
+  async function refreshSnapshot(){let s=await rpc('cenqal_control_snapshot',{p_token:TOKEN});state.snapshot=s;let c=s.course||{};document.getElementById('topCourse').textContent=`${c.subject||'CENQAL'} · ${c.academic_year||''}`;document.getElementById('topMeta').textContent=[c.degree,c.group_name].filter(Boolean).join(' · ');document.getElementById('sessionText').textContent='Sesión hasta '+fmtDate(s.session_expires_at);renderMetrics();fillCourse();renderSystem();return s}
+
+function metric(label,value,sub=''){return `<div class="card metric"><div class="label">${label}</div><b>${esc(value)}</b><span>${esc(sub)}</span></div>`}
+
+function renderMetrics(){let m=state.snapshot?.metrics||{};document.getElementById('metrics').innerHTML=[metric('👥 Alumnos activos',m.active_students??0,`${m.linked_students??0} vinculados a Telegram`),metric('📅 Próxima clase',m.next_class?fmtDate(m.next_class.starts_at,false):'—',m.next_class?.title||'Sin clases futuras'),metric('🏆 Próximo reto',m.next_challenge?`T${m.next_challenge.topic_number}`:'—',m.next_challenge?`${m.next_challenge.week_start} · ${m.next_challenge.status}`:'Sin reto'),metric('📝 Examen abierto',m.open_exams??0,m.next_exam?.title||'Sin examen abierto'),metric('📁 Evidencias',m.evidences??0,'Documentos indexados')].join('');let rows=[];if(m.next_class)rows.push(eventHTML('CLASE',m.next_class.starts_at,m.next_class.title,'calendar'));if(m.next_challenge)rows.push(eventHTML('RETO',m.next_challenge.week_start,m.next_challenge.title,'challenges'));if(m.next_exam)rows.push(eventHTML('EXAMEN',m.next_exam.opened_at||m.next_exam.created_at,m.next_exam.title,'exams'));document.getElementById('upcoming').innerHTML=rows.join('')||'<div class="empty">No hay hitos próximos.</div>'}
+
+function eventHTML(type,date,title,view){let d=new Date(date);let day=isNaN(d)?'—':String(d.getDate()).padStart(2,'0');let mon=isNaN(d)?'':d.toLocaleString('es-ES',{month:'short'}).toUpperCase();return `<div class="event"><div class="datebox">${day}<small>${mon}</small></div><div><b>${esc(type)}</b><div>${esc(title||'')}</div></div><button class="btn" onclick="go('${view}')">Ver</button></div>`}
+
+function fillCourse(){let c=state.snapshot?.course||{};let f=document.getElementById('courseForm');if(!f)return;for(let k of ['academic_year','group_name','subject','subject_code','degree','ects','class_weekday','start_date','end_date','class_start','class_end']){if(f.elements[k]){let v=c[k]??'';if(k==='class_start'||k==='class_end')v=String(v).slice(0,5);f.elements[k].value=v}}}
+
+async function saveCourse(){let f=document.getElementById('courseForm');let data=Object.fromEntries(new FormData(f).entries());confirmModal({title:'Guardar configuración del curso',summary:'Revisa los datos antes de continuar. El cambio quedará registrado en Auditoría. No se borrará ningún histórico.',phrase:'CONFIRMAR',onConfirm:async typed=>{await rpc('cenqal_control_update_course',{p_token:TOKEN,p_data:data,p_confirmation:typed});await refreshSnapshot();toast('Configuración actualizada.')}})}
+
+
+function clearCourseScopedState(){
+  state.students=[];
+  state.calendar=[];
+  state.challenges=[];
+  state.exams=[];
+  state.game=[];
+  state.evidence=[];
+  state.audit=[];
+  state.courses=[];
+  state.selectedCourseId=null;
+  state.progress=null;
+  state.deliveries=null;
+  state.learning=null;
+  state.learningExport=null;
+  state.studentLearning=null;
+  state.studentDetail=null;
+  state.currentStudentId=null;
+}
+
+async function loadCourses(force=false){
+  if(state.courses.length&&!force){
+    renderCourseManager();
+    return state.courses;
+  }
+
+  try{
+    const d=await rpc('cenqal_control_courses',{p_token:TOKEN});
+    state.courses=d.rows||[];
+    state.selectedCourseId=d.selected_course_id??null;
+    renderCourseManager();
+    return state.courses;
+  }catch(e){
+    const body=document.getElementById('coursesBody');
+    if(body)body.innerHTML=`<tr><td colspan="5" class="empty">${esc(e.message)}</td></tr>`;
+    throw e;
+  }
+}
+
+function courseRowById(id){
+  return (state.courses||[]).find(c=>String(c.id)===String(id))||null;
+}
+
+function renderCourseManager(){
+  const body=document.getElementById('coursesBody');
+  if(!body)return;
+
+  const rows=state.courses||[];
+  const selectedId=String(state.selectedCourseId??'');
+  const selected=rows.find(c=>String(c.id)===selectedId);
+  const active=rows.find(c=>c.legacy_active&&!c.archived_at);
+
+  const summary=document.getElementById('courseManagerSummary');
+  if(summary){
+    summary.innerHTML=`
+      <div class="miniList">
+        <div class="miniRow"><span>Curso seleccionado en este panel</span><b>${selected?esc(`${selected.subject} · ${selected.academic_year}`):'—'}</b></div>
+        <div class="miniRow"><span>Curso operativo global</span><b>${active?esc(`${active.subject} · ${active.academic_year}`):'—'}</b></div>
+      </div>
+    `;
+  }
+
+  body.innerHTML=rows.map(c=>{
+    const archived=Boolean(c.archived_at);
+    const selectedNow=String(c.id)===selectedId;
+    const activeNow=Boolean(c.legacy_active)&&!archived;
+
+    let labels=[];
+    if(activeNow)labels.push('<span class="status ok">ACTIVO</span>');
+    if(selectedNow)labels.push('<span class="status">SELECCIONADO</span>');
+    if(archived)labels.push('<span class="status bad">ARCHIVADO</span>');
+    if(!activeNow&&!archived)labels.push('<span class="status warn">PREPARADO</span>');
+
+    let actions=[];
+    if(!archived&&!selectedNow){
+      actions.push(`<button class="btn" onclick="selectCourse(${Number(c.id)})">Seleccionar</button>`);
+    }
+    if(!archived&&!activeNow){
+      actions.push(`<button class="btn primary" onclick="activateCourse(${Number(c.id)})">Activar</button>`);
+      actions.push(`<button class="btn danger" onclick="archiveCourse(${Number(c.id)})">Archivar</button>`);
+    }
+    if(archived){
+      actions.push(`<button class="btn" onclick="restoreCourse(${Number(c.id)})">Restaurar</button>`);
+    }
+    actions.push(`<button class="btn" onclick="openCourseWizard('duplicate',${Number(c.id)})">Duplicar</button>`);
+
+    return `
+      <tr>
+        <td><b>${esc(c.subject||'Curso')}</b><br><span class="subtle">${esc(c.academic_year||'')}</span></td>
+        <td>${esc(c.group_name||'—')}</td>
+        <td>${esc(c.students??0)}</td>
+        <td>${labels.join(' ')}</td>
+        <td><div class="actions">${actions.join('')}</div></td>
+      </tr>
+    `;
+  }).join('')||'<tr><td colspan="5" class="empty">No hay cursos registrados.</td></tr>';
+}
+
+function courseWizardField(label,name,value='',type='text',extra=''){
+  return `<div class="field"><label>${esc(label)}</label><input name="${esc(name)}" type="${esc(type)}" value="${esc(value??'')}" ${extra}></div>`;
+}
+
+function openCourseWizard(mode='create',sourceId=null){
+  const duplicate=mode==='duplicate';
+  const source=duplicate?courseRowById(sourceId):null;
+
+  if(duplicate&&!source){
+    toast('No se ha podido identificar el curso de origen.',true);
+    return;
+  }
+
+  const title=duplicate?'⧉ Duplicar curso':'＋ Crear curso nuevo';
+  const intro=duplicate
+    ?'Se copiarán la ficha y los componentes de evaluación. No se copiarán alumnos, notas, evidencias ni actividad.'
+    :'Se creará una ficha de curso nueva y vacía. Quedará inactiva hasta que la actives expresamente.';
+
+  const d=source||{};
+  const weekday=d.class_weekday??'';
+
+  document.getElementById('modal').innerHTML=`
+    <h3>${title}</h3>
+    <p>${esc(intro)}</p>
+    <form id="courseWizardForm" class="formgrid" onsubmit="return false">
+      ${courseWizardField('Curso académico *','academic_year',duplicate?'':d.academic_year||'','text','required')}
+      ${courseWizardField('Grupo / identificador *','group_name','','text','required placeholder="Ej. 2728-T1"')}
+      ${courseWizardField('Asignatura *','subject',d.subject||'','text','required')}
+      ${courseWizardField('Código','subject_code',d.subject_code||'')}
+      <div class="field full"><label>Titulación</label><input name="degree" value="${esc(d.degree||'')}"></div>
+      ${courseWizardField('ECTS','ects',d.ects??'','number','step="0.5"')}
+      <div class="field"><label>Día habitual</label><select name="class_weekday">
+        <option value="">—</option>
+        ${[1,2,3,4,5,6,7].map((x,i)=>`<option value="${x}" ${String(weekday)===String(x)?'selected':''}>${['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'][i]}</option>`).join('')}
+      </select></div>
+      ${courseWizardField('Inicio','start_date',duplicate?'':d.start_date||'','date')}
+      ${courseWizardField('Fin','end_date',duplicate?'':d.end_date||'','date')}
+      ${courseWizardField('Hora inicio','class_start',String(d.class_start||'').slice(0,5),'time')}
+      ${courseWizardField('Hora fin','class_end',String(d.class_end||'').slice(0,5),'time')}
+    </form>
+    <div class="note warn" style="margin-top:12px">
+      ${duplicate?'El curso nuevo quedará preparado e inactivo. Después podrás revisarlo y activarlo.':'Un curso nuevo en blanco no podrá activarse hasta tener una evaluación oficial configurada al 100 %.'}
+    </div>
+    <div class="actions" style="margin-top:16px;justify-content:flex-end">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="submitCourseWizard('${duplicate?'duplicate':'create'}',${duplicate?Number(source.id):'null'})">${duplicate?'Crear copia':'Crear curso'}</button>
+    </div>
+  `;
+  document.getElementById('modalBack').classList.add('show');
+}
+
+async function submitCourseWizard(mode,sourceId=null){
+  const form=document.getElementById('courseWizardForm');
+  if(!form)return;
+  const data=Object.fromEntries(new FormData(form).entries());
+
+  if(!String(data.academic_year||'').trim()||!String(data.group_name||'').trim()||!String(data.subject||'').trim()){
+    toast('Completa curso académico, grupo y asignatura.',true);
+    return;
+  }
+
+  const duplicate=mode==='duplicate';
+
+  // La función de duplicación hereda los valores del curso origen.
+  // No enviamos cadenas vacías a campos tipados (fecha, hora, número),
+  // porque PostgreSQL no debe intentar convertir '' a date/time/numeric.
+  if(duplicate){
+    for(const key of ['subject_code','degree','ects','class_weekday','start_date','end_date','class_start','class_end']){
+      if(String(data[key]??'').trim()==='') delete data[key];
+    }
+  }
+
+  const phrase=duplicate?'DUPLICAR CURSO':'CREAR CURSO';
+  const summary=duplicate
+    ?'Se creará una copia independiente del curso. No se copiarán alumnos, calificaciones ni actividad. El nuevo curso quedará inactivo.'
+    :'Se creará un curso nuevo en blanco. No modificará el curso actualmente operativo.';
+
+  confirmModal({
+    title:duplicate?'Confirmar duplicación':'Confirmar creación',
+    summary,
+    phrase,
+    button:duplicate?'Duplicar curso':'Crear curso',
+    onConfirm:async typed=>{
+      const result=duplicate
+        ?await rpc('cenqal_control_duplicate_course',{p_token:TOKEN,p_source_course_id:Number(sourceId),p_data:data,p_confirmation:typed})
+        :await rpc('cenqal_control_create_course',{p_token:TOKEN,p_data:data,p_confirmation:typed});
+
+      const newId=result.new_course_id;
+      if(newId){
+        await rpc('cenqal_control_select_course',{p_token:TOKEN,p_course_id:Number(newId)});
+      }
+      clearCourseScopedState();
+      state.courses=[];
+      await refreshSnapshot();
+      await loadCourses(true);
+      go('reset');
+      toast(duplicate?'Curso duplicado y seleccionado.':'Curso creado y seleccionado.');
+    }
+  });
+}
+
+function duplicateSelectedCourse(){
+  const id=state.selectedCourseId??state.snapshot?.course?.id;
+  if(!id){
+    toast('No hay ningún curso seleccionado.',true);
+    return;
+  }
+  openCourseWizard('duplicate',id);
+}
+
+async function selectCourse(id){
+  try{
+    await rpc('cenqal_control_select_course',{p_token:TOKEN,p_course_id:Number(id)});
+    clearCourseScopedState();
+    state.courses=[];
+    await refreshSnapshot();
+    await loadCourses(true);
+    toast('Curso seleccionado en el panel.');
+  }catch(e){toast(e.message,true)}
+}
+
+function activateCourse(id){
+  const c=courseRowById(id)||{};
+  confirmModal({
+    title:'Activar curso operativo',
+    summary:`Vas a convertir ${c.subject||'este curso'} · ${c.academic_year||''} en el curso operativo global de CENQAL y del bot. El curso anterior no se borrará ni se archivará.`,
+    phrase:'ACTIVAR CURSO',
+    button:'Activar curso',
+    onConfirm:async typed=>{
+      await rpc('cenqal_control_activate_course',{p_token:TOKEN,p_course_id:Number(id),p_confirmation:typed});
+      clearCourseScopedState();
+      state.courses=[];
+      await refreshSnapshot();
+      await loadCourses(true);
+      toast('Curso operativo cambiado correctamente.');
+    }
+  });
+}
+
+function archiveCourse(id){
+  const c=courseRowById(id)||{};
+  confirmModal({
+    title:'Archivar curso',
+    summary:`Se archivará ${c.subject||'este curso'} · ${c.academic_year||''}. No se eliminará ningún dato y podrás restaurarlo después.`,
+    phrase:'ARCHIVAR CURSO',
+    button:'Archivar curso',
+    danger:true,
+    onConfirm:async typed=>{
+      await rpc('cenqal_control_archive_course',{p_token:TOKEN,p_course_id:Number(id),p_confirmation:typed});
+      clearCourseScopedState();
+      state.courses=[];
+      await refreshSnapshot();
+      await loadCourses(true);
+      toast('Curso archivado sin borrar históricos.');
+    }
+  });
+}
+
+function restoreCourse(id){
+  const c=courseRowById(id)||{};
+  confirmModal({
+    title:'Restaurar curso',
+    summary:`Se restaurará ${c.subject||'este curso'} · ${c.academic_year||''}. Quedará disponible pero no se activará automáticamente.`,
+    phrase:'RESTAURAR CURSO',
+    button:'Restaurar curso',
+    onConfirm:async typed=>{
+      await rpc('cenqal_control_restore_course',{p_token:TOKEN,p_course_id:Number(id),p_confirmation:typed});
+      state.courses=[];
+      await loadCourses(true);
+      toast('Curso restaurado.');
+    }
+  });
+}
+
+async function loadStudents(force=false){if(state.students.length&&!force){renderStudents();return state.students}let d=await rpc('cenqal_control_students',{p_token:TOKEN});state.students=d.rows||[];let sel=document.getElementById('studentGroupFilter');if(sel){let cur=sel.value;let gs=[...new Set(state.students.map(x=>x.group_name).filter(Boolean))].sort();sel.innerHTML='<option value="">Todos los grupos</option>'+gs.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');sel.value=cur}renderStudents();return state.students}
+
+function studentUuid(value){
+  const id=String(value??'').trim();
+  if(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))return id;
+  if(/^\d+$/.test(id)&&Number(id)>0)return Number(id);
+  return null;
+}
+
+function studentIdOf(student){
+  if(!student)return null;
+  return studentUuid(
+    student.student_id ??
+    student.id ??
+    student.cenqal_student_id
+  );
+}
+
+function renderStudents(){
+  let b=document.getElementById('studentsBody');
+  if(!b)return;
+
+  let q=(document.getElementById('studentSearch')?.value||'').trim().toLowerCase();
+  let g=document.getElementById('studentGroupFilter')?.value||'';
+
+  let rows=state.students.filter(s=>{
+    let name=String(
+      s.full_name||
+      [s.first_name,s.last_name].filter(Boolean).join(' ')||
+      ''
+    ).toLowerCase();
+
+    let code=String(s.student_code||'').toLowerCase();
+
+    return(
+      !q||
+      name.includes(q)||
+      code.includes(q)
+    )&&(
+      !g||
+      s.group_name===g
+    );
+  });
+
+  b.innerHTML=rows.map(s=>{
+    const sid=studentIdOf(s)||'';
+
+    return `
+      <tr
+        class="studentrow"
+        data-student-id="${esc(sid)}">
+        <td><b>${esc(s.student_code)}</b></td>
+        <td>${esc(s.full_name||[s.first_name,s.last_name].filter(Boolean).join(' '))}</td>
+        <td>${esc(s.group_name||'—')}</td>
+        <td>
+          ${
+            s.telegram_user_id
+              ? `<span class="status ok">Vinculado</span> <small>${esc(s.telegram_username||'')}</small>`
+              : '<span class="status warn">Sin vincular</span>'
+          }
+        </td>
+        <td>
+          <span class="status ${s.active?'ok':'bad'}">
+            ${s.active?'Activo':'Inactivo'}
+          </span>
+        </td>
+        <td>
+          <div class="actions">
+            <button
+              type="button"
+              class="btn primary"
+              data-student-action="open">
+              Ver ficha
+            </button>
+            <button
+              type="button"
+              class="btn"
+              data-student-action="edit">
+              Editar
+            </button>
+            ${
+              s.telegram_user_id
+                ? `<button
+                     type="button"
+                     class="btn danger desktopHideMobile"
+                     data-student-action="reset">
+                     Reiniciar vínculo
+                   </button>`
+                : ''
+            }
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('')||
+  '<tr><td colspan="6" class="empty">No hay alumnos con ese filtro.</td></tr>';
+
+  b.onclick=e=>{
+    const row=e.target.closest('tr[data-student-id]');
+    if(!row)return;
+
+    const sid=studentUuid(row.dataset.studentId);
+
+    if(!sid){
+      toast('No se ha podido identificar al alumno.',true);
+      return;
+    }
+
+    const button=e.target.closest('button[data-student-action]');
+
+    if(!button){
+      openStudent(sid);
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const action=button.dataset.studentAction;
+
+    if(action==='open'){
+      openStudent(sid);
+      return;
+    }
+
+    if(action==='edit'){
+      editStudent(sid);
+      return;
+    }
+
+    if(action==='reset'){
+      const student=state.students.find(x=>studentIdOf(x)===sid);
+      resetStudent(sid,student?.student_code||'');
+    }
+  };
+}
+
+function editStudent(id){
+  const sid=studentUuid(id);
+
+  if(!sid){
+    toast('No se ha podido identificar al alumno.',true);
+    return;
+  }
+
+  let s=state.students.find(x=>studentIdOf(x)===sid);
+
+  if(!s){
+    toast('No se ha podido identificar al alumno.',true);
+    return;
+  }
+
+  modal(`
+    <h3>Editar alumno · ${esc(s.student_code)}</h3>
+    <div class="formgrid">
+      <div class="field">
+        <label>Nombre</label>
+        <input id="stFirst" value="${esc(s.first_name||'')}">
+      </div>
+      <div class="field">
+        <label>Apellidos</label>
+        <input id="stLast" value="${esc(s.last_name||'')}">
+      </div>
+      <div class="field full">
+        <label>Nombre completo</label>
+        <input id="stFull" value="${esc(s.full_name||'')}">
+      </div>
+      <div class="field">
+        <label>Grupo</label>
+        <input id="stGroup" value="${esc(s.group_name||'')}">
+      </div>
+      <div class="field">
+        <label>Curso académico</label>
+        <input id="stYear" value="${esc(s.academic_year||'')}">
+      </div>
+      <div class="field full">
+        <label>
+          <input id="stActive" type="checkbox" ${s.active?'checked':''}>
+          Alumno activo
+        </label>
+      </div>
+    </div>
+    <div class="modalFooter">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" id="studentNext">Revisar cambio</button>
+    </div>
+  `);
+
+  document.getElementById('studentNext').onclick=()=>{
+    let data={
+      first_name:document.getElementById('stFirst').value,
+      last_name:document.getElementById('stLast').value,
+      full_name:document.getElementById('stFull').value,
+      group_name:document.getElementById('stGroup').value,
+      academic_year:document.getElementById('stYear').value,
+      active:document.getElementById('stActive').checked
+    };
+
+    confirmModal({
+      title:`Confirmar cambios · ${s.student_code}`,
+      summary:`Alumno: <b>${esc(data.full_name||s.full_name)}</b><br>Grupo: ${esc(data.group_name)}<br>Estado: ${data.active?'Activo':'Inactivo'}`,
+      phrase:'CONFIRMAR',
+      onConfirm:async typed=>{
+        await rpc(
+          'cenqal_control_update_student',
+          {
+            p_token:TOKEN,
+            p_student_id:sid,
+            p_data:data,
+            p_confirmation:typed
+          }
+        );
+
+        state.students=[];
+        await loadStudents(true);
+        await refreshSnapshot();
+        toast('Alumno actualizado.');
+      }
+    });
+  };
+}
+
+function resetStudent(id,code){
+  const sid=studentUuid(id);
+
+  if(!sid){
+    toast('No se ha podido identificar al alumno.',true);
+    return;
+  }
+
+  confirmModal({
+    title:'Reiniciar vinculación Telegram',
+    summary:'Esto NO borra notas, PP, Og, exámenes ni evidencias. Únicamente permite que el alumno vuelva a ejecutar /registrarme con su código.',
+    phrase:`REINICIAR ALUMNO ${code}`,
+    button:'Reiniciar vínculo',
+    danger:true,
+    onConfirm:async typed=>{
+      await rpc(
+        'cenqal_control_reset_student_link',
+        {
+          p_token:TOKEN,
+          p_student_id:sid,
+          p_confirmation:typed,
+          p_reason:'Reinicio solicitado por la profesora desde CENQAL Control'
+        }
+      );
+
+      state.students=[];
+      await loadStudents(true);
+      await refreshSnapshot();
+      toast('Vinculación reiniciada.');
+    }
+  });
+}
+
+async function loadProgress(force=false){if(state.progress&&!force){renderProgress();return state.progress}document.getElementById('progressMetrics').innerHTML='<div class="card"><span class="loader"></span> Calculando progreso…</div>';let d=await rpc('cenqal_control_class_progress',{p_token:TOKEN});state.progress=d;renderProgress();return d}
+
+function mergedProgress(){let a=state.progress?.analytics?.students||[],act=state.progress?.activity||[];let byUid=new Map(a.filter(x=>x.telegram_user_id!=null).map(x=>[String(x.telegram_user_id),x])),byCode=new Map(a.map(x=>[String(x.student_code||''),x]));return act.map(x=>Object.assign({},x,byUid.get(String(x.telegram_user_id))||byCode.get(String(x.student_code||''))||{}))}
+
+function renderProgress(){let rows=mergedProgress();let withEv=rows.filter(x=>x.evidence_average!=null),prov=rows.filter(x=>x.provisional_normalized!=null);let avgEv=withEv.length?withEv.reduce((a,b)=>a+Number(b.evidence_average||0),0)/withEv.length:null,avgProv=prov.length?prov.reduce((a,b)=>a+Number(b.provisional_normalized||0),0)/prov.length:null;let rc={'🔴':0,'🟡':0,'🟢':0,'⚪':0};rows.forEach(x=>rc[riskFor(x)]++);document.getElementById('progressMetrics').innerHTML=[metric('👥 Alumnos',rows.length,'activos'),metric('📚 Con evidencias',withEv.length,avgEv==null?'sin media':`media ${n(avgEv)}/10`),metric('🎓 Proyección oficial',avgProv==null?'—':n(avgProv),prov.length?'media /10':'sin datos'),metric('🏆 Retos semanales',rows.reduce((a,b)=>a+Number(b.weekly_count||0),0),'participaciones registradas'),metric('🎯 Porfolios',rows.reduce((a,b)=>a+Number(b.portfolios_approved||0),0),'aprobados')].join('');document.getElementById('riskGrid').innerHTML=`<div class="riskcard risk-red">Prioridad<b>${rc['🔴']}</b><span class="subtle">revisión prioritaria</span></div><div class="riskcard risk-yellow">Atención<b>${rc['🟡']}</b><span class="subtle">seguimiento</span></div><div class="riskcard risk-green">Normal<b>${rc['🟢']}</b><span class="subtle">evolución adecuada</span></div><div class="riskcard risk-gray">Sin evidencias<b>${rc['⚪']}</b><span class="subtle">todavía sin datos</span></div>`;let exams=rows.reduce((a,b)=>a+Number(b.exams_done||0),0),passed=rows.reduce((a,b)=>a+Number(b.exams_passed||0),0),pp=rows.reduce((a,b)=>a+Number(b.pp_total||0),0);document.getElementById('progressSummary').innerHTML=`<div class="miniRow"><span>Exámenes realizados</span><b>${exams}</b></div><div class="miniRow"><span>Exámenes superados</span><b>${passed}</b></div><div class="miniRow"><span>PP acumulados del grupo</span><b>${pp}</b></div><div class="miniRow"><span>Incidencias abiertas</span><b>${rows.reduce((a,b)=>a+Number(b.open_incidents||0),0)}</b></div>`;renderProgressTable()}
+
+function renderProgressTable(){
+  let b=document.getElementById('progressBody');
+  if(!b||!state.progress)return;
+
+  let q=(document.getElementById('progressSearch')?.value||'').toLowerCase();
+  let rf=document.getElementById('progressRisk')?.value||'';
+
+  let rows=mergedProgress().filter(x=>
+    (
+      !q||
+      String(
+        x.student_name||
+        x.full_name||
+        x.student_code||
+        ''
+      ).toLowerCase().includes(q)
+    )&&(
+      !rf||
+      riskFor(x)===rf
+    )
+  );
+
+  b.innerHTML=rows.map(x=>{
+    const student=(state.students||[]).find(s=>
+      String(s.student_code||'').trim()===
+      String(x.student_code||'').trim()
+    );
+
+    const sid=
+      studentIdOf(x)||
+      studentIdOf(student)||
+      '';
+
+    return `
+      <tr
+        class="studentrow"
+        data-student-id="${esc(sid)}">
+        <td>${riskFor(x)}</td>
+        <td>
+          <b>${esc(x.student_name||x.full_name||x.student_code)}</b>
+          <br>
+          <span class="subtle">${esc(x.student_code||'')}</span>
+        </td>
+        <td>${esc(x.group_name||'—')}</td>
+        <td>${x.evidence_average==null?'—':n(x.evidence_average)}</td>
+        <td>${x.provisional_normalized==null?'—':n(x.provisional_normalized)}</td>
+        <td>${pct(x.graded_official_weight)}</td>
+        <td>${esc(x.pp_total||0)}</td>
+        <td>${esc(x.og_balance||0)}</td>
+        <td>${esc(x.weekly_count||0)}</td>
+        <td>${esc(x.exams_passed||0)}/${esc(x.exams_done||0)}</td>
+        <td>${esc(x.portfolios_approved||0)}</td>
+        <td>
+          <button
+            type="button"
+            class="btn primary"
+            data-progress-action="open">
+            Ficha
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('')||
+  '<tr><td colspan="12" class="empty">No hay alumnos con ese filtro.</td></tr>';
+
+  b.onclick=e=>{
+    const row=e.target.closest('tr[data-student-id]');
+    if(!row)return;
+
+    const sid=studentUuid(row.dataset.studentId);
+
+    if(!sid){
+      toast('No se ha podido identificar al alumno.',true);
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    openStudent(sid);
+  };
+}
+
+async function openStudent(id){
+  const sid=studentUuid(id);
+
+  if(!sid){
+    toast('No se ha podido identificar al alumno.',true);
+    return;
+  }
+
+  state.currentStudentId=sid;
+  state.studentDetail=null;
+  state.studentLearning=null;
+  const slc=document.getElementById('studentLearningCard');
+  if(slc)slc.style.display='none';
+
+  document.querySelectorAll('.view')
+    .forEach(x=>x.classList.remove('active'));
+
+  document.querySelectorAll('.nav button')
+    .forEach(x=>x.classList.remove('active'));
+
+  document.getElementById('view-student').classList.add('active');
+
+  document.querySelector(
+    '.nav button[data-view="students"]'
+  )?.classList.add('active');
+
+  document.getElementById('studentHero').innerHTML=
+    '<div><span class="loader"></span> Cargando ficha completa…</div>';
+
+  document.getElementById('studentMetrics').innerHTML='';
+  document.getElementById('studentSections').innerHTML='';
+
+  if(document.getElementById('studentComponents')){
+    document.getElementById('studentComponents').innerHTML='';
+  }
+
+  if(document.getElementById('studentActivity')){
+    document.getElementById('studentActivity').innerHTML='';
+  }
+
+  window.scrollTo({top:0});
+
+  try{
+    let d=await rpc(
+      'cenqal_control_student_workspace',
+      {
+        p_token:TOKEN,
+        p_student_id:sid
+      }
+    );
+
+    state.studentDetail=d;
+    renderStudentDetail();
+    await loadStudentLearningAnalytics(sid);
+
+  }catch(e){
+    document.getElementById('studentHero').innerHTML=
+      `<div class="note danger">${esc(e.message)}</div>`;
+
+    toast(
+      e.message||'No se pudo cargar la ficha.',
+      true
+    );
+  }
+}
+
+async function reloadCurrentStudent(){if(state.currentStudentId)await openStudent(state.currentStudentId)}
+
+function requestStudentDossier(){if(!state.currentStudentId)return;botPayload('cd_'+state.currentStudentId)}
+
+function objv(o,...keys){for(let k of keys)if(o&&o[k]!=null)return o[k];return null}
+
+function studentName(s={}){return s.student_name||s.full_name||[s.first_name,s.last_name].filter(Boolean).join(' ')||s.student_code||'Alumno'}
+
+function prettyObject(value){
+  if(value==null||value==='')return '—';
+  if(typeof value==='string'){
+    try{value=JSON.parse(value)}catch(e){return value}
+  }
+  if(Array.isArray(value))return value.map((x,i)=>`${i+1}. ${typeof x==='object'?JSON.stringify(x):x}`).join('\n');
+  if(typeof value==='object')return Object.entries(value).map(([k,v])=>`${k}: ${typeof v==='object'?JSON.stringify(v):v}`).join('\n');
+  return String(value);
+}
+
+function contributionById(id){
+  let own=state.studentDetail?.contributions||[];
+  return own.find(x=>String(x.id)===String(id))||(state.deliveries?.contributions||[]).find(x=>String(x.id)===String(id));
+}
+
+function contributionControlAction(x,compact=false){
+  let st=String(x?.status||'').toLowerCase();
+  if(st==='needs_review'){
+    return `<button class="btn primary" onclick="botPayload('cc_${x.id}')">✅ Validar e incorporar${compact?'':' en CENQAL'}</button>`;
+  }
+  if(st==='validated'&&x.resource_id){
+    return `<span class="status ok">✅ Ya incorporada en CENQAL</span>`;
+  }
+  if(st==='validated'&&!x.resource_id){
+    return `<button class="btn danger" onclick="botPayload('cc_${x.id}')">⚠️ Revisar: falta ficha CENQAL</button>`;
+  }
+  if(st==='rejected'){
+    return `<span class="status bad">Rechazada</span>`;
+  }
+  return `<button class="btn" onclick="botPayload('cc_${x.id}')">Revisar en Berilio</button>`;
+}
+
+function portfolioById(id){
+  let own=state.studentDetail?.portfolio_submissions||[];
+  return own.find(x=>String(x.id)===String(id))||(state.deliveries?.portfolios||[]).find(x=>String(x.id)===String(id));
+}
+
+function showContributionDetail(id){
+  let x=contributionById(id);if(!x)return toast('No se ha encontrado la aportación.',true);
+  let s=x._student||state.studentDetail?.student||{};
+  let answers=[
+    ['1. Concepto / tema',objv(x,'topic','primary_topic','macrotheme_number')],
+    ['2. Afirmación científica',objv(x,'main_scientific_claim','scientific_claim','claim')],
+    ['3. Evidencias y fuentes',objv(x,'evidence_sources','sources','evidence')],
+    ['4. Valor didáctico',objv(x,'why_recommended','didactic_value')],
+    ['5. Valoración crítica',objv(x,'critical_assessment','critical_value')]
+  ];
+  modal(`<div class="sectionTitle"><h3>🧪 Aportación de ${esc(studentName(s))}</h3><button class="btn" onclick="closeModal()">Cerrar</button></div>
+    <div class="miniList"><div class="miniRow"><span>Título</span><b>${esc(x.title||'Sin título')}</b></div><div class="miniRow"><span>Estado</span><b><span class="status ${statusClass(x.status)}">${esc(x.status||'—')}</span></b></div><div class="miniRow"><span>Preevaluación</span><b>${esc(x.preliminary_score??'—')}</b></div></div>
+    ${answers.map(([k,v])=>`<div class="field" style="margin-top:12px"><label>${esc(k)}</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(v))}</div></div>`).join('')}
+    <div class="field" style="margin-top:12px"><label>Rúbrica / desglose</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(objv(x,'rubric_scores','rubric','automatic_evaluation')))}</div></div>
+    <div class="field" style="margin-top:12px"><label>Feedback preliminar</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(x.preliminary_feedback))}</div></div>
+    <div class="field" style="margin-top:12px"><label>Verificación docente</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(x.verification_feedback))}</div></div>
+    <div class="note warn" style="margin-top:12px">La validación definitiva utiliza el flujo oficial de Berilio: comprueba duplicados, crea o enlaza la ficha CENQAL, notifica al alumno y evita duplicar recompensas.</div>
+    <div class="actions" style="margin-top:16px">${contributionControlAction(x)}</div>`);
+}
+
+function showPortfolioDetail(id){
+  let x=portfolioById(id);if(!x)return toast('No se ha encontrado el portfolio.',true);
+  let s=x._student||state.studentDetail?.student||{};
+  modal(`<div class="sectionTitle"><h3>📄 Portfolio de ${esc(studentName(s))}</h3><button class="btn" onclick="closeModal()">Cerrar</button></div>
+    <div class="miniList"><div class="miniRow"><span>Reto</span><b>${esc(x.challenge_code||x.challenge_id||'—')}</b></div><div class="miniRow"><span>Archivo</span><b>${esc(x.file_name||'PDF')}</b></div><div class="miniRow"><span>Estado</span><b><span class="status ${statusClass(x.status)}">${esc(x.status||'—')}</span></b></div></div>
+    <div class="field" style="margin-top:12px"><label>Preevaluación / rúbrica automática</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(x.automatic_evaluation))}</div></div>
+    <div class="field" style="margin-top:12px"><label>Evaluación docente</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(x.teacher_evaluation))}</div></div>
+    <div class="field" style="margin-top:12px"><label>Feedback</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(objv(x,'teacher_feedback','feedback')))}</div></div>
+    <div class="actions" style="margin-top:16px"><button class="btn primary" onclick="botPayload('cs_${x.id}')">Revisar en Berilio</button>${x.storage_path?`<button class="btn" onclick="botPayload('cp_${x.id}')">Enviarme PDF</button>`:''}</div>`);
+}
+
+function renderStudentDetail(){let d=state.studentDetail||{},s=d.student||{},an=d.analytics||{},as=an.student||{},gp=d.gamification_profile||{};let name=s.full_name||[s.first_name,s.last_name].filter(Boolean).join(' ')||s.student_code||'Alumno';let risk=riskFor(as);document.getElementById('studentHero').innerHTML=`<div><h2>${risk} ${esc(name)}</h2><div class="studentMeta">${esc(s.student_code||'—')} · ${esc(s.group_name||'Sin grupo')} · ${s.telegram_user_id?'Telegram vinculado':'Sin vincular a Telegram'}</div></div><div class="actions"><span class="status ${s.active?'ok':'bad'}">${s.active?'ACTIVO':'INACTIVO'}</span></div>`;let weekly=d.weekly||[],exams=d.exams||[],subs=d.portfolio_submissions||[],contrib=d.contributions||[],evid=d.evidences||[],incs=d.incidents||[];let mastered=(d.gym_mastery||[]).filter(x=>x.mastered).length,passed=exams.filter(x=>Number(x.attempt?.score_out_of_10)>=5).length,approved=(d.portfolio_progress||[]).filter(x=>x.progress?.status==='approved').length;document.getElementById('studentMetrics').innerHTML=[metric('📊 Evidencias',as.evidence_average==null?'—':`${n(as.evidence_average)}/10`,`${as.evidence_count||0} registros`),metric('🎓 Oficial',as.provisional_normalized==null?'—':`${n(as.provisional_normalized)}/10`,`${pct(as.graded_official_weight)} evaluado`),metric('⚛️ PP',gp.xp_total||0,gp.level_name||'Aspirante'),metric('🪙 Og',gp.oganeson_balance||0,'saldo actual'),metric('🏆 Actividad',weekly.length,`retos · ${passed}/${exams.length} exámenes`)].join('');let comps=an.components||[];document.getElementById('studentComponents').innerHTML=comps.length?`<div class="miniList">${comps.map(c=>`<div class="miniRow"><span>${esc(c.component_name||c.component_code)}</span><b>${c.component_score==null?'—':n(c.component_score)}/10${c.official?` · ${n(c.component_weight_percent,0)}%`:''}</b></div>`).join('')}</div>`:'<div class="empty">Todavía no hay componentes calificados.</div>';document.getElementById('studentActivity').innerHTML=`<div class="miniList"><div class="miniRow"><span>Retos semanales</span><b>${weekly.length}</b></div><div class="miniRow"><span>Exámenes</span><b>${passed}/${exams.length} superados</b></div><div class="miniRow"><span>Porfolios aprobados</span><b>${approved}</b></div><div class="miniRow"><span>Entregas PDF</span><b>${subs.length}</b></div><div class="miniRow"><span>Aportaciones CENQAL</span><b>${contrib.length}</b></div><div class="miniRow"><span>Gym dominadas</span><b>${mastered}</b></div><div class="miniRow"><span>Evidencias PDF</span><b>${evid.length}</b></div><div class="miniRow"><span>Incidencias</span><b>${incs.filter(x=>['pending','in_review'].includes(x.status)).length} abiertas</b></div></div>`;let grades=an.grades||[];let html='';html+=detailCard('🧾 Últimas calificaciones',grades.length?tableHTML(['Fecha','Componente','Actividad','Nota','Origen'],grades.slice(0,50).map(g=>[fmtDate(g.created_at||g.updated_at),g.component_name||g.component_code,g.item_title||g.item_code,g.effective_score==null?'—':n(g.effective_score),g.source_type||'—'])):'<div class="empty">Sin calificaciones registradas.</div>',true);html+=detailCard('📰 Retos semanales',weekly.length?tableHTML(['Tema','Fecha','Reto','Preeval.','Estado','Respuesta'],weekly.map(x=>{let p=x.participation||{},c=x.challenge||{};return[`T${c.topic_number||'—'}`,fmtDate(p.created_at),c.title||'',p.preliminary_score==null?'—':`${n(p.preliminary_score,0)}/5`,p.status||'—',p.response_text||''] }),'last'):'<div class="empty">Sin participaciones semanales.</div>');html+=detailCard('📝 Exámenes',exams.length?tableHTML(['Tema','Examen','Estado','Aciertos','Nota','Entrega'],exams.map(x=>{let a=x.attempt||{},e=x.session||{};return[`T${e.topic_number||'—'}`,e.title||e.exam_code||'',a.status||'—',`${a.correct_count??'—'}/${e.question_count||20}`,a.score_out_of_10==null?'—':`${n(a.score_out_of_10)}/10`,fmtDate(a.submitted_at)]})):'<div class="empty">Sin intentos de examen.</div>');html+=detailCard('📄 Porfolios y entregas',subs.length?tableHTML(['Fecha','Reto','Versión','Archivo','Estado','Nota','PDF'],subs.map(x=>[fmtDate(x.created_at),x.challenge_code||x.challenge_id||'',x.version||'—',x.file_name||'PDF',x.status||'—',x.teacher_evaluation?.score==null?'—':`${n(x.teacher_evaluation.score,0)}/100`,x.storage_path?`<button class="btn" onclick="botPayload('cp_${x.id}')">Enviarme PDF</button>`:'—']),'html'):'<div class="empty">Sin entregas de porfolio.</div>');html+=detailCard('🧪 Aportaciones a CENQAL',contrib.length?tableHTML(['Fecha','Tema','Modo','Estado','Preeval.','PP','Og'],contrib.slice(0,200).map(x=>[fmtDate(x.created_at),x.primary_topic||x.macrotheme_number||'—',x.contribution_mode||'—',x.status||'—',x.preliminary_score??'—',x.prestige_amount??'—',x.oganeson_amount??'—'])):'<div class="empty">Sin aportaciones.</div>');let gm=d.gym_mastery||[];let topics={};gm.forEach(x=>{let t=x.topic_number||'—';topics[t]??={total:0,mastered:0,correct:0,wrong:0};topics[t].total++;if(x.mastered)topics[t].mastered++;topics[t].correct+=Number(x.correct_count||0);topics[t].wrong+=Number(x.wrong_count||0)});html+=detailCard('🧠 CENQAL Gym',Object.keys(topics).length?tableHTML(['Tema','Preguntas trabajadas','Dominadas','Aciertos','Errores'],Object.entries(topics).map(([t,x])=>[`T${t}`,x.total,x.mastered,x.correct,x.wrong])):'<div class="empty">Sin actividad en Gym.</div>');let ge=d.gamification_events||[];html+=detailCard('🪙 Historial PP / Og',ge.length?tableHTML(['Evento','PP','Og','Descripción'],ge.slice(0,100).map(x=>[x.event_type||x.event_key||'—',x.xp_delta||0,x.oganeson_delta||0,x.description||'—'])):'<div class="empty">Sin movimientos.</div>');html+=detailCard('📁 Evidencias PDF',evid.length?tableHTML(['Fecha','Tipo','Título','Hash','PDF'],evid.map(x=>[fmtDate(x.generated_at),x.evidence_type||'—',x.title||'—',(x.pdf_sha256||'').slice(0,14)+'…',x.storage_path?`<button class="btn" onclick="botPayload('ce_${x.id}')">Enviarme PDF</button>`:'—']),'html'):'<div class="empty">Sin evidencias PDF.</div>');html+=detailCard('🛠️ Incidencias',incs.length?tableHTML(['Fecha','Código','Módulo','Estado','Descripción'],incs.map(x=>[fmtDate(x.created_at),x.incident_code||'—',x.module||'—',x.status||'—',x.description||'—']),'last'):'<div class="empty">Sin incidencias.</div>');document.getElementById('studentSections').innerHTML=html}
+
+function detailCard(title,body,open=false){return `<details class="card" ${open?'open':''}><summary>${title}</summary><div class="detailBody">${body}</div></details>`}
+
+function tableHTML(headers,rows,mode=''){let h=headers.map(x=>`<th>${esc(x)}</th>`).join('');let b=rows.map(r=>`<tr>${r.map((x,i)=>{let raw=(mode==='html'&&i===r.length-1);let wrap=(mode==='last'&&i===r.length-1)?' class="wrap"':'';return `<td${wrap}>${raw?x:esc(x)}</td>`}).join('')}</tr>`).join('');return `<div class="tablewrap"><table class="table"><thead><tr>${h}</tr></thead><tbody>${b}</tbody></table></div>`}
+
+const renderStudentDetailBase=renderStudentDetail;
+renderStudentDetail=function(){
+  renderStudentDetailBase();
+  let c=state.studentDetail?.contributions||[],p=state.studentDetail?.portfolio_submissions||[];
+  if(!c.length&&!p.length)return;
+  let html='';
+  if(c.length)html+=detailCard('🔎 Respuestas y rúbricas de aportaciones',tableHTML(['Fecha','Título','Estado','Preeval.','Acción'],c.map(x=>[fmtDate(x.created_at),x.title||x.primary_topic||'Sin título',x.status||'—',x.preliminary_score??'—',`<button class="btn" onclick="showContributionDetail('${x.id}')">Ver respuestas y rúbrica</button>`]),'html'));
+  if(p.length)html+=detailCard('🔎 Rúbricas de portfolios',tableHTML(['Fecha','Reto','Estado','Nota','Acción'],p.map(x=>[fmtDate(x.created_at),x.challenge_code||x.challenge_id||'—',x.status||'—',x.teacher_evaluation?.score??'—',`<button class="btn" onclick="showPortfolioDetail('${x.id}')">Ver evaluación</button>`]),'html'));
+  document.getElementById('studentSections').insertAdjacentHTML('beforeend',html);
+};
+
+function deliveryGroup(status){
+  status=String(status||'').toLowerCase();
+  if(['needs_review','submitted','pending','in_review','draft'].includes(status))return 'pending';
+  if(['validated','approved','accepted','published'].includes(status))return 'validated';
+  if(['rejected','returned','needs_changes','cancelled'].includes(status))return 'rejected';
+  return status;
+}
+
+async function loadDeliveries(force=false){
+  if(state.deliveries&&!force){renderDeliveries();return state.deliveries}
+  document.getElementById('deliveryMetrics').innerHTML='<div class="card"><span class="loader"></span> Reuniendo las fichas del curso…</div>';
+  try{
+    const direct=await rpc('cenqal_control_deliveries_v67',{p_token:TOKEN});
+    if(direct&&direct.ok!==false){
+      let newest=(a,b)=>new Date(b.created_at||b.participation?.created_at||0)-new Date(a.created_at||a.participation?.created_at||0);
+      state.deliveries={
+        contributions:(direct.contributions||[]).sort(newest),
+        portfolios:(direct.portfolios||[]).sort(newest),
+        weekly:(direct.weekly||[]).sort(newest),
+        failed:0
+      };
+      renderDeliveries();
+      return state.deliveries;
+    }
+  }catch(e){
+    console.warn('CENQAL entregas directas no disponibles; se usa compatibilidad:',e);
+  }
+  await Promise.all([loadStudents(force),loadProgress(force)]);
+  const candidates=[];
+  const seen=new Set();
+  [...state.students,...mergedProgress()].forEach(s=>{
+    const sid=studentIdOf(s);
+    if(!sid||seen.has(String(sid)))return;
+    seen.add(String(sid));
+    candidates.push(s);
+  });
+  let active=candidates;
+  let settled=await Promise.allSettled(active.map(s=>rpc('cenqal_control_student_workspace',{p_token:TOKEN,p_student_id:studentIdOf(s)}).then(d=>({s,d}))));
+  let contributions=[],portfolios=[],weekly=[];
+  settled.forEach(r=>{if(r.status!=='fulfilled')return;let {s,d}=r.value;(d.contributions||[]).forEach(x=>contributions.push({...x,_student:s}));(d.portfolio_submissions||[]).forEach(x=>portfolios.push({...x,_student:s}));(d.weekly||[]).forEach(x=>weekly.push({...x,_student:s}))});
+  let newest=(a,b)=>new Date(b.created_at||b.participation?.created_at||0)-new Date(a.created_at||a.participation?.created_at||0);
+  state.deliveries={contributions:contributions.sort(newest),portfolios:portfolios.sort(newest),weekly:weekly.sort(newest),failed:settled.filter(x=>x.status==='rejected').length};
+  renderDeliveries();return state.deliveries;
+}
+
+function deliveryMatches(x,q,status,type){
+  let s=x._student||{},raw=type==='weekly'?x.participation||{}:x;
+  let group=deliveryGroup(raw.status);
+  if(status&&group!==status)return false;
+  let text=[studentName(s),s.student_code,x.title,x.primary_topic,x.topic,x.challenge_code,x.challenge?.title,raw.response_text].join(' ').toLowerCase();
+  return !q||text.includes(q);
+}
+
+function renderDeliveries(){
+  let d=state.deliveries;if(!d)return;
+  let q=(document.getElementById('deliverySearch')?.value||'').trim().toLowerCase(),st=document.getElementById('deliveryStatus')?.value||'';
+  let c=d.contributions.filter(x=>deliveryMatches(x,q,st,'contribution')),p=d.portfolios.filter(x=>deliveryMatches(x,q,st,'portfolio')),w=d.weekly.filter(x=>deliveryMatches(x,q,st,'weekly'));
+  let pendingC=d.contributions.filter(x=>deliveryGroup(x.status)==='pending').length,pendingP=d.portfolios.filter(x=>deliveryGroup(x.status)==='pending').length;
+  document.getElementById('deliveryMetrics').innerHTML=[metric('🧪 Aportaciones',d.contributions.length,`${pendingC} pendientes`),metric('📄 Portfolios',d.portfolios.length,`${pendingP} pendientes`),metric('🏆 Respuestas a retos',d.weekly.length,'registradas'),metric('⚠️ Fichas no cargadas',d.failed||0,d.failed?'Reintenta la actualización':'Todo correcto')].join('');
+  document.getElementById('contributionsInbox').innerHTML=c.length?tableHTML(['Fecha','Alumno','Título / tema','Estado','Preeval.','Acciones'],c.map(x=>[fmtDate(x.created_at),studentName(x._student),x.title||x.primary_topic||x.topic||'—',x.status||'—',x.preliminary_score??'—',`<div class="actions"><button class="btn" onclick="showContributionDetail('${x.id}')">Ver respuestas y rúbrica</button>${contributionControlAction(x,true)}</div>`]),'html'):'<div class="empty">No hay aportaciones con estos filtros.</div>';
+  document.getElementById('portfoliosInbox').innerHTML=p.length?tableHTML(['Fecha','Alumno','Reto / archivo','Estado','Nota','Acciones'],p.map(x=>[fmtDate(x.created_at),studentName(x._student),x.challenge_code||x.file_name||'—',x.status||'—',x.teacher_evaluation?.score??'—',`<button class="btn" onclick="showPortfolioDetail('${x.id}')">Ver evaluación</button>`]),'html'):'<div class="empty">No hay portfolios con estos filtros.</div>';
+  document.getElementById('challengesInbox').innerHTML=w.length?tableHTML(['Fecha','Alumno','Reto','Estado','Preeval.','Respuesta'],w.map(x=>{let a=x.participation||{},ch=x.challenge||{};return[fmtDate(a.created_at),studentName(x._student),ch.title||`Tema ${ch.topic_number||'—'}`,a.status||'—',a.preliminary_score??'—',a.response_text||'—']}),'last'):'<div class="empty">No hay respuestas a retos con estos filtros.</div>';
+}
+
+function csvCell(v){return `"${String(v??'').replace(/"/g,'""')}"`}
+function exportDeliveriesCSV(){
+  let d=state.deliveries;if(!d)return toast('Carga primero las entregas.',true);
+  let rows=[['tipo','fecha','alumno','codigo','titulo_reto','estado','preevaluacion']];
+  d.contributions.forEach(x=>rows.push(['aportacion',x.created_at,studentName(x._student),x._student?.student_code,x.title||x.primary_topic,x.status,x.preliminary_score]));
+  d.portfolios.forEach(x=>rows.push(['portfolio',x.created_at,studentName(x._student),x._student?.student_code,x.challenge_code||x.file_name,x.status,x.teacher_evaluation?.score]));
+  d.weekly.forEach(x=>{let a=x.participation||{},ch=x.challenge||{};rows.push(['reto',a.created_at,studentName(x._student),x._student?.student_code,ch.title,a.status,a.preliminary_score])});
+  let blob=new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(';')).join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cenqal_entregas.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+async function loadCalendar(force=false){if(state.calendar.length&&!force){renderCalendar();return state.calendar}let d=await rpc('cenqal_control_calendar',{p_token:TOKEN});state.calendar=d.rows||[];renderCalendar();return state.calendar}
+
+function renderCalendar(){let box=document.getElementById('calendarList');let rows=state.calendar.filter(x=>x.active).map(e=>`<div class="event"><div class="datebox">${new Date(e.starts_at).getDate().toString().padStart(2,'0')}<small>${new Date(e.starts_at).toLocaleString('es-ES',{month:'short'}).toUpperCase()}</small></div><div><b>${esc(e.title)}</b><div style="font-size:13px;color:#667b93">${esc(e.event_type)} · ${fmtDate(e.starts_at)}${e.location?' · '+esc(e.location):''}</div></div><div class="actions"><button class="btn" onclick="editEvent(${e.id})">Editar</button><button class="btn danger" onclick="retireEvent(${e.id})">Retirar</button></div></div>`);box.innerHTML=rows.join('')||'<div class="empty">No hay eventos activos.</div>'}
+
+// Dates are local Spanish course dates; Date converts them to UTC for Supabase.
+const EXAM_CALENDAR_2026=[
+  {key:'ex1',title:'Ex1',start:'2026-10-02T16:00',type:'exam'},
+  {key:'ex2',title:'Ex2',start:'2026-10-16T16:00',type:'exam'},
+  {key:'ex3',title:'Ex3',start:'2026-10-30T16:00',type:'exam'},
+  {key:'ex4',title:'Ex4',start:'2026-11-13T16:00',type:'exam'},
+  {key:'ex5',title:'Ex5',start:'2026-11-27T16:00',type:'exam'},
+  {key:'ex6',title:'Ex6',start:'2026-12-04T16:00',type:'exam'},
+  {key:'ex7',title:'Ex7',start:'2026-12-11T16:00',type:'exam'},
+  {key:'eic',title:'Prácticas EIC',start:'2026-12-11T09:00',end:'2026-12-11T16:00',type:'practice',location:'EIC'},
+  {key:'ex8',title:'Ex8',start:'2026-12-18T16:00',type:'exam'},
+  {key:'final',title:'Prueba escrita final',start:'2026-12-18T17:00',end:'2026-12-18T20:00',type:'exam'}
+];
+
+function matchingExamEvent(e,item){
+  const t=String(e.title||'').trim();
+  if(item.key.startsWith('ex'))return new RegExp('^(?:ex|examen)\\s*0?'+item.key.slice(2)+'(?:\\b|\\s|[.:–-])','i').test(t);
+  if(item.key==='eic')return /(?:práctic|practic).*(?:eic)|(?:eic).*(?:práctic|practic)/i.test(t);
+  return /(?:prueba|examen).*(?:escrit|final)|(?:final).*(?:escrit)/i.test(t);
+}
+
+async function prepareExamCalendar(){
+  try{
+    await refreshSnapshot();
+    const year=String(state.snapshot?.course?.academic_year||'');
+    if(!year.includes('2026') || !year.includes('2027'))throw new Error('Selecciona primero el curso 2026/27 en CENQAL Control.');
+    await loadCalendar(true);
+    const changes=EXAM_CALENDAR_2026.map(item=>{
+      const matches=state.calendar.filter(e=>e.active && matchingExamEvent(e,item));
+      if(matches.length>1)throw new Error('Hay varios eventos para '+item.title+'. Revísalos en el calendario antes de programar.');
+      const existing=matches[0]||null;
+      const start=new Date(item.start).toISOString();
+      const oldDuration=existing?.ends_at ? new Date(existing.ends_at)-new Date(existing.starts_at) : 0;
+      const end=item.end ? new Date(item.end).toISOString() : oldDuration>0 ? new Date(new Date(start).getTime()+oldDuration).toISOString() : '';
+      const data={event_type:item.type,title:item.title,starts_at:start,ends_at:end,
+        location:item.location||existing?.location||'',description:existing?.description||'',
+        reminders_enabled:existing?.reminders_enabled!==false};
+      const unchanged=existing && existing.title===data.title && existing.event_type===data.event_type &&
+        existing.starts_at===data.starts_at && (existing.ends_at||'')===data.ends_at && (existing.location||'')===data.location;
+      return {item,existing,data,unchanged};
+    });
+    const pending=changes.filter(c=>!c.unchanged);
+    if(!pending.length){toast('Los diez eventos ya tienen estas fechas y horas.');return}
+    const preview=changes.map(c=>`${esc(c.item.title)} · ${esc(c.item.start.slice(8,10)+'/'+c.item.start.slice(5,7))} ${esc(c.item.start.slice(11))}${c.item.end?'–'+esc(c.item.end.slice(11)):''} · ${c.unchanged?'ya correcto':c.existing?'actualizar':'crear'}`).join('<br>');
+    confirmModal({title:'Calendario de exámenes 2026/27',summary:preview,phrase:'CONFIRMAR',
+      onConfirm:async typed=>{
+        for(const c of pending){
+          await rpc('cenqal_control_save_calendar_event',{
+            p_token:TOKEN,p_event_id:c.existing?.id||null,p_data:c.data,p_confirmation:typed
+          });
+        }
+        state.calendar=[];
+        await loadCalendar(true);
+        await refreshSnapshot();
+        toast('Calendario actualizado: '+pending.length+' eventos.');
+      }});
+  }catch(e){toast(e.message||'No se pudo preparar el calendario.',true)}
+}
+
+function eventForm(e={}){return `<div class="formgrid"><div class="field"><label>Tipo</label><select id="evType"><option value="class">Clase</option><option value="practice">Práctica</option><option value="activity">Actividad</option><option value="exam">Examen</option><option value="excursion">Excursión</option><option value="no_class">Sin clase</option><option value="holiday">Vacaciones</option><option value="info">Información</option></select></div><div class="field"><label>Título</label><input id="evTitle" value="${esc(e.title||'')}"></div><div class="field"><label>Inicio</label><input id="evStart" type="datetime-local" value="${dateInput(e.starts_at)}"></div><div class="field"><label>Fin</label><input id="evEnd" type="datetime-local" value="${dateInput(e.ends_at)}"></div><div class="field full"><label>Lugar</label><input id="evLocation" value="${esc(e.location||'')}"></div><div class="field full"><label>Descripción</label><textarea id="evDesc">${esc(e.description||'')}</textarea></div><div class="field full"><label><input id="evRem" type="checkbox" ${e.reminders_enabled!==false?'checked':''}> Recordatorios activos</label></div></div>`}
+
+function newEvent(){modal(`<h3>Crear evento</h3>${eventForm()}<div class="modalFooter"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="evNext">Revisar</button></div>`);document.getElementById('evType').value='class';document.getElementById('evNext').onclick=()=>saveEventFlow(null)}
+
+function editEvent(id){let e=state.calendar.find(x=>x.id==id);if(!e)return;modal(`<h3>Editar evento</h3>${eventForm(e)}<div class="modalFooter"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="evNext">Revisar</button></div>`);document.getElementById('evType').value=e.event_type||'info';document.getElementById('evNext').onclick=()=>saveEventFlow(id)}
+
+function collectEvent(){let s=document.getElementById('evStart').value,en=document.getElementById('evEnd').value;return{event_type:document.getElementById('evType').value,title:document.getElementById('evTitle').value,starts_at:s?new Date(s).toISOString():'',ends_at:en?new Date(en).toISOString():'',location:document.getElementById('evLocation').value,description:document.getElementById('evDesc').value,reminders_enabled:document.getElementById('evRem').checked}}
+
+function saveEventFlow(id){let data=collectEvent();if(!data.title||!data.starts_at){toast('Título y fecha de inicio son obligatorios.',true);return}confirmModal({title:id?'Guardar cambios del evento':'Crear evento',summary:`<b>${esc(data.title)}</b><br>${fmtDate(data.starts_at)}<br>${esc(data.event_type)}`,phrase:'CONFIRMAR',onConfirm:async typed=>{await rpc('cenqal_control_save_calendar_event',{p_token:TOKEN,p_event_id:id,p_data:data,p_confirmation:typed});state.calendar=[];await loadCalendar(true);await refreshSnapshot();toast(id?'Evento actualizado.':'Evento creado.')}})}
+
+function retireEvent(id){let e=state.calendar.find(x=>x.id==id);if(!e)return;confirmModal({title:'Retirar evento del calendario',summary:`<b>${esc(e.title)}</b><br>No se borrará físicamente: quedará desactivado y el cambio se registrará.`,phrase:`RETIRAR EVENTO ${id}`,button:'Retirar evento',danger:true,onConfirm:async typed=>{await rpc('cenqal_control_retire_calendar_event',{p_token:TOKEN,p_event_id:id,p_confirmation:typed,p_reason:'Retirada desde CENQAL Control'});state.calendar=[];await loadCalendar(true);await refreshSnapshot();toast('Evento retirado.')}})}
+
+async function loadWeeklyGrades(force=false){
+  const summary=document.getElementById('weeklyGradeSummary');
+  const body=document.getElementById('weeklyGradeBody');
+  if(!force && state.weeklyGrades){renderWeeklyGrades();return}
+  summary.textContent='Calculando participaciones…';
+  body.innerHTML='';
+  try{
+    // Both RPCs restrict the data to the teacher's selected course.
+    const [challenges, students]=await Promise.all([loadChallenges(force),loadStudents(force)]);
+    const eligible=challenges.filter(c=>['published','closed'].includes(c.status) && c.telegram_message_id);
+    const active=students.filter(s=>s.active!==false);
+    const rows=[];
+    for(const s of active){
+      const sid=studentIdOf(s);
+      if(!sid){rows.push({student:s,error:'No se ha podido identificar al alumno'});continue}
+      try{
+        const workspace=await rpc('cenqal_control_student_workspace',{p_token:TOKEN,p_student_id:sid});
+        // The workspace contains only this student's recorded weekly participations.
+        const participation=new Set((workspace.weekly||[]).filter(x=>
+          x.participation && !['rejected','deleted','withdrawn','cancelled'].includes(x.participation.status)
+        ).map(x=>String(x.challenge?.id ?? x.participation.challenge_id)));
+        rows.push({student:s,participation});
+      }catch(e){rows.push({student:s,error:e.message||'No se pudo consultar'})}
+    }
+    state.weeklyGrades={eligible,rows};
+    renderWeeklyGrades();
+  }catch(e){summary.textContent='No se pudo calcular: '+(e.message||e);toast(e.message,true)}
+}
+
+function renderWeeklyGrades(){
+  const {eligible,rows}=state.weeklyGrades;
+  const pending=eligible.some(c=>c.status!=='closed');
+  document.getElementById('weeklyGradeSummary').innerHTML=`<b>${eligible.length} retos publicados</b> · ${rows.length} alumnos · ${pending?'Cálculo provisional: quedan retos abiertos':'Cálculo de los retos publicados'}<br><span class="subtle">Nota = 10 × retos realizados / retos publicados; aportación máxima al curso: 1 punto (10%). Los retos futuros aún no publicados no cuentan.</span>`;
+  document.getElementById('weeklyGradeBody').innerHTML=rows.map(({student:s,participation,error})=>{
+    const name=s.full_name||s.student_name||s.student_code||'Alumno';
+    if(error)return `<tr><td>${esc(name)}</td><td colspan="4" class="note warn">${esc(error)}</td></tr>`;
+    const done=eligible.filter(c=>participation.has(String(c.id))).length;
+    const marks=eligible.map(c=>`<span title="${esc(c.title||'')} (${esc(c.week_start||'')})">T${esc(c.topic_number||'?')}: ${participation.has(String(c.id))?'Sí':'No'}</span>`).join(' · ');
+    const grade=eligible.length?10*done/eligible.length:null;
+    return `<tr><td><b>${esc(name)}</b></td><td>${marks||'No hay retos publicados'}</td><td>${done}/${eligible.length}</td><td>${grade==null?'—':n(grade,2)}</td><td>${grade==null?'—':n(grade*0.1,2)} / 1</td></tr>`;
+  }).join('')||'<tr><td colspan="5" class="empty">No hay alumnos activos.</td></tr>';
+}
+
+async function loadChallenges(force=false){if(state.challenges.length&&!force){renderChallenges();return state.challenges}let d=await rpc('cenqal_control_challenges',{p_token:TOKEN});state.challenges=d.rows||[];renderChallenges();return state.challenges}
+
+function renderChallenges(){document.getElementById('challengesBody').innerHTML=state.challenges.map(c=>`<tr><td><b>T${c.topic_number}</b></td><td>${esc(c.week_start||'—')}</td><td title="${esc(c.question||'')}">${esc(c.title)}</td><td><span class="status ${statusClass(c.status)}">${esc(c.status)}</span></td><td>${c.telegram_message_id?'Publicado':'—'}</td><td><button class="btn" onclick="editChallenge(${c.id})">Editar</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No hay retos.</td></tr>'}
+
+function editChallenge(id){let c=state.challenges.find(x=>x.id==id);if(!c)return;let published=c.status==='published';modal(`<h3>Reto T${c.topic_number}</h3>${published?'<div class="note warn">Este reto ya está publicado. Puedes corregir texto/fuente, pero la fecha y el estado quedan bloqueados para evitar duplicar mensajes.</div>':''}<div class="formgrid" style="margin-top:12px"><div class="field full"><label>Título</label><input id="chTitle" value="${esc(c.title||'')}"></div><div class="field full"><label>Pregunta</label><textarea id="chQuestion">${esc(c.question||'')}</textarea></div><div class="field"><label>Semana (lunes)</label><input id="chWeek" type="date" value="${esc(c.week_start||'')}" ${published?'disabled':''}></div><div class="field"><label>Estado</label><select id="chStatus" ${published?'disabled':''}><option value="scheduled">scheduled</option><option value="closed">closed</option></select></div><div class="field"><label>Fuente</label><input id="chSource" value="${esc(c.source_title||'')}"></div><div class="field"><label>URL</label><input id="chUrl" value="${esc(c.source_url||'')}"></div></div><div class="modalFooter"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="chNext">Revisar</button></div>`);if(!published)document.getElementById('chStatus').value=['scheduled','closed'].includes(c.status)?c.status:'scheduled';document.getElementById('chNext').onclick=()=>{let data={title:document.getElementById('chTitle').value,question:document.getElementById('chQuestion').value,source_title:document.getElementById('chSource').value,source_url:document.getElementById('chUrl').value};if(!published){data.week_start=document.getElementById('chWeek').value;data.status=document.getElementById('chStatus').value}confirmModal({title:`Guardar reto T${c.topic_number}`,summary:'El bot usará estos datos en las siguientes publicaciones. El cambio queda auditado.',phrase:'CONFIRMAR',onConfirm:async typed=>{await rpc('cenqal_control_update_challenge',{p_token:TOKEN,p_challenge_id:id,p_data:data,p_confirmation:typed});state.challenges=[];await loadChallenges(true);await refreshSnapshot();toast('Reto actualizado.')}})}}
+  async function loadExams(force=false){
+  if(state.exams.length&&!force){
+    renderExams();
+    return state.exams;
+  }
+
+  let d=await rpc(
+    'cenqal_control_exams',
+    {p_token:TOKEN}
+  );
+
+  state.exams=d.rows||[];
+  renderExams();
+
+  return state.exams;
+}
+
+function renderExams(){
+  document.getElementById('examsBody').innerHTML=
+    state.exams.map(e=>`
+      <tr>
+        <td>${esc(e.exam_code)}</td>
+        <td>T${esc(e.topic_number)}</td>
+        <td>${esc(e.title)}</td>
+        <td>
+          <span class="status ${statusClass(e.state)}">
+            ${esc(e.state)}
+          </span>
+        </td>
+        <td>${fmtDate(e.opened_at)}</td>
+        <td>${fmtDate(e.closed_at)}</td>
+      </tr>
+    `).join('')
+    ||
+    '<tr><td colspan="6" class="empty">No hay exámenes.</td></tr>';
+}
+
+
+/* =========================================================
+   ATLAS / GRUPOS
+========================================================= */
+
+function renderGroups(){
+  let g={};
+
+  state.students
+    .filter(x=>x.active)
+    .forEach(s=>{
+      let k=s.group_name||'Sin grupo';
+      (g[k]??=[]).push(s);
+    });
+
+  document.getElementById('groupsGrid').innerHTML=
+    Object.entries(g)
+      .map(([k,v])=>`
+        <div class="card">
+          <h3>${esc(k)}</h3>
+
+          <div class="metric">
+            <b>${v.length}</b>
+            <span>alumnos</span>
+          </div>
+
+          <div style="
+            margin-top:10px;
+            font-size:13px;
+            color:#647990
+          ">
+            ${v.map(x=>
+              esc(x.full_name||x.student_code)
+            ).join('<br>')}
+          </div>
+        </div>
+      `)
+      .join('')
+    ||
+    '<div class="empty">Sin grupos.</div>';
+}
+
+
+/* =========================================================
+   PP / OGANESONES
+========================================================= */
+
+async function loadGame(force=false){
+  if(state.game.length&&!force){
+    renderGame();
+    return state.game;
+  }
+
+  let [d]=await Promise.all([
+    rpc('cenqal_control_gamification',{p_token:TOKEN}),
+    loadProgress(force).catch(()=>null),
+    loadStudents(force).catch(()=>null)
+  ]);
+
+  state.game=d.rows||[];
+  renderGame();
+
+  return state.game;
+}
+
+function gameProgress(g){
+  let uid=String(g.telegram_user_id??'');
+  let code=String(g.student_code??'').toLowerCase();
+  return mergedProgress().find(x=>(uid&&String(x.telegram_user_id??'')===uid)||(code&&String(x.student_code??'').toLowerCase()===code))||{};
+}
+
+function gameReference(g){
+  let p=gameProgress(g);
+  let passed=Math.max(0,Math.min(8,Number(p.exams_passed||0)));
+  let expected=passed*100;
+  let current=Number(g.xp_total||0);
+  return {passed,expected,current,difference:expected-current};
+}
+
+function gameIsActive(g){
+  if(!state.students.length)return true;
+  let uid=String(g.telegram_user_id??'');
+  let code=String(g.student_code??'').toLowerCase();
+  let s=state.students.find(x=>(uid&&String(x.telegram_user_id??'')===uid)||(code&&String(x.student_code??'').toLowerCase()===code));
+  return !!(s&&s.active!==false);
+}
+
+function renderGame(){
+  let rows=state.game.filter(gameIsActive).sort((a,b)=>Number(b.xp_total||0)-Number(a.xp_total||0)||String(a.student_name||'').localeCompare(String(b.student_name||''),'es'));
+  let discrepancies=rows.filter(g=>gameReference(g).difference!==0).length;
+  let totalPP=rows.reduce((sum,g)=>sum+Number(g.xp_total||0),0);
+  let totalOg=rows.reduce((sum,g)=>sum+Number(g.oganeson_balance||0),0);
+  document.getElementById('gameMetrics').innerHTML=[metric('🏆 Alumnos en ranking',rows.length,'posición calculada solo con PP'),metric('⚛️ PP registrados',totalPP,'prestigio acumulado'),metric('🪙 Og en saldo',totalOg,'moneda disponible'),metric(discrepancies?'⚠️ Diferencias PP':'✅ Coherencia PP',discrepancies,discrepancies?'revisar antes de corregir':'marcadores coherentes')].join('');
+  document.getElementById('gameBody').innerHTML=
+    rows.map((g,index)=>{let ref=gameReference(g);return `
+      <tr>
+
+        <td><b>${index+1}</b></td>
+
+        <td>
+          <b>${esc(g.student_code)}</b>
+        </td>
+
+        <td>${esc(g.student_name)}</td>
+
+        <td>${ref.passed}/8</td>
+
+        <td><b>${esc(ref.current)} PP</b></td>
+
+        <td>${esc(ref.expected)} PP</td>
+
+        <td>${ref.difference===0?'<span class="status ok">✓ Coherente</span>':`<span class="status bad">${ref.difference>0?'+':''}${ref.difference} PP por ajustar</span>`}</td>
+
+        <td>${esc(g.oganeson_balance)}</td>
+
+        <td>${esc(g.medals_earned)}</td>
+
+        <td>${esc(g.level_name)}</td>
+
+        <td>
+          <button
+            class="btn"
+            ${!g.telegram_user_id?'disabled':''}
+            onclick="adjustGame(
+              '${esc(g.student_code)}',
+              '${esc(g.student_name)}',
+              ${ref.difference}
+            )">
+            ${ref.difference?'Revisar / corregir':'Ajustar'}
+          </button>
+        </td>
+
+      </tr>
+    `}).join('')
+    ||
+    '<tr><td colspan="11" class="empty">Sin datos.</td></tr>';
+}
+
+function adjustGame(code,name,suggestedPP=0){
+  modal(`
+    <h3>Ajuste auditado · ${esc(name)}</h3>
+
+    <div class="formgrid">
+
+      <div class="field">
+        <label>Variación PP</label>
+        <input
+          id="adjPP"
+          type="number"
+          value="${Number(suggestedPP||0)}">
+      </div>
+
+      <div class="field">
+        <label>Variación Og</label>
+        <input
+          id="adjOG"
+          type="number"
+          value="0">
+      </div>
+
+      <div class="field full">
+        <label>Motivo obligatorio</label>
+        <textarea
+          id="adjReason"
+          placeholder="Ej.: Corrección de una asignación duplicada"></textarea>
+      </div>
+
+    </div>
+
+    <div class="note warn" style="margin-top:10px">
+      <b>Economía vigente:</b> PP = prestigio (+100 por prueba semanal T1–T8 aprobada). Og = moneda obtenida o gastada mediante eventos autorizados.<br>
+      Usa valores negativos para retirar una asignación antigua o duplicada. No se modifica el histórico: se crea un nuevo movimiento docente.
+    </div>
+
+    <div class="modalFooter">
+
+      <button
+        class="btn"
+        onclick="closeModal()">
+        Cancelar
+      </button>
+
+      <button
+        class="btn primary"
+        id="adjNext">
+        Revisar
+      </button>
+
+    </div>
+  `);
+
+  document.getElementById('adjNext').onclick=()=>{
+
+    let pp=parseInt(
+      document.getElementById('adjPP').value||0
+    );
+
+    let og=parseInt(
+      document.getElementById('adjOG').value||0
+    );
+
+    let reason=
+      document.getElementById('adjReason')
+        .value
+        .trim();
+
+    if(reason.length<5){
+      toast(
+        'Escribe un motivo claro.',
+        true
+      );
+      return;
+    }
+
+    confirmModal({
+
+      title:
+        `Confirmar ajuste · ${code}`,
+
+      summary:`
+        PP: <b>${pp>=0?'+':''}${pp}</b>
+        <br>
+        Og: <b>${og>=0?'+':''}${og}</b>
+        <br>
+        Motivo: ${esc(reason)}
+      `,
+
+      phrase:
+        `AJUSTAR ${code}`,
+
+      button:
+        'Registrar ajuste',
+
+      danger:
+        (pp<0||og<0),
+
+      onConfirm:async typed=>{
+
+        await rpc(
+          'cenqal_control_adjust_gamification',
+          {
+            p_token:TOKEN,
+            p_student_code:code,
+            p_pp_delta:pp,
+            p_og_delta:og,
+            p_reason:reason,
+            p_confirmation:typed
+          }
+        );
+
+        state.game=[];
+
+        await loadGame(true);
+
+        toast(
+          'Ajuste registrado y auditado.'
+        );
+      }
+    });
+  };
+}
+
+
+/* =========================================================
+   EVIDENCIAS
+========================================================= */
+
+async function loadEvidence(force=false){
+  if(state.evidence.length&&!force){
+    renderEvidence();
+    return state.evidence;
+  }
+
+  let d=await rpc(
+    'cenqal_control_evidences',
+    {p_token:TOKEN}
+  );
+
+  state.evidence=d.rows||[];
+
+  renderEvidence();
+
+  return state.evidence;
+}
+
+function renderEvidence(){
+  document.getElementById('evidenceBody').innerHTML=
+    state.evidence.map(e=>`
+      <tr>
+
+        <td>
+          ${fmtDate(e.generated_at)}
+        </td>
+
+        <td>
+          ${esc(e.evidence_type)}
+        </td>
+
+        <td>
+          ${esc(e.title)}
+        </td>
+
+        <td>
+          ${esc(e.student_code||'—')}
+        </td>
+
+        <td title="${esc(e.pdf_sha256)}">
+          ${esc(
+            (e.pdf_sha256||'')
+              .slice(0,14)
+          )}…
+        </td>
+
+        <td>
+          ${esc(e.storage_path||'—')}
+        </td>
+
+        <td>
+          ${
+            e.storage_path
+            ?`
+              <button
+                class="btn"
+                onclick="botPayload('ce_${e.id}')">
+                Enviarme PDF
+              </button>
+            `
+            :'—'
+          }
+        </td>
+
+      </tr>
+    `).join('')
+    ||
+    '<tr><td colspan="7" class="empty">Todavía no hay evidencias.</td></tr>';
+}
+
+
+/* =========================================================
+   AUDITORÍA
+========================================================= */
+
+async function loadAudit(force=false){
+  if(state.audit.length&&!force){
+    renderAudit();
+    return state.audit;
+  }
+
+  let d=await rpc(
+    'cenqal_control_audit_log',
+    {p_token:TOKEN}
+  );
+
+  state.audit=d.rows||[];
+
+  renderAudit();
+
+  return state.audit;
+}
+
+function renderAudit(){
+  document.getElementById('auditBody').innerHTML=
+    state.audit.map(a=>`
+      <tr>
+
+        <td>
+          ${fmtDate(a.created_at)}
+        </td>
+
+        <td>
+          <b>${esc(a.action)}</b>
+        </td>
+
+        <td>
+          ${esc(a.entity_type||'—')}
+        </td>
+
+        <td>
+          ${esc(a.entity_id||'—')}
+        </td>
+
+        <td>
+          ${esc(a.reason||'—')}
+        </td>
+
+      </tr>
+    `).join('')
+    ||
+    '<tr><td colspan="5" class="empty">Todavía no hay cambios desde Control.</td></tr>';
+}
+
+
+/* =========================================================
+   SISTEMA
+========================================================= */
+
+function renderSystem(){
+  let box=document.getElementById('systemState');
+
+  if(!box)return;
+
+  let h=state.snapshot?.heartbeat||{};
+
+  let last=
+    h.last_seen_at
+    ?new Date(h.last_seen_at)
+    :null;
+
+  let fresh=
+    last &&
+    (
+      Date.now()-last.getTime()
+      <
+      5*60*1000
+    );
+
+  let accessMethod=
+    TELEGRAM_MODE
+      ?'Telegram'
+      :'App / Supabase Auth';
+
+  box.innerHTML=`
+
+    <div class="event">
+
+      <div class="datebox">
+        BOT
+        <small>Render</small>
+      </div>
+
+      <div>
+        <b>
+          ${
+            fresh
+              ?'Operativo'
+              :'Sin heartbeat reciente'
+          }
+        </b>
+
+        <div style="
+          color:#667b93;
+          font-size:13px
+        ">
+          Última señal:
+          ${fmtDate(h.last_seen_at)}
+          · ${esc(h.version||'')}
+        </div>
+      </div>
+
+      <span class="status ${fresh?'ok':'warn'}">
+        ${fresh?'OK':'REVISAR'}
+      </span>
+
+    </div>
+
+
+    <div class="event">
+
+      <div class="datebox">
+        DB
+        <small>Supabase</small>
+      </div>
+
+      <div>
+        <b>Conectado</b>
+
+        <div style="
+          color:#667b93;
+          font-size:13px
+        ">
+          Base de datos CENQAL accesible.
+        </div>
+      </div>
+
+      <span class="status ok">
+        OK
+      </span>
+
+    </div>
+
+
+    <div class="event">
+
+      <div class="datebox">
+        AUTH
+        <small>Acceso</small>
+      </div>
+
+      <div>
+        <b>${esc(accessMethod)}</b>
+
+        <div style="
+          color:#667b93;
+          font-size:13px
+        ">
+          Sesión temporal protegida.
+        </div>
+      </div>
+
+      <span class="status ok">
+        SEGURO
+      </span>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+   RESUMEN SEGURO DEL CURSO SELECCIONADO
+========================================================= */
+
+async function newCoursePreview(){
+  try{
+
+    let d=await rpc(
+      'cenqal_control_new_course_preview',
+      {p_token:TOKEN}
+    );
+
+    let x=d.would_archive||{};
+
+    document.getElementById('resetPreview').innerHTML=`
+
+      <div class="note warn">
+
+        <b>
+          RESUMEN — no se ha modificado nada
+        </b>
+
+        <br><br>
+
+        Alumnos matriculados activos:
+        ${x.students||0}
+
+        <br>
+
+        Eventos:
+        ${x.calendar_events||0}
+
+        <br>
+
+        Retos históricos:
+        ${x.weekly_challenges||0}
+
+        <br>
+
+        Exámenes:
+        ${x.exam_sessions||0}
+
+        <br>
+
+        Evidencias:
+        ${x.evidences||0}
+
+        <br>
+
+        Movimientos PP/Og:
+        ${x.gamification_events||0}
+
+        <br><br>
+
+        ${esc(d.blocked_reason||'')}
+
+      </div>
+    `;
+
+  }catch(e){
+
+    toast(
+      e.message,
+      true
+    );
+  }
+}
+
+
+/* =========================================================
+   CERRAR SESIÓN
+========================================================= */
+
+async function logout(){
+
+  confirmModal({
+
+    title:
+      'Cerrar sesión de CENQAL Control',
+
+    summary:
+      'Se invalidará la sesión actual. Ningún dato académico será eliminado.',
+
+    phrase:
+      'CERRAR SESION',
+
+    button:
+      'Cerrar sesión',
+
+    danger:true,
+
+    onConfirm:async()=>{
+
+      try{
+        if(TOKEN){
+          await rpc(
+            'cenqal_control_logout',
+            {p_token:TOKEN}
+          );
+        }
+      }catch(e){
+        console.warn(
+          'No se pudo invalidar token Control:',
+          e
+        );
+      }
+
+      TOKEN='';
+
+      if(!TELEGRAM_MODE){
+
+        try{
+          let sb=initSupabase();
+          await sb.auth.signOut();
+        }catch(e){
+          console.warn(
+            'No se pudo cerrar Supabase Auth:',
+            e
+          );
+        }
+
+        state={
+          snapshot:null,
+          students:[],
+          calendar:[],
+          challenges:[],
+          exams:[],
+          game:[],
+          evidence:[],
+          audit:[],
+          courses:[],
+          selectedCourseId:null,
+          progress:null,
+          currentStudentId:null,
+          studentDetail:null
+        };
+
+        showAuth(
+          'Sesión cerrada correctamente.'
+        );
+
+      }else{
+
+        document.body.innerHTML=`
+          <div style="
+            padding:40px;
+            font-family:system-ui;
+            text-align:center
+          ">
+            <h2>Sesión cerrada</h2>
+
+            <p>
+              Vuelve a Telegram y abre
+              <b>/control</b>
+              para obtener un acceso nuevo.
+            </p>
+          </div>
+        `;
+      }
+    }
+  });
+}
+
+
+/* =========================================================
+   REFRESCAR
+========================================================= */
+
+async function refreshAll(){
+
+  state.students=[];
+  state.calendar=[];
+  state.challenges=[];
+  state.exams=[];
+  state.game=[];
+  state.evidence=[];
+  state.audit=[];
+  state.courses=[];
+  state.selectedCourseId=null;
+  state.progress=null;
+  state.deliveries=null;
+  state.learning=null;
+  state.learningExport=null;
+  state.studentLearning=null;
+  state.studentDetail=null;
+
+  await refreshSnapshot();
+
+  toast(
+    'Estado actualizado.'
+  );
+}
+
+
+/* =========================================================
+   INICIO DEL PANEL
+========================================================= */
+
+async function startPanel(){
+
+  hideAuth();
+
+  try{
+
+    await refreshSnapshot();
+
+    try{
+      await loadStudents();
+    }catch(e){
+      console.warn(
+        'Students:',
+        e
+      );
+    }
+
+    try{
+      await loadProgress();
+    }catch(e){
+      console.warn(
+        'Progress:',
+        e
+      );
+    }
+
+    toast(
+      'CENQAL Control conectado.'
+    );
+
+  }catch(e){
+
+    console.error(e);
+
+    if(!TELEGRAM_MODE){
+
+      TOKEN='';
+
+      showAuth(
+        e.message||
+        'No se pudo abrir CENQAL Control.',
+        true
+      );
+
+    }else{
+
+      document.getElementById('appShell')
+        ?.classList.remove('appHidden');
+
+      document.querySelector('.main').innerHTML=`
+
+        <div class="card">
+
+          <h2>
+            🔒 No se pudo abrir CENQAL Control
+          </h2>
+
+          <div class="note danger">
+            ${esc(e.message)}
+          </div>
+
+          <p style="
+            color:#657a92;
+            margin-top:18px
+          ">
+            Vuelve a Telegram y ejecuta
+            <b>/control</b>
+            para generar una sesión nueva.
+          </p>
+
+        </div>
+      `;
+    }
+  }
+}
+
+
+/* =========================================================
+   ARRANQUE APP / TELEGRAM
+========================================================= */
+
+async function boot(){
+
+  try{
+
+    /*
+      1. Si llega token desde Telegram,
+         seguimos usando el acceso tradicional.
+    */
+
+    if(TELEGRAM_MODE){
+
+      hideAuth();
+
+      await startPanel();
+
+      return;
+    }
+
+
+    /*
+      2. Apertura directa como PWA / navegador.
+         Buscamos sesión Supabase Auth ya guardada.
+    */
+
+    let sb=initSupabase();
+
+    let {
+      data:{
+        session
+      },
+      error
+    }=await sb.auth.getSession();
+
+    if(error){
+      throw error;
+    }
+
+
+    /*
+      3. Si ya existe login válido,
+         pedimos token temporal de CENQAL.
+    */
+
+    if(session?.access_token){
+
+      try{
+
+        let ok=
+          await issueControlTokenFromAuth();
+
+        if(ok){
+
+          hideAuth();
+
+          await startPanel();
+
+          return;
+        }
+
+      }catch(e){
+
+        console.warn(
+          'Sesión Auth no válida:',
+          e
+        );
+
+        try{
+          await sb.auth.signOut();
+        }catch(_){}
+      }
+    }
+
+
+    /*
+      4. Si no existe sesión,
+         mostramos login.
+    */
+
+    showAuth();
+
+  }catch(e){
+
+    console.error(e);
+
+    showAuth(
+      e.message||
+      'No se pudo inicializar CENQAL Control.',
+      true
+    );
+  }
+}
+
+
+/* =========================================================
+   CAMBIOS DE SESIÓN SUPABASE
+========================================================= */
+
+try{
+
+  let sb=initSupabase();
+
+  sb.auth.onAuthStateChange(
+    async(event,session)=>{
+
+      if(TELEGRAM_MODE)
+        return;
+if(
+  event==='PASSWORD_RECOVERY' &&
+  session?.access_token
+){
+  setTimeout(
+    async()=>{
+      try{
+
+        const newPassword=window.prompt(
+          'Escribe la nueva contraseña de CENQAL (mínimo 8 caracteres):'
+        );
+
+        if(!newPassword)return;
+
+        if(newPassword.length<8){
+          showAuth(
+            'La contraseña debe tener al menos 8 caracteres.',
+            true
+          );
+          return;
+        }
+
+        const {error}=await sb.auth.updateUser({
+          password:newPassword
+        });
+
+        if(error)throw error;
+
+        await issueControlTokenFromAuth();
+
+        hideAuth();
+        await startPanel();
+
+        toast('Contraseña de CENQAL actualizada.');
+
+      }catch(e){
+
+        showAuth(
+          e.message||'No se pudo cambiar la contraseña.',
+          true
+        );
+      }
+    },
+    0
+  );
+
+  return;
+}
+      if(
+        event==='SIGNED_IN' &&
+        session?.access_token &&
+        !TOKEN
+      ){
+
+        setTimeout(
+          async()=>{
+
+            try{
+
+              await issueControlTokenFromAuth();
+
+              await startPanel();
+
+            }catch(e){
+
+              showAuth(
+                e.message||
+                'Cuenta no autorizada.',
+                true
+              );
+            }
+
+          },
+          0
+        );
+      }
+
+      if(event==='SIGNED_OUT'){
+
+        TOKEN='';
+
+        showAuth(
+          'Sesión cerrada.'
+        );
+      }
+    }
+  );
+
+}catch(e){
+  console.warn(
+    'Auth listener:',
+    e
+  );
+}
+
+
+/* =========================================================
+   SERVICE WORKER / PWA
+========================================================= */
+
+if('serviceWorker' in navigator){
+
+  window.addEventListener(
+    'load',
+    ()=>{
+
+      navigator.serviceWorker
+        .register('./service-worker.js')
+        .then(
+          ()=>console.log(
+            'CENQAL Control PWA activa'
+          )
+        )
+        .catch(
+          err=>console.error(
+            'Error PWA:',
+            err
+          )
+        );
+    }
+  );
+}
+
+/* =========================================================
+   MATRICULAR ALUMNO EXISTENTE
+========================================================= */
+
+async function enrollExistingStudent(){
+  try{
+    const d=await rpc(
+      'cenqal_control_student_catalog',
+      {p_token:TOKEN}
+    );
+
+    const rows=(d.rows||[])
+      .filter(x=>
+        !x.enrolled_in_selected_course &&
+        x.student_active!==false
+      );
+
+    if(!rows.length){
+      toast(
+        'No hay alumnos existentes pendientes de matricular en este curso.'
+      );
+      return;
+    }
+
+    const courseId=Number(d.course_id);
+
+    modal(`
+      <h3>＋ Matricular alumno existente</h3>
+
+      <div class="note">
+        Se conserva la misma identidad del alumno,
+        incluido su UUID y su vínculo con Telegram/Berilio.
+        Solo se crea una matrícula en el curso seleccionado.
+      </div>
+
+      <div class="formgrid" style="margin-top:14px">
+
+        <div class="field full">
+          <label>Alumno</label>
+          <select id="enrollStudent">
+            ${rows.map(s=>`
+              <option value="${esc(s.student_id)}">
+                ${esc(s.full_name||s.student_code)}
+                · ${esc(s.student_code||'')}
+                ${s.telegram_user_id?' · Telegram vinculado':''}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+
+        <div class="field full">
+          <label>Grupo</label>
+          <input
+            id="enrollGroup"
+            placeholder="Grupo del alumno en este curso">
+        </div>
+
+      </div>
+
+      <div class="modalFooter">
+        <button class="btn" onclick="closeModal()">
+          Cancelar
+        </button>
+
+        <button class="btn primary" id="enrollNext">
+          Revisar matrícula
+        </button>
+      </div>
+    `);
+
+    document.getElementById('enrollNext').onclick=()=>{
+      const sid=
+        document.getElementById('enrollStudent').value;
+
+      const group=
+        document.getElementById('enrollGroup').value.trim();
+
+      const student=
+        rows.find(x=>String(x.student_id)===String(sid))||{};
+
+      confirmModal({
+        title:'Confirmar matrícula',
+        summary:`
+          Alumno:
+          <b>${esc(student.full_name||student.student_code)}</b>
+          <br>
+          Curso seleccionado: ID ${courseId}
+          <br>
+          Grupo: ${esc(group||'—')}
+          <br><br>
+          Su identidad y su vínculo con Telegram/Berilio
+          no se modificarán.
+        `,
+        phrase:'MATRICULAR ALUMNO',
+        button:'Matricular',
+        onConfirm:async typed=>{
+          await rpc(
+            'cenqal_control_enroll_student',
+            {
+              p_token:TOKEN,
+              p_course_id:courseId,
+              p_student_id:sid,
+              p_group_name:group||null,
+              p_confirmation:typed
+            }
+          );
+
+          state.students=[];
+          state.progress=null;
+          state.deliveries=null;
+
+          await refreshSnapshot();
+          await loadStudents(true);
+
+          toast('Alumno matriculado en el curso.');
+        }
+      });
+    };
+
+  }catch(e){
+    toast(
+      e.message||'No se pudo abrir el catálogo de alumnos.',
+      true
+    );
+  }
+}
+  /* =========================================================
+   CREAR ALUMNO NUEVO
+========================================================= */
+
+function newStudent(){
+
+  modal(`
+    <h3>＋ Nuevo alumno</h3>
+
+    <div class="note">
+      Se creará una identidad nueva en CENQAL y se matriculará
+      automáticamente en el curso que esté seleccionado.
+    </div>
+
+    <div class="formgrid" style="margin-top:14px">
+
+      <div class="field">
+        <label>Nombre *</label>
+        <input id="newStFirst">
+      </div>
+
+      <div class="field">
+        <label>Apellidos *</label>
+        <input id="newStLast">
+      </div>
+
+      <div class="field full">
+        <label>Correo académico</label>
+        <input id="newStEmail" type="email">
+      </div>
+
+      <div class="field">
+        <label>Grupo</label>
+        <input id="newStGroup"
+               placeholder="Si se deja vacío, usará el grupo del curso">
+      </div>
+
+      <div class="field">
+        <label>Código de alumno</label>
+        <input id="newStCode"
+               placeholder="Vacío = CENQAL lo genera">
+      </div>
+
+    </div>
+
+    <div class="modalFooter">
+      <button class="btn" onclick="closeModal()">
+        Cancelar
+      </button>
+
+      <button class="btn primary" id="newStudentNext">
+        Revisar alta
+      </button>
+    </div>
+  `);
+
+  document.getElementById('newStudentNext').onclick=()=>{
+
+    const first=
+      document.getElementById('newStFirst').value.trim();
+
+    const last=
+      document.getElementById('newStLast').value.trim();
+
+    const email=
+      document.getElementById('newStEmail').value.trim();
+
+    const group=
+      document.getElementById('newStGroup').value.trim();
+
+    const code=
+      document.getElementById('newStCode').value.trim();
+
+    if(!first || !last){
+      toast('Nombre y apellidos son obligatorios.',true);
+      return;
+    }
+
+    confirmModal({
+      title:'Confirmar nuevo alumno',
+
+      summary:`
+        Alumno: <b>${esc(first)} ${esc(last)}</b>
+        <br>
+        Correo: ${esc(email||'—')}
+        <br>
+        Grupo: ${esc(group||'grupo del curso')}
+        <br>
+        Código: ${esc(code||'generado automáticamente')}
+        <br><br>
+        Se creará una identidad nueva y se matriculará
+        en el curso seleccionado.
+      `,
+
+      phrase:'CREAR ALUMNO',
+      button:'Crear alumno',
+
+      onConfirm:async typed=>{
+
+        const result=await rpc(
+          'cenqal_control_create_student',
+          {
+            p_token:TOKEN,
+            p_data:{
+              first_name:first,
+              last_name:last,
+              academic_email:email||null,
+              group_name:group||null,
+              student_code:code||null
+            },
+            p_confirmation:typed
+          }
+        );
+
+        state.students=[];
+        state.progress=null;
+        state.deliveries=null;
+
+        await refreshSnapshot();
+        await loadStudents(true);
+
+        toast(
+          `Alumno creado · código ${result.student_code}`
+        );
+      }
+    });
+  };
+}
+
+/* =========================================================
+   CENQAL v69 · LEARNING ANALYTICS
+========================================================= */
+const v69Charts={};
+function v69DestroyChart(key){try{if(v69Charts[key])v69Charts[key].destroy()}catch(e){}delete v69Charts[key]}
+function v69Chart(key,canvasId,config){
+  v69DestroyChart(key);
+  const el=document.getElementById(canvasId);
+  if(!el||typeof Chart==='undefined')return null;
+  v69Charts[key]=new Chart(el.getContext('2d'),config);
+  return v69Charts[key];
+}
+function v69CourseId(){return Number(state.selectedCourseId||state.snapshot?.course?.id||0)||null}
+function v69Num(v,d=1){const x=Number(v);return Number.isFinite(x)?x.toFixed(d):'—'}
+function v69Minutes(v){const x=Number(v||0);if(x<60)return `${Math.round(x)} min`;return `${Math.floor(x/60)} h ${Math.round(x%60)} min`}
+function v69AlertStudents(){return Array.isArray(state.learning?.alerts?.students)?state.learning.alerts.students:[]}
+function v69AlertFor(row,source=state.learning?.alerts){
+  const list=Array.isArray(source?.students)?source.students:[];
+  const uid=String(row?.telegram_user_id??'');const code=String(row?.student_code??'').toLowerCase();
+  return list.find(x=>(uid&&String(x.telegram_user_id??'')===uid)||(code&&String(x.student_code??'').toLowerCase()===code))||null;
+}
+function v69Risk(row,source=state.learning?.alerts){
+  const a=v69AlertFor(row,source);const st=String(a?.alert_status||'').toUpperCase();
+  if(st==='RED')return {icon:'🔴',cls:'red',label:'Prioridad',signals:a.alert_signals||a.signals||[]};
+  if(st==='YELLOW')return {icon:'🟡',cls:'yellow',label:'Atención',signals:a.alert_signals||a.signals||[]};
+  if(st==='GREEN')return {icon:'🟢',cls:'green',label:'Normal',signals:a.alert_signals||a.signals||[]};
+  const exam=row?.exam_average==null?null:Number(row.exam_average);
+  const pre=row?.pre_knowledge==null?null:Number(row.pre_knowledge);
+  if(exam!=null&&exam<5)return {icon:'🔴',cls:'red',label:'Prioridad',signals:[{detail:'Media de examen inferior a 5'}]};
+  if(exam!=null&&exam<6)return {icon:'🟡',cls:'yellow',label:'Atención',signals:[{detail:'Media de examen entre 5 y 6'}]};
+  if(exam==null&&pre==null)return {icon:'⚪',cls:'gray',label:'Sin datos',signals:[]};
+  return {icon:'🟢',cls:'green',label:'Normal',signals:[]};
+}
+function v69AvgRank(values){
+  const indexed=values.map((v,i)=>({v:Number(v),i})).filter(x=>Number.isFinite(x.v)).sort((a,b)=>a.v-b.v);
+  const ranks=Array(values.length).fill(null);let k=0;
+  while(k<indexed.length){let j=k;while(j+1<indexed.length&&indexed[j+1].v===indexed[k].v)j++;const r=(k+j+2)/2;for(let z=k;z<=j;z++)ranks[indexed[z].i]=r;k=j+1}
+  return ranks;
+}
+function v69Spearman(xs,ys){
+  const pairs=[];for(let i=0;i<Math.min(xs.length,ys.length);i++){const x=Number(xs[i]),y=Number(ys[i]);if(Number.isFinite(x)&&Number.isFinite(y))pairs.push([x,y])}
+  if(pairs.length<3)return {rho:null,n:pairs.length};
+  const rx=v69AvgRank(pairs.map(x=>x[0])),ry=v69AvgRank(pairs.map(x=>x[1]));
+  const mx=rx.reduce((a,b)=>a+b,0)/rx.length,my=ry.reduce((a,b)=>a+b,0)/ry.length;
+  let num=0,dx=0,dy=0;for(let i=0;i<rx.length;i++){const a=rx[i]-mx,b=ry[i]-my;num+=a*b;dx+=a*a;dy+=b*b}
+  return {rho:dx&&dy?num/Math.sqrt(dx*dy):null,n:pairs.length};
+}
+
+async function loadLearning(force=false){
+  if(state.learning&&!force){renderLearning();return state.learning}
+  const box=document.getElementById('learningMetrics');if(box)box.innerHTML='<div class="card"><span class="loader"></span> Calculando Learning Analytics…</div>';
+  try{
+    const d=await rpc('cenqal_control_learning_analytics_v69',{p_token:TOKEN,p_course_id:v69CourseId()});
+    state.learning=d;renderLearning();return d;
+  }catch(e){if(box)box.innerHTML=`<div class="card note danger">${esc(e.message)}</div>`;toast('No se pudo cargar Learning Analytics. Comprueba el SQL v69.',true);throw e}
+}
+
+function renderLearning(){
+  const d=state.learning||{},sum=d.summary||{},students=d.students||[],topics=d.topics||[];
+  const risks={red:0,yellow:0,green:0,gray:0};students.forEach(x=>risks[v69Risk(x,d.alerts).cls]++);
+  const paired=d.pre_post_summary?.paired_count||0;
+  document.getElementById('learningMetrics').innerHTML=[
+    metric('👥 Alumnos',sum.students??students.length,'activos analizados'),
+    metric('🏋️ Usuarios Gym',sum.gym_users??0,`${sum.students?Math.round(100*(sum.gym_users||0)/sum.students):0}% del grupo`),
+    metric('🧠 Respuestas Gym',sum.gym_answers??0,`${sum.gym_sessions??0} sesiones`),
+    metric('⏱ Tiempo activo',v69Minutes(sum.gym_active_minutes||0),`mediana sesión ${v69Num(sum.median_session_active_minutes,0)} min`),
+    metric('🎓 Media examen',sum.exam_average==null?'—':`${v69Num(sum.exam_average,2)}/10`,'T1–T8 con resultado'),
+    metric('🧭 PRE↔POST',paired,paired?'alumnos emparejados':'aún sin POST')
+  ].join('');
+
+  const labels=topics.map(x=>`T${x.topic_number}`);
+  v69Chart('groupSummary','groupSummaryChart',{type:'bar',data:{labels,datasets:[
+    {label:'Acierto Gym (%)',data:topics.map(x=>x.gym_accuracy_pct),yAxisID:'y'},
+    {label:'Nota media examen',data:topics.map(x=>x.exam_average),type:'line',yAxisID:'y2',tension:.25}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{beginAtZero:true,max:100,title:{display:true,text:'Gym (%)'}},y2:{beginAtZero:true,max:10,position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'Examen /10'}}}}});
+
+  v69Chart('risk','learningRiskChart',{type:'doughnut',data:{labels:['Prioridad','Atención','Normal','Sin datos'],datasets:[{data:[risks.red,risks.yellow,risks.green,risks.gray],backgroundColor:['#d84b4b','#e9a51b','#18a66a','#9aa9b8']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  document.getElementById('learningRiskText').innerHTML=`🔴 ${risks.red} · 🟡 ${risks.yellow} · 🟢 ${risks.green} · ⚪ ${risks.gray}. Las señales detalladas se muestran en cada ficha.`;
+
+  const pp=d.pre_post_summary||{};
+  v69Chart('prepost','prePostChart',{type:'bar',data:{labels:['Conocimiento'],datasets:[{label:'PRE',data:[pp.pre_mean]},{label:'POST',data:[pp.post_mean]}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:100}}}});
+  const sd=pp.sd_reduction_pct==null?'—':`${Number(pp.sd_reduction_pct)>0?'−':'+'}${Math.abs(Number(pp.sd_reduction_pct)).toFixed(1)}%`;
+  const iqr=pp.iqr_reduction_pct==null?'—':`${Number(pp.iqr_reduction_pct)>0?'−':'+'}${Math.abs(Number(pp.iqr_reduction_pct)).toFixed(1)}%`;
+  document.getElementById('prePostText').innerHTML=paired?`Ganancia media: <b>${v69Num(pp.mean_gain,1)} puntos</b> · cambio de dispersión (DE): <b>${sd}</b> · cambio de IQR: <b>${iqr}</b>. Valores positivos en reducción indican mayor convergencia.`:'Aún no hay suficientes respuestas POST emparejadas.';
+
+  const days=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];const byDay=new Map((d.days||[]).map(x=>[x.day_name,x.responses]));
+  v69Chart('days','gymDayChart',{type:'bar',data:{labels:days,datasets:[{label:'Respuestas Gym',data:days.map(x=>byDay.get(x)||0)}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  const byHour=new Map((d.hours||[]).map(x=>[Number(x.local_hour),x.responses]));const hours=[...Array(24).keys()];
+  v69Chart('hours','gymHourChart',{type:'line',data:{labels:hours.map(h=>`${String(h).padStart(2,'0')}:00`),datasets:[{label:'Respuestas Gym',data:hours.map(h=>byHour.get(h)||0),tension:.25,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+  const scatter=students.filter(x=>Number(x.gym_active_minutes)>0&&x.exam_average!=null).map(x=>({x:Number(x.gym_active_minutes),y:Number(x.exam_average),student:x.full_name||x.student_code}));
+  v69Chart('effect','gymEffectChart',{type:'scatter',data:{datasets:[{label:'Alumno',data:scatter}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{beginAtZero:true,title:{display:true,text:'Minutos activos estimados'}},y:{beginAtZero:true,max:10,title:{display:true,text:'Media examen /10'}}},plugins:{tooltip:{callbacks:{label:c=>`${c.raw.student}: ${v69Num(c.raw.x,0)} min · ${v69Num(c.raw.y,2)}/10`}}}}});
+  const sp=v69Spearman(scatter.map(x=>x.x),scatter.map(x=>x.y));document.getElementById('gymEffectText').innerHTML=sp.rho==null?`No hay suficientes pares para estimar asociación (n=${sp.n}).`:`ρ de Spearman = <b>${sp.rho.toFixed(2)}</b> (n=${sp.n}). Asociación descriptiva, no causal.`;
+
+  renderGymHeatmap(d.heatmap||[]);
+  document.getElementById('learningTopics').innerHTML=tableHTML(['Tema','Usuarios Gym','Respuestas','Acierto Gym','Practicadas','Dominadas','Dominio','Exámenes','Media examen'],topics.map(x=>[
+    `T${x.topic_number}`,x.gym_users||0,x.gym_attempts||0,x.gym_accuracy_pct==null?'—':`${v69Num(x.gym_accuracy_pct,1)}%`,x.practiced_questions||0,x.mastered_questions||0,x.mastery_pct==null?'—':`${v69Num(x.mastery_pct,1)}%`,x.exam_count||0,x.exam_average==null?'—':`${v69Num(x.exam_average,2)}/10`
+  ]));
+  renderLearningStudents();
+}
+
+function renderGymHeatmap(rows){
+  const box=document.getElementById('gymHeatmap');if(!box)return;
+  const map=new Map(rows.map(x=>[`${x.iso_dow}-${x.local_hour}`,Number(x.responses||0)]));const max=Math.max(1,...map.values());
+  let html='<div class="heatmapGrid"><div></div>'+[...Array(24).keys()].map(h=>`<div class="heatmapHead">${h}</div>`).join('');
+  const days=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  for(let d=1;d<=7;d++){
+    html+=`<div class="heatmapDay">${days[d-1]}</div>`;
+    for(let h=0;h<24;h++){const v=map.get(`${d}-${h}`)||0,alpha=v?(.16+.84*v/max):0;html+=`<div class="heatCell ${v/max>.55?'hot':''}" title="${days[d-1]} ${h}:00 · ${v} respuestas" style="background:${v?`rgba(39,123,220,${alpha.toFixed(2)})`:'#edf3f8'}">${v||''}</div>`}
+  }
+  box.innerHTML=html+'</div>';
+}
+
+function renderLearningStudents(){
+  const body=document.getElementById('learningStudentsBody');if(!body)return;const d=state.learning||{};const rows=d.students||[];
+  body.innerHTML=rows.map(x=>{const r=v69Risk(x,d.alerts),gain=x.knowledge_gain==null?'—':`${Number(x.knowledge_gain)>=0?'+':''}${v69Num(x.knowledge_gain,1)}`;return `<tr class="studentrow" data-student-id="${esc(x.student_id)}">
+    <td><span class="analyticsBadge ${r.cls}" title="${esc(r.label)}">${r.icon}</span></td><td><b>${esc(x.full_name||x.student_code)}</b><div class="subtle">${esc(x.student_code||'')}</div></td>
+    <td>${x.gym_sessions||0} sesiones<br><span class="subtle">${x.gym_answers||0} respuestas</span></td><td>${v69Minutes(x.gym_active_minutes||0)}</td>
+    <td>${x.gym_accuracy_pct==null?'—':v69Num(x.gym_accuracy_pct,1)+'%'}</td><td>${x.gym_mastery_pct==null?'—':v69Num(x.gym_mastery_pct,1)+'%'}</td>
+    <td>${x.exam_passed||0}/${x.exam_count||0}</td><td>${x.exam_average==null?'—':v69Num(x.exam_average,2)+'/10'}</td><td>${gain}</td>
+    <td>#${x.pp_rank||'—'}</td><td>#${x.gym_usage_rank||'—'}</td><td>#${x.gym_mastery_rank||'—'}</td><td><button class="btn primary" onclick="event.stopPropagation();openStudent('${esc(x.student_id)}')">Ficha</button></td></tr>`}).join('')||'<tr><td colspan="13" class="empty">Sin datos.</td></tr>';
+  body.onclick=e=>{const tr=e.target.closest('tr[data-student-id]');if(tr)openStudent(tr.dataset.studentId)};
+}
+
+async function loadStudentLearningAnalytics(sid){
+  const card=document.getElementById('studentLearningCard');if(!card)return;
+  card.style.display='block';document.getElementById('studentLearningMetrics').innerHTML='<div class="card"><span class="loader"></span> Calculando analítica individual…</div>';
+  try{const d=await rpc('cenqal_control_student_learning_v69',{p_token:TOKEN,p_student_id:sid,p_course_id:v69CourseId()});state.studentLearning=d;renderStudentLearningAnalytics()}
+  catch(e){document.getElementById('studentLearningMetrics').innerHTML=`<div class="note danger">${esc(e.message)}</div>`}
+}
+function renderStudentLearningAnalytics(){
+  const d=state.studentLearning||{},s=d.summary||{},topics=d.topics||[],pp=d.pre_post||{};const r=v69Risk(s,d.alerts);
+  document.getElementById('studentLearningMetrics').innerHTML=[
+    metric('🏋️ Gym',s.gym_sessions||0,`${s.gym_answers||0} respuestas`),metric('⏱ Tiempo activo',v69Minutes(s.gym_active_minutes||0),`${s.gym_active_days||0} días distintos`),
+    metric('🎯 Acierto Gym',s.gym_accuracy_pct==null?'—':`${v69Num(s.gym_accuracy_pct,1)}%`,'precisión acumulada'),metric('🧠 Dominio',s.gym_mastery_pct==null?'—':`${v69Num(s.gym_mastery_pct,1)}%`,`${s.gym_mastered_questions||0}/${s.gym_practiced_questions||0}`),
+    metric('🎓 Exámenes',s.exam_average==null?'—':`${v69Num(s.exam_average,2)}/10`,`${s.exam_passed||0}/${s.exam_count||0} superados`),metric('🧭 PRE→POST',s.knowledge_gain==null?'—':`${Number(s.knowledge_gain)>=0?'+':''}${v69Num(s.knowledge_gain,1)}`,'puntos de conocimiento')
+  ].join('');
+  const sig=(r.signals||[]).slice(0,5).map(x=>x.detail||x.title||x.code).filter(Boolean);
+  document.getElementById('studentLearningSignal').innerHTML=`<span class="analyticsBadge ${r.cls}">${r.icon} ${esc(r.label)}</span>${sig.length?` <span class="subtle">${esc(sig.join(' · '))}</span>`:''}`;
+  v69Chart('studentTopic','studentTopicChart',{type:'bar',data:{labels:topics.map(x=>`T${x.topic_number}`),datasets:[
+    {label:'Acierto Gym (%)',data:topics.map(x=>x.gym_accuracy_pct),yAxisID:'y'},
+    {label:'Dominio (%)',data:topics.map(x=>x.mastery_pct),yAxisID:'y'},
+    {label:'Examen',data:topics.map(x=>x.exam_score),type:'line',yAxisID:'y2',tension:.2}
+  ]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:100},y2:{beginAtZero:true,max:10,position:'right',grid:{drawOnChartArea:false}}}}});
+  const days=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];const counts=Object.fromEntries(days.map(x=>[x,0]));(d.sessions||[]).forEach(x=>{if(x.day_name in counts)counts[x.day_name]++});
+  v69Chart('studentHabit','studentHabitChart',{type:'bar',data:{labels:days,datasets:[{label:'Sesiones',data:days.map(x=>counts[x])}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  const ranks=`PP #${s.pp_rank||'—'} · uso Gym #${s.gym_usage_rank||'—'} · dominio #${s.gym_mastery_rank||'—'} · mejora #${s.improvement_rank||'—'}`;
+  const pre=pp.pre_knowledge==null?'—':v69Num(pp.pre_knowledge,1)+'%',post=pp.post_knowledge==null?'—':v69Num(pp.post_knowledge,1)+'%';
+  document.getElementById('studentLearningDetail').innerHTML=`<div class="statline"><span><b>Rankings:</b> ${esc(ranks)}</span><span><b>Conocimiento:</b> PRE ${pre} → POST ${post}</span><span><b>Último uso Gym:</b> ${s.last_gym_activity?fmtDate(s.last_gym_activity):'—'}</span></div>`;
+}
+
+function v69Workbook(){if(typeof XLSX==='undefined')throw new Error('La librería Excel no se ha cargado.');return XLSX.utils.book_new()}
+function v69Sheet(rows){return XLSX.utils.json_to_sheet(rows.length?rows:[{sin_datos:''}])}
+function v69AddSheet(wb,name,rows,widths){const ws=v69Sheet(rows);if(widths)ws['!cols']=widths.map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,name.slice(0,31));}
+function v69AnonMap(students){const m=new Map();[...students].sort((a,b)=>String(a.student_code||'').localeCompare(String(b.student_code||''),'es')).forEach((x,i)=>m.set(String(x.student_code||''),`A${String(i+1).padStart(3,'0')}`));return m}
+function v69AnonRow(row,map){const o={...row},code=String(o.student_code||'');const id=map.get(code)||'ANON';o.student_code=id;if('full_name'in o)o.full_name=id;delete o.student_id;delete o.telegram_user_id;return o}
+function v69Dictionary(){return [
+  {variable:'gym_active_minutes',descripcion:'Tiempo activo estimado. Suma intervalos entre respuestas; cada intervalo se limita a 10 minutos.'},
+  {variable:'gym_gross_minutes',descripcion:'Duración observada entre inicio de sesión y final/última respuesta.'},
+  {variable:'gym_accuracy_pct',descripcion:'Porcentaje de respuestas correctas en el Gym.'},
+  {variable:'gym_mastery_pct',descripcion:'Preguntas dominadas / preguntas practicadas según la lógica del Gym.'},
+  {variable:'gym_active_days',descripcion:'Número de fechas distintas con actividad en el Gym.'},
+  {variable:'knowledge_gain',descripcion:'POST - PRE en conocimiento (%). Solo interpretable cuando existen ambas medidas.'},
+  {variable:'pp_rank',descripcion:'Posición por Puntos de Prestigio. No depende de Oganesones.'},
+  {variable:'gym_usage_rank',descripcion:'Posición docente por tiempo activo estimado en el Gym. No concede puntos.'},
+  {variable:'gym_mastery_rank',descripcion:'Posición docente por porcentaje de dominio. No concede puntos.'},
+  {variable:'improvement_rank',descripcion:'Posición docente por ganancia PRE→POST. Solo informativa.'},
+  {variable:'alert_status',descripcion:'Semáforo docente del motor de alertas CENQAL. No se muestra al alumnado.'}
+]}
+function v69AlertRows(alerts){const a=Array.isArray(alerts?.students)?alerts.students:[];return a.map(x=>({student_code:x.student_code,full_name:x.full_name,group_name:x.group_name,alert_status:x.alert_status,signals:(x.alert_signals||x.signals||[]).map(s=>s.detail||s.title||s.code).filter(Boolean).join(' | ')}))}
+
+async function exportLearningExcel(anonymized=false){
+  try{
+    toast('Preparando Excel…');if(!state.learning)await loadLearning();
+    const raw=await rpc('cenqal_control_learning_export_v69',{p_token:TOKEN,p_course_id:v69CourseId()});state.learningExport=raw;
+    const wb=v69Workbook(),students=raw.students||[],map=v69AnonMap(students),clean=rows=>anonymized?rows.map(x=>v69AnonRow(x,map)):rows;
+    const summary=[
+      {indicador:'Curso',valor:raw.course?.academic_year||''},{indicador:'Asignatura',valor:raw.course?.subject||''},
+      {indicador:'Alumnos',valor:state.learning?.summary?.students||0},{indicador:'Usuarios Gym',valor:state.learning?.summary?.gym_users||0},
+      {indicador:'Sesiones Gym',valor:state.learning?.summary?.gym_sessions||0},{indicador:'Respuestas Gym',valor:state.learning?.summary?.gym_answers||0},
+      {indicador:'Tiempo activo total (min)',valor:state.learning?.summary?.gym_active_minutes||0},{indicador:'Media examen',valor:state.learning?.summary?.exam_average??''},
+      {indicador:'PRE/POST emparejados',valor:state.learning?.pre_post_summary?.paired_count||0},{indicador:'Ganancia PRE→POST media',valor:state.learning?.pre_post_summary?.mean_gain??''},
+      {indicador:'Reducción DE (%)',valor:state.learning?.pre_post_summary?.sd_reduction_pct??''},{indicador:'Reducción IQR (%)',valor:state.learning?.pre_post_summary?.iqr_reduction_pct??''}
+    ];
+    v69AddSheet(wb,'RESUMEN_GRUPO',summary,[34,24]);
+    v69AddSheet(wb,'ALUMNOS',clean(students),Array(30).fill(16));
+    v69AddSheet(wb,'GYM_SESIONES',clean(raw.gym_sessions||[]),Array(24).fill(16));
+    v69AddSheet(wb,'GYM_RESPUESTAS',clean(raw.gym_attempts||[]),Array(20).fill(16));
+    v69AddSheet(wb,'GYM_DOMINIO',clean(raw.gym_mastery||[]),Array(18).fill(16));
+    v69AddSheet(wb,'GYM_HORARIOS',state.learning?.heatmap||[],Array(10).fill(15));
+    v69AddSheet(wb,'GYM_TEMAS',state.learning?.topics||[],Array(12).fill(16));
+    v69AddSheet(wb,'EXAMENES',clean(raw.exams||[]),Array(20).fill(16));
+    v69AddSheet(wb,'GYM_EXAMEN',clean(state.learning?.exam_gym||[]),Array(20).fill(18));
+    v69AddSheet(wb,'PRE_POST',clean(raw.pre_post||[]),Array(26).fill(17));
+    let alerts=v69AlertRows(state.learning?.alerts);if(anonymized)alerts=alerts.map(x=>v69AnonRow(x,map));v69AddSheet(wb,'SEMAFORO',alerts,Array(8).fill(20));
+    v69AddSheet(wb,'RANKINGS',clean(students.map(x=>({student_code:x.student_code,full_name:x.full_name,pp_total:x.pp_total,pp_rank:x.pp_rank,gym_active_minutes:x.gym_active_minutes,gym_usage_rank:x.gym_usage_rank,gym_mastery_pct:x.gym_mastery_pct,gym_mastery_rank:x.gym_mastery_rank,knowledge_gain:x.knowledge_gain,improvement_rank:x.improvement_rank}))),Array(12).fill(18));
+    v69AddSheet(wb,'DICCIONARIO',v69Dictionary(),[24,70]);
+    const year=String(raw.course?.academic_year||'curso').replace(/[^0-9A-Za-z_-]+/g,'_');XLSX.writeFile(wb,`CENQAL_Learning_Analytics_${year}${anonymized?'_ANON':''}.xlsx`);
+    toast('Excel generado.');
+  }catch(e){toast(e.message||'No se pudo generar el Excel.',true)}
+}
+
+function exportStudentLearningExcel(){
+  try{
+    const d=state.studentLearning;if(!d)return toast('Carga primero la ficha analítica.',true);const wb=v69Workbook(),s=d.student||{},sum=d.summary||{};
+    v69AddSheet(wb,'RESUMEN',[{alumno:s.full_name,codigo:s.student_code,grupo:s.group_name,...sum}],[26,22,18,...Array(30).fill(16)]);
+    v69AddSheet(wb,'TEMAS',d.topics||[],Array(12).fill(17));v69AddSheet(wb,'SESIONES_GYM',d.sessions||[],Array(22).fill(17));v69AddSheet(wb,'EXAMENES',d.exams||[],Array(18).fill(17));v69AddSheet(wb,'PRE_POST',[d.pre_post||{}],Array(24).fill(18));v69AddSheet(wb,'DICCIONARIO',v69Dictionary(),[24,70]);
+    XLSX.writeFile(wb,`CENQAL_${String(s.student_code||'alumno').replace(/[^0-9A-Za-z_-]+/g,'_')}_Learning_Analytics.xlsx`);
+  }catch(e){toast(e.message||'No se pudo exportar el alumno.',true)}
+}
+
+
+/* =========================================================
+   LANZAR
+========================================================= */
+
+boot();
+  </script>
+
+</body>
+</html>
