@@ -1,0 +1,1884 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CENQAL Play</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --navy:#0c3f82;--blue:#277bdc;--green:#18a66a;--violet:#7444c7;
+  --amber:#e9a51b;--red:#d84b4b;--ink:#17304f;--muted:#6d7f96;
+  --bg:#f3f8fd;--card:#fff;--line:#dbe7f4;--shadow:0 14px 38px rgba(35,70,110,.12)
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 10% 0,#e7f3ff 0,transparent 35%),linear-gradient(180deg,#f8fbff,#eef6ff);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+button,textarea{font:inherit}
+.app{max-width:760px;margin:auto;padding:14px 14px 90px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 14px}
+.brand{display:flex;align-items:center;gap:10px}.atom{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--navy),var(--green));display:grid;place-items:center;color:#fff;font-size:25px;box-shadow:var(--shadow)}
+.brand h1{font-size:22px;margin:0;color:var(--navy)}.brand small{color:var(--muted)}
+.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:800;color:var(--navy)}
+.card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:22px;padding:17px;box-shadow:var(--shadow);margin-bottom:14px}
+.hero{overflow:hidden;position:relative;background:linear-gradient(135deg,#0c3f82,#277bdc 60%,#18a66a);color:white;border:0}
+.hero:after{content:"H₂O";position:absolute;right:-6px;bottom:-22px;font-size:90px;font-weight:1000;opacity:.12}
+.hero h2{margin:0 0 7px;font-size:26px}.hero p{margin:0;line-height:1.45;max-width:590px}
+.topicgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.topic{padding:15px;border:1px solid var(--line);border-radius:18px;background:#fff;min-height:122px;position:relative;overflow:hidden}
+.topic.open{cursor:pointer;border-color:#b9d6f4}.topic.locked{opacity:.58}
+.topic .n{font-size:12px;font-weight:900;color:var(--blue)}.topic h3{font-size:15px;margin:7px 0 5px}.topic p{font-size:12px;color:var(--muted);margin:0}.lock{position:absolute;right:10px;top:10px}
+.progress{height:8px;background:#eaf0f6;border-radius:999px;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:999px}
+.activities{display:grid;gap:11px}.activity{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:12px;border:1px solid var(--line);border-radius:18px;padding:13px;background:#fff;cursor:pointer}
+.activity:active{transform:scale(.99)}.acticon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:25px;background:#eef6ff}
+.activity h3{font-size:15px;margin:0 0 4px}.activity p{font-size:12px;color:var(--muted);margin:0}.arrow{font-size:22px;color:var(--blue)}
+.steps{display:flex;gap:5px;margin:12px 0}.steps span{height:6px;flex:1;border-radius:99px;background:#dfeaf5}.steps span.on{background:var(--blue)}
+.kicker{font-size:12px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--blue)}
+.question{font-size:21px;font-weight:850;line-height:1.3;margin:10px 0 15px}
+.answers{display:grid;gap:9px}.answer{border:1px solid var(--line);border-radius:15px;padding:13px;text-align:left;background:#fff;color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:flex-start}.answer b{min-width:27px;height:27px;border-radius:9px;background:#edf5ff;display:grid;place-items:center;color:var(--blue)}
+.answer.good{border-color:#8cd4b2;background:#eefaf4}.answer.bad{border-color:#e7a1a1;background:#fff3f3}
+.feedback{border-radius:15px;padding:13px;margin-top:12px;background:#f6f9fc;line-height:1.45}.feedback.good{background:#edf9f3;color:#25684b}.feedback.bad{background:#fff3f3;color:#8a3030}
+.btn{width:100%;border:0;border-radius:14px;padding:13px 14px;font-weight:850;cursor:pointer;margin-top:11px}.primary{background:linear-gradient(135deg,var(--blue),var(--navy));color:#fff}.secondary{background:#eef5fc;color:var(--navy);border:1px solid var(--line)}
+.visual{display:flex;align-items:center;justify-content:center;min-height:128px;margin:8px 0 13px;border-radius:20px;background:linear-gradient(135deg,#f3f9ff,#eefaf6);overflow:hidden;position:relative}
+.water{position:relative;width:180px;height:110px}.o,.h{position:absolute;border-radius:50%;display:grid;place-items:center;color:white;font-weight:1000;box-shadow:0 8px 20px rgba(0,0,0,.14)}.o{width:76px;height:76px;background:#ef5b67;left:52px;top:25px;font-size:28px}.h{width:47px;height:47px;background:#58a6e7;font-size:20px}.h.one{left:15px;top:0}.h.two{right:15px;top:0}.bond{position:absolute;height:7px;width:55px;background:#a7b9ca;border-radius:10px;top:47px;transform-origin:left center;z-index:0}.bond.one{left:42px;transform:rotate(-28deg)}.bond.two{left:87px;transform:rotate(28deg)}
+.escapeRow{display:flex;justify-content:center;gap:8px;margin:12px 0}.lockbox{width:44px;height:44px;border-radius:13px;background:#edf3f8;display:grid;place-items:center;font-weight:900}.lockbox.done{background:#e8f8f0;color:#267352}.lockbox.current{background:#eaf3ff;color:#1260a8;box-shadow:0 0 0 3px rgba(39,123,220,.14)}
+textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;min-height:90px;resize:vertical}
+.rating{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.rate{border:1px solid var(--line);background:#fff;border-radius:14px;padding:10px 5px;text-align:center;cursor:pointer}.rate.sel{background:#eaf4ff;border-color:#7db5ed}.rate .emoji{font-size:25px;display:block}
+.summary{text-align:center}.scoreRing{width:118px;height:118px;border-radius:50%;margin:5px auto 12px;display:grid;place-items:center;background:conic-gradient(var(--green) var(--pct),#e9f0f6 0);position:relative}.scoreRing:after{content:"";position:absolute;inset:12px;background:white;border-radius:50%}.scoreRing b{position:relative;z-index:2;font-size:27px;color:var(--navy)}
+.badge{display:inline-flex;gap:7px;align-items:center;background:#f2ecff;color:#6039a6;border-radius:999px;padding:8px 12px;font-weight:850;font-size:12px;margin:4px}
+.note{font-size:12px;color:var(--muted);line-height:1.45}.hidden{display:none!important}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#17304f;color:#fff;padding:11px 14px;border-radius:13px;display:none;z-index:99;max-width:90%}.toast.show{display:block}
+@media(max-width:560px){.topicgrid{grid-template-columns:1fr}.activity{grid-template-columns:48px 1fr auto}.question{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand"><div class="atom">⚛</div><div><h1>CENQAL Play</h1><small>Laboratorio de aprendizaje activo</small></div></div>
+    <div class="pill" id="who">CENQAL</div>
+  </div>
+  <main id="screen"></main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const tg=window.Telegram?.WebApp;
+try{tg?.ready();tg?.expand();tg?.setHeaderColor('#eef6ff')}catch(e){}
+
+const P=new URLSearchParams(location.search);
+const SBURL=(P.get('sburl')||'').replace(/\/$/,'');
+const SBKEY=P.get('sbkey')||'';
+const PT=P.get('pt')||sessionStorage.getItem('cenqal_play_token')||'';
+const INITIAL_TOPIC=Number(P.get('topic')||1);
+
+if(PT)sessionStorage.setItem('cenqal_play_token',PT);
+try{history.replaceState(null,'',location.pathname)}catch(e){}
+
+const DEMO=!SBURL||!SBKEY||!PT;
+
+const TOPICS=[
+ {n:1,title:'Enlace químico y propiedades del agua'},
+ {n:2,title:'Química orgánica, grupos funcionales e hidratos de carbono'},
+ {n:3,title:'Aminoácidos y proteínas'},
+ {n:4,title:'Lípidos'},
+ {n:5,title:'Enzimas'},
+ {n:6,title:'Sistemas dispersos, disoluciones y termoquímica'},
+ {n:7,title:'Cinética, equilibrio químico y ácido-base'},
+ {n:8,title:'Oxidación-reducción y transferencia de electrones'}
+];
+
+const ACTIVITIES={
+
+'T1-INTERACCIONES':{
+ title:'Interacciones químicas',
+ type:'Quiz visual',
+ icon:'🧪',
+ minutes:5,
+ why:'Las interacciones entre partículas ayudan a explicar propiedades como solubilidad, estado físico, densidad y punto de ebullición.',
+ socratic:{
+  q:'¿Por qué el agua disuelve muchas sustancias iónicas y polares mejor que un medio apolar?',
+  options:[
+   'Porque su polaridad permite interacciones favorables con iones y dipolos.',
+   'Porque rompe cualquier enlace covalente de manera espontánea.',
+   'Porque carece de cargas parciales.',
+   'Porque las moléculas apolares siempre atraen con más fuerza a los iones.'
+  ],
+  correct:0,
+  concept:'polaridad_solubilidad'
+ },
+ micro:'La polaridad del agua y sus interacciones intermoleculares permiten estabilizar iones y moléculas polares. Las fuerzas intermoleculares también influyen en propiedades físicas como ebullición, densidad y solubilidad.',
+ items:[
+  {
+   code:'Q1',
+   concept:'fuerzas_inter',
+   q:'¿Qué propiedad puede depender directamente de las fuerzas intermoleculares?',
+   o:['Punto de ebullición','Número atómico','Número de protones','Masa del electrón'],
+   c:0,
+   e:'Las fuerzas intermoleculares condicionan, entre otras propiedades, el estado físico, la solubilidad y el punto de ebullición.'
+  },
+  {
+   code:'Q2',
+   concept:'puente_h',
+   q:'¿En cuál de estas moléculas es esperable la formación de puentes de hidrógeno entre moléculas?',
+   o:['H₂O','CH₄','Cl₂','CO₂'],
+   c:0,
+   e:'Los puentes de hidrógeno aparecen cuando H está unido a átomos pequeños y muy electronegativos como O, N o F.'
+  },
+  {
+   code:'Q3',
+   concept:'agua_ebullicion',
+   q:'¿Qué ayuda a explicar el punto de ebullición relativamente alto del agua?',
+   o:['La red de puentes de hidrógeno','La ausencia de polaridad','Un enlace metálico','Que el agua sea lineal'],
+   c:0,
+   e:'Para pasar a vapor deben vencerse numerosas interacciones por puente de hidrógeno.'
+  },
+  {
+   code:'Q4',
+   concept:'london',
+   q:'¿Qué afirmación sobre las fuerzas de London es correcta?',
+   o:[
+    'Aumentan al crecer la polarizabilidad y el tamaño molecular.',
+    'Solo existen en moléculas polares.',
+    'Son enlaces covalentes entre moléculas.',
+    'Desaparecen por completo en moléculas grandes.'
+   ],
+   c:0,
+   e:'Las fuerzas de dispersión de London aumentan con nubes electrónicas más grandes y polarizables.'
+  },
+  {
+   code:'Q5',
+   concept:'polaridad_molecular',
+   q:'Una molécula puede tener enlaces polares y, aun así, ser apolar cuando…',
+   o:[
+    'Su geometría compensa los dipolos.',
+    'Contiene hidrógeno.',
+    'Tiene muchos electrones.',
+    'Está en estado líquido.'
+   ],
+   c:0,
+   e:'La polaridad molecular depende también de la geometría; una distribución simétrica puede cancelar los dipolos.'
+  }
+ ],
+ transfer:{
+  code:'TR',
+  concept:'transferencia_solubilidad',
+  q:'En una formulación, ¿qué explicación es más coherente si un compuesto polar se dispersa bien en agua pero mal en una fase oleosa?',
+  options:[
+   'Las interacciones con el agua son más favorables por su polaridad.',
+   'La fase oleosa rompe todos sus enlaces internos.',
+   'La polaridad no influye en la solubilidad.',
+   'El agua es apolar y por eso lo estabiliza.'
+  ],
+  correct:0
+ },
+ reflect:'Explica en una frase qué relación ves entre polaridad e interacción con el agua.'
+},
+
+'T1-PROPIEDADES':{
+ title:'Propiedades e interacciones',
+ type:'Mini-escape',
+ icon:'🔐',
+ minutes:8,
+ why:'Comprender la relación entre estructura e interacción permite interpretar por qué una sustancia se disuelve, hierve, se congela o cambia de estado.',
+ socratic:{
+  q:'Si dos sustancias tienen fuerzas intermoleculares de distinta intensidad, ¿esperas que tengan exactamente el mismo punto de ebullición?',
+  options:[
+   'No necesariamente.',
+   'Sí, siempre.',
+   'Solo si una es iónica.',
+   'La interacción no afecta al cambio de estado.'
+  ],
+  correct:0,
+  concept:'fuerzas_propiedades'
+ },
+ micro:'En este recorrido cada respuesta correcta abre un nivel. Usa polaridad, puentes de hidrógeno, fuerzas de London y estructura del agua para completar los cinco niveles.',
+ escape:true,
+ items:[
+  {
+   code:'L1',
+   concept:'ion_dipolo',
+   q:'Nivel 1 · Una sal entra en contacto con agua. ¿Qué favorece que los iones abandonen la red cristalina?',
+   o:[
+    'La orientación de los dipolos del agua alrededor de los iones.',
+    'La ausencia de polaridad del agua.',
+    'La formación de un enlace metálico.',
+    'La desaparición de las cargas de los iones.'
+   ],
+   c:0,
+   e:'El agua orienta sus extremos de carga parcial alrededor de los iones y favorece su separación de la red.'
+  },
+  {
+   code:'L2',
+   concept:'hielo_densidad',
+   q:'Nivel 2 · ¿Por qué el hielo puede ser menos denso que el agua líquida?',
+   o:[
+    'La red de puentes de H genera una estructura más abierta.',
+    'Los átomos de O desaparecen al congelar.',
+    'El agua se vuelve apolar.',
+    'Se forman enlaces metálicos.'
+   ],
+   c:0,
+   e:'Al congelar se organiza una estructura abierta asociada a los puentes de hidrógeno.'
+  },
+  {
+   code:'L3',
+   concept:'puente_h',
+   q:'Nivel 3 · ¿Qué pareja cumple la condición básica para un puente de hidrógeno?',
+   o:['O–H','C–C','Cl–Cl','Na–Na'],
+   c:0,
+   e:'En el tema se destacan F–H, O–H y N–H como uniones capaces de participar en puentes de H.'
+  },
+  {
+   code:'L4',
+   concept:'london',
+   q:'Nivel 4 · Entre Cl₂ e I₂, ¿en cuál esperas fuerzas de London más intensas?',
+   o:['I₂','Cl₂','Iguales siempre','Ninguna presenta London'],
+   c:0,
+   e:'I₂ posee una nube electrónica mayor y más polarizable.'
+  },
+  {
+   code:'L5',
+   concept:'agua_estructura',
+   q:'Nivel 5 · ¿Cuál describe mejor a la molécula de agua?',
+   o:[
+    'Polar y no lineal.',
+    'Apolar y lineal.',
+    'Iónica y lineal.',
+    'Metálica y tetraédrica.'
+   ],
+   c:0,
+   e:'El agua es una molécula covalente, altamente polar y no lineal.'
+  }
+ ],
+ transfer:{
+  code:'TR',
+  concept:'transferencia_propiedades',
+  q:'Un cambio de formulación reduce las interacciones intermoleculares entre moléculas. ¿Qué consecuencia es razonable investigar?',
+  options:[
+   'Un cambio en propiedades físicas como ebullición o solubilidad.',
+   'Un cambio en el número atómico.',
+   'La creación de protones nuevos.',
+   'La desaparición del oxígeno.'
+  ],
+  correct:0
+ },
+ reflect:'¿Qué nivel te obligó a razonar más y por qué?'
+},
+
+'T1-INTRUSO':{
+ title:'Clasificación de sustancias',
+ type:'El intruso',
+ icon:'🧩',
+ minutes:5,
+ why:'Clasificar obliga a identificar el criterio químico que comparten varias sustancias, no solo a recordar definiciones.',
+ socratic:{
+  q:'¿Qué criterio usarías primero para comparar fuerzas intermoleculares?',
+  options:[
+   'Polaridad, posibilidad de puente de H y tamaño/polarizabilidad.',
+   'Color del compuesto.',
+   'Nombre comercial.',
+   'Orden alfabético.'
+  ],
+  correct:0,
+  concept:'clasificacion'
+ },
+ micro:'En cada conjunto hay una opción que no comparte el criterio principal. Selecciona el intruso y después comprueba la razón.',
+ items:[
+  {
+   code:'I1',
+   concept:'puente_h',
+   q:'¿Cuál es el intruso si el criterio es “puede formar puentes de hidrógeno entre moléculas”?',
+   o:['CH₄','H₂O','NH₃','HF'],
+   c:0,
+   e:'CH₄ no contiene H unido a O, N o F.'
+  },
+  {
+   code:'I2',
+   concept:'tipo_enlace',
+   q:'¿Cuál es el intruso si el criterio es “sustancia molecular covalente”?',
+   o:['NaCl','H₂O','NH₃','HCl'],
+   c:0,
+   e:'NaCl se describe como compuesto iónico; los otros ejemplos son moleculares covalentes.'
+  },
+  {
+   code:'I3',
+   concept:'london',
+   q:'¿Cuál es el intruso si ordenamos por aumento de tamaño entre halógenos F₂, Cl₂, Br₂, I₂?',
+   o:['H₂O','F₂','Cl₂','I₂'],
+   c:0,
+   e:'H₂O no pertenece a la serie de halógenos usada para ejemplificar el aumento de fuerzas de London con el tamaño.'
+  },
+  {
+   code:'I4',
+   concept:'propiedades_inter',
+   q:'¿Cuál NO es una propiedad física destacada como influida por las fuerzas intermoleculares?',
+   o:['Número de protones','Solubilidad','Densidad','Punto de ebullición'],
+   c:0,
+   e:'El número de protones define el elemento y no depende de fuerzas intermoleculares.'
+  }
+ ],
+ transfer:{
+  code:'TR',
+  concept:'transferencia_clasificacion',
+  q:'Si una molécula es apolar, ¿qué interacción de Van der Waals seguirá siendo relevante?',
+  options:[
+   'Dispersión de London.',
+   'Puente de hidrógeno obligatorio.',
+   'Enlace metálico.',
+   'Enlace iónico entre moléculas.'
+  ],
+  correct:0
+ },
+ reflect:'¿Qué criterio de clasificación te parece más útil para predecir propiedades de un alimento?'
+},
+
+'T1-PREDICCION':{
+ title:'Predicción de comportamiento',
+ type:'Predicción',
+ icon:'🔮',
+ minutes:6,
+ why:'Predecir antes de recibir la explicación obliga a activar tus ideas previas y permite comprobar si el modelo químico realmente funciona.',
+ socratic:{
+  q:'Al congelarse el agua, ¿esperas que su estructura sea más compacta o más abierta?',
+  options:[
+   'Más abierta.',
+   'Más compacta siempre.',
+   'Idéntica a la fase vapor.',
+   'No existe organización molecular.'
+  ],
+  correct:0,
+  concept:'hielo_densidad'
+ },
+ micro:'Primero predice. Después compara tu decisión con el modelo químico y revisa si necesitas cambiar tu explicación.',
+ items:[
+  {
+   code:'P1',
+   concept:'agua_ebullicion',
+   q:'Si debilitáramos notablemente las interacciones entre moléculas de agua, ¿qué esperarías respecto a la energía necesaria para separarlas?',
+   o:[
+    'Sería menor.',
+    'Sería necesariamente mayor.',
+    'No cambiaría nunca.',
+    'Se crearían protones.'
+   ],
+   c:0,
+   e:'Interacciones más débiles requieren menos energía para separar las moléculas.'
+  },
+  {
+   code:'P2',
+   concept:'hielo_densidad',
+   q:'Al organizarse una red abierta por puentes de H durante la congelación, ¿qué tendencia esperas en densidad?',
+   o:[
+    'Disminuir.',
+    'Aumentar sin límite.',
+    'No cambiar jamás.',
+    'Convertirse en una propiedad nuclear.'
+   ],
+   c:0,
+   e:'Una estructura más abierta ocupa más volumen para una cantidad comparable de materia.'
+  },
+  {
+   code:'P3',
+   concept:'london',
+   q:'Si aumenta el tamaño y polarizabilidad de una molécula apolar, ¿qué predices para sus fuerzas de London?',
+   o:[
+    'Aumentarán.',
+    'Desaparecerán.',
+    'Se convertirán en enlaces iónicos.',
+    'Serán siempre cero.'
+   ],
+   c:0,
+   e:'Las nubes electrónicas más grandes y polarizables favorecen dipolos instantáneos más intensos.'
+  },
+  {
+   code:'P4',
+   concept:'polaridad_solubilidad',
+   q:'Una especie iónica entra en un disolvente muy polar. ¿Qué comportamiento es razonable predecir?',
+   o:[
+    'El disolvente puede estabilizar las cargas mediante orientación dipolar.',
+    'Las cargas dejan de existir.',
+    'Solo puede formarse un metal.',
+    'La polaridad impide cualquier interacción.'
+   ],
+   c:0,
+   e:'Los dipolos del disolvente polar pueden orientarse alrededor de las cargas.'
+  }
+ ],
+ transfer:{
+  code:'TR',
+  concept:'transferencia_prediccion',
+  q:'Un nuevo compuesto tiene enlaces polares pero geometría perfectamente simétrica. ¿Qué deberías comprobar antes de afirmar que la molécula es polar?',
+  options:[
+   'Si los dipolos se cancelan por la geometría.',
+   'Solo su nombre.',
+   'Solo su color.',
+   'Si contiene un metal.'
+  ],
+  correct:0
+ },
+ reflect:'¿Cambió alguna de tus predicciones después de leer la explicación?'
+},
+
+'T1-ERROR':{
+ title:'Explicaciones químicas',
+ type:'Detecta el error',
+ icon:'🤖',
+ minutes:6,
+ why:'Detectar un error obliga a comparar una explicación con el modelo químico y a justificar qué parte debe corregirse.',
+ socratic:{
+  q:'Berilio afirma: “Si una molécula tiene enlaces polares, toda la molécula será necesariamente polar”. ¿Es correcto?',
+  options:[
+   'No; la geometría puede cancelar los dipolos.',
+   'Sí; siempre.',
+   'Sí, pero solo en gases.',
+   'No; porque ningún enlace puede ser polar.'
+  ],
+  correct:0,
+  concept:'polaridad_molecular'
+ },
+ micro:'Berilio cometerá errores deliberados. Tu tarea no es estar de acuerdo con él, sino localizar el punto químico que falla.',
+ items:[
+  {
+   code:'E1',
+   concept:'agua_estructura',
+   q:'“La molécula de agua es lineal y apolar”. ¿Qué corrección es adecuada?',
+   o:[
+    'Es no lineal y altamente polar.',
+    'Es metálica.',
+    'Es un ion monoatómico.',
+    'No contiene enlaces covalentes.'
+   ],
+   c:0,
+   e:'El tema describe al agua como covalente, altamente polar y no lineal.'
+  },
+  {
+   code:'E2',
+   concept:'london',
+   q:'“Las fuerzas de London solo aparecen en compuestos apolares”. ¿Qué falla?',
+   o:[
+    'También aparecen en compuestos covalentes polares.',
+    'No existen en ninguna sustancia.',
+    'Son enlaces iónicos.',
+    'Solo aparecen en metales.'
+   ],
+   c:0,
+   e:'Las fuerzas de Van der Waals están presentes en compuestos covalentes polares y apolares.'
+  },
+  {
+   code:'E3',
+   concept:'puente_h',
+   q:'“Un puente de hidrógeno es el mismo enlace covalente O–H dentro de una molécula”. ¿Qué falla?',
+   o:[
+    'El puente de H es una interacción entre regiones de moléculas, no el enlace covalente O–H interno.',
+    'El oxígeno nunca participa.',
+    'El H no puede tener carga parcial positiva.',
+    'El agua no forma interacciones.'
+   ],
+   c:0,
+   e:'Conviene distinguir el enlace covalente intramolecular O–H de la interacción intermolecular por puente de hidrógeno.'
+  },
+  {
+   code:'E4',
+   concept:'polaridad_molecular',
+   q:'“Cualquier molécula con enlaces polares es polar”. ¿Qué corrección necesitas?',
+   o:[
+    'Hay que considerar también la geometría y la posible cancelación de dipolos.',
+    'La geometría nunca importa.',
+    'Solo importa la masa.',
+    'Toda molécula covalente es iónica.'
+   ],
+   c:0,
+   e:'Una geometría simétrica puede hacer que los dipolos se compensen.'
+  }
+ ],
+ transfer:{
+  code:'TR',
+  concept:'transferencia_error',
+  q:'Un compañero explica que el hielo es más denso porque sus moléculas están “más apretadas”. ¿Qué idea conviene revisar?',
+  options:[
+   'La red sólida del agua puede ser más abierta por los puentes de H.',
+   'El hielo no contiene agua.',
+   'El oxígeno desaparece al congelar.',
+   'La densidad depende del número atómico.'
+  ],
+  correct:0
+ },
+ reflect:'Escribe una corrección breve a uno de los errores de Berilio.'
+},
+
+'T1-INTEGRADOR':{
+ title:'Reto integrador T1',
+ type:'Caso de aplicación',
+ icon:'🔬',
+ minutes:8,
+ why:'El objetivo final es aplicar varias ideas a una situación nueva, no repetir literalmente una definición.',
+ socratic:{
+  q:'¿Qué combinación de conceptos usarías para explicar el comportamiento del agua en alimentos?',
+  options:[
+   'Polaridad, geometría, puentes de H y otras fuerzas intermoleculares.',
+   'Solo color y olor.',
+   'Solo masa atómica.',
+   'Ninguna interacción molecular.'
+  ],
+  correct:0,
+  concept:'integracion'
+ },
+ micro:'Relaciona estructura molecular, interacciones y consecuencias macroscópicas. Cada caso combina más de una idea del tema.',
+ items:[
+  {
+   code:'R1',
+   concept:'agua_alimentos',
+   q:'En un alimento, el agua interactúa con macromoléculas y esto puede influir en…',
+   o:[
+    'Consistencia, textura y estabilidad.',
+    'El número de protones del carbono.',
+    'La identidad de los elementos químicos.',
+    'La masa del electrón.'
+   ],
+   c:0,
+   e:'El tema relaciona la interacción agua–macrocomponentes con características reológicas y estabilidad.'
+  },
+  {
+   code:'R2',
+   concept:'conservacion_agua',
+   q:'¿Por qué las propiedades del agua son relevantes al diseñar procesos como congelación, deshidratación o liofilización?',
+   o:[
+    'Porque sus propiedades fisicoquímicas condicionan el comportamiento durante esos procesos.',
+    'Porque el agua deja de ser H₂O.',
+    'Porque todos los enlaces covalentes desaparecen.',
+    'Porque solo importa el color del alimento.'
+   ],
+   c:0,
+   e:'El tema señala que propiedades del agua deben considerarse en procesos de conservación.'
+  },
+  {
+   code:'R3',
+   concept:'integracion_interacciones',
+   q:'Un compuesto presenta fuerte polaridad y capacidad de formar puentes de H. ¿Qué propiedad sería razonable comparar experimentalmente frente a un análogo menos interactivo?',
+   o:[
+    'Punto de ebullición o solubilidad.',
+    'Número atómico.',
+    'Número de neutrones del oxígeno.',
+    'Carga del protón.'
+   ],
+   c:0,
+   e:'La intensidad de las interacciones intermoleculares se relaciona con propiedades físicas como ebullición y solubilidad.'
+  }
+ ],
+ transfer:{
+  code:'TR',
+  concept:'transferencia_integracion',
+  q:'Una nueva formulación cambia la interacción del agua con los macrocomponentes. ¿Cuál es la mejor pregunta científica?',
+  options:[
+   '¿Cambian textura, consistencia o estabilidad del alimento?',
+   '¿Cambió el número de protones del agua?',
+   '¿El agua se convirtió en metal?',
+   '¿Desapareció el oxígeno?'
+  ],
+  correct:0
+ },
+ reflect:'Resume en dos frases cómo pasarías de estructura molecular a una propiedad observable del alimento.'
+}
+
+};
+
+const state={
+ boot:null,
+ topic:1,
+ activity:null,
+ attempt:null,
+ start:0,
+ pre:null,
+ idx:0,
+ correct:0,
+ answers:[],
+ transfer:null,
+ feedback:{}
+};
+
+function esc(s){
+ return String(s??'').replace(
+  /[&<>"']/g,
+  c=>({
+   '&':'&amp;',
+   '<':'&lt;',
+   '>':'&gt;',
+   '"':'&quot;',
+   "'":'&#39;'
+  }[c])
+ )
+}
+
+function toast(t){
+ const e=document.getElementById('toast');
+ e.textContent=t;
+ e.classList.add('show');
+ setTimeout(()=>e.classList.remove('show'),2500)
+}
+
+function haptic(ok){
+ try{
+  tg?.HapticFeedback?.notificationOccurred(ok?'success':'error')
+ }catch(e){}
+}
+
+async function rpc(name,body){
+ if(DEMO)return null;
+
+ const r=await fetch(
+  `${SBURL}/rest/v1/rpc/${name}`,
+  {
+   method:'POST',
+   headers:{
+    'Content-Type':'application/json',
+    'apikey':SBKEY,
+    'Authorization':`Bearer ${SBKEY}`
+   },
+   body:JSON.stringify(body)
+  }
+ );
+
+ const txt=await r.text();
+ let d;
+
+ try{
+  d=txt?JSON.parse(txt):null
+ }catch(e){
+  d=txt
+ }
+
+ if(!r.ok){
+  throw new Error(
+   d?.message||
+   String(d)||
+   `HTTP ${r.status}`
+  )
+ }
+
+ return d;
+}
+
+async function telemetry(type,extra={}){
+ if(DEMO||!state.attempt)return;
+
+ try{
+  await rpc(
+   'cenqal_play_log_event_v1',
+   {
+    p_token:PT,
+    p_attempt_id:state.attempt,
+    p_event_type:type,
+    p_phase:extra.phase||null,
+    p_item_code:extra.item||null,
+    p_concept_key:extra.concept||null,
+    p_response:extra.response||null,
+    p_is_correct:extra.correct??null,
+    p_score:extra.score??null,
+    p_hints_used:extra.hints||0,
+    p_duration_ms:extra.ms||null,
+    p_metadata:extra.meta||{}
+   }
+  );
+ }catch(e){
+  console.debug('telemetry',e)
+ }
+}
+
+async function boot(){
+
+ if(!DEMO){
+
+  try{
+   state.boot=await rpc(
+    'cenqal_play_bootstrap_v1',
+    {p_token:PT}
+   )
+  }catch(e){
+
+   document.getElementById('screen').innerHTML=`
+    <section class="card">
+     <h2>Sesión caducada</h2>
+     <p>${esc(e.message)}</p>
+     <p class="note">
+      Vuelve a abrir CENQAL Play desde Berilio.
+     </p>
+    </section>
+   `;
+
+   return;
+  }
+
+ }else{
+
+  state.boot={
+   student:{
+    full_name:'Modo demostración'
+   },
+   topics:TOPICS.map(
+    t=>({
+     ...t,
+     is_open:t.n===1
+    })
+   ),
+   activities:Object.keys(ACTIVITIES).map(
+    (code,i)=>({
+     activity_code:code,
+     topic_number:1,
+     sort_order:(i+1)*10
+    })
+   )
+  };
+
+ }
+
+ document.getElementById('who').textContent=
+  state.boot.student?.academy_name||
+  state.boot.student?.full_name||
+  'CENQAL';
+
+ renderTopics();
+}
+
+function localProgress(code){
+ try{
+  return JSON.parse(
+   localStorage.getItem('cqplay:'+code)||'null'
+  )
+ }catch(e){
+  return null
+ }
+}
+
+function saveProgress(code,p){
+ localStorage.setItem(
+  'cqplay:'+code,
+  JSON.stringify(p)
+ )
+}
+
+function renderTopics(){
+
+ state.activity=null;
+ state.attempt=null;
+
+ const openMap=Object.fromEntries(
+  (state.boot.topics||[]).map(
+   t=>[
+    Number(t.topic_number),
+    !!t.is_open
+   ]
+  )
+ );
+
+ document.getElementById('screen').innerHTML=`
+ <section class="card hero">
+  <h2>Aprender jugando, con evidencia</h2>
+  <p>
+   Comprende, predice, juega, explica y aplica.
+   Tus respuestas ayudan a CENQAL a detectar
+   qué conceptos están claros y cuáles conviene reforzar.
+  </p>
+ </section>
+
+ <div class="topicgrid">
+ ${TOPICS.map(t=>{
+
+   const open=
+    openMap[t.n]||
+    t.n===1&&DEMO;
+
+   const acts=
+    Object.keys(ACTIVITIES)
+    .filter(
+     k=>k.startsWith(\`T${t.n}-\`)
+    );
+
+   const done=
+    acts.filter(
+     k=>localProgress(k)?.completed
+    ).length;
+
+   return `
+    <div
+     class="topic ${open?'open':'locked'}"
+     ${open?\`onclick="openTopic(${t.n})"\`:''}
+    >
+     <span class="lock">
+      ${open?'':'🔒'}
+     </span>
+
+     <div class="n">
+      TEMA ${t.n}
+     </div>
+
+     <h3>
+      ${esc(t.title)}
+     </h3>
+
+     <p>
+      ${
+       open
+       ?(
+        done
+        ?\`${done}/${acts.length} actividades completadas\`
+        :'Sala disponible'
+       )
+       :'Próximamente'
+      }
+     </p>
+
+     <div class="progress">
+      <span
+       style="width:${
+        acts.length
+        ?100*done/acts.length
+        :0
+       }%"
+      ></span>
+     </div>
+
+    </div>
+   `
+ }).join('')}
+ </div>
+
+ ${
+  DEMO
+  ?'<p class="note">Vista de demostración: la experiencia funciona, pero la analítica no se envía a CENQAL hasta abrirla desde Berilio.</p>'
+  :''
+ }
+ `;
+}
+
+function openTopic(n){
+
+ state.topic=n;
+
+ if(n!==1){
+  toast(
+   'Este tema todavía no está abierto.'
+  );
+  return;
+ }
+
+ const acts=
+  (state.boot.activities||[])
+  .filter(
+   x=>Number(x.topic_number)===n
+  )
+  .map(
+   x=>x.activity_code
+  )
+  .filter(
+   x=>ACTIVITIES[x]
+  );
+
+ const list=
+  acts.length
+  ?acts
+  :Object.keys(ACTIVITIES);
+
+ document.getElementById('screen').innerHTML=`
+
+ <button
+  class="btn secondary"
+  onclick="renderTopics()"
+ >
+  ← Volver a temas
+ </button>
+
+ <section class="card hero">
+
+  <div
+   class="kicker"
+   style="color:#d9ecff"
+  >
+   TEMA 1
+  </div>
+
+  <h2>
+   Enlace químico y propiedades del agua
+  </h2>
+
+  <p>
+   Seis experiencias breves para conectar
+   estructura molecular, interacciones
+   y propiedades observables.
+  </p>
+
+ </section>
+
+ <div class="activities">
+
+ ${list.map(code=>{
+
+  const a=ACTIVITIES[code];
+  const p=localProgress(code);
+
+  return `
+
+   <div
+    class="activity"
+    onclick="begin('${code}')"
+   >
+
+    <div class="acticon">
+     ${a.icon}
+    </div>
+
+    <div>
+     <h3>
+      ${esc(a.title)}
+     </h3>
+
+     <p>
+      ${esc(a.type)}
+      ·
+      ${a.minutes} min
+      ${
+       p?.completed
+       ?' · ✅ completada'
+       :''
+      }
+     </p>
+    </div>
+
+    <div class="arrow">
+     ›
+    </div>
+
+   </div>
+
+  `
+ }).join('')}
+
+ </div>
+ `;
+}
+
+async function begin(code){
+
+ const a=ACTIVITIES[code];
+
+ state.activity=code;
+ state.idx=0;
+ state.correct=0;
+ state.answers=[];
+ state.pre=null;
+ state.transfer=null;
+ state.start=Date.now();
+
+ if(!DEMO){
+
+  try{
+
+   const d=await rpc(
+    'cenqal_play_start_attempt_v1',
+    {
+     p_token:PT,
+     p_activity_code:code,
+     p_metadata:{
+      client:'play_web_v1'
+     }
+    }
+   );
+
+   state.attempt=d.attempt_id;
+
+  }catch(e){
+
+   toast(e.message);
+   return;
+
+  }
+
+ }else{
+
+  state.attempt=
+   'demo-'+Date.now();
+
+ }
+
+ renderWhy(a);
+}
+
+function renderWhy(a){
+
+ document.getElementById('screen').innerHTML=`
+
+ <section class="card">
+
+  <div class="kicker">
+   ¿Por qué importa?
+  </div>
+
+  <h2>
+   ${esc(a.title)}
+  </h2>
+
+  <div class="visual">
+
+   <div class="water">
+
+    <div class="bond one"></div>
+    <div class="bond two"></div>
+
+    <div class="o">
+     O
+    </div>
+
+    <div class="h one">
+     H
+    </div>
+
+    <div class="h two">
+     H
+    </div>
+
+   </div>
+
+  </div>
+
+  <p>
+   ${esc(a.why)}
+  </p>
+
+  <button
+   class="btn primary"
+   onclick="renderPre()"
+  >
+   Empezar
+  </button>
+
+ </section>
+ `;
+
+ telemetry(
+  'activity_open',
+  {
+   phase:'why'
+  }
+ );
+}
+
+function steps(n){
+
+ return `
+ <div class="steps">
+ ${
+  [1,2,3,4,5,6]
+  .map(
+   i=>`
+    <span
+     class="${i<=n?'on':''}"
+    ></span>
+   `
+  )
+  .join('')
+ }
+ </div>
+ `;
+}
+
+function renderPre(){
+
+ const a=ACTIVITIES[state.activity];
+ const x=a.socratic;
+
+ document.getElementById('screen').innerHTML=`
+
+ <section class="card">
+
+  ${steps(2)}
+
+  <div class="kicker">
+   Antes de jugar · predice
+  </div>
+
+  <div class="question">
+   ${esc(x.q)}
+  </div>
+
+  <div class="answers">
+
+  ${
+   x.options
+   .map(
+    (o,i)=>`
+
+     <button
+      class="answer"
+      onclick="answerPre(${i})"
+     >
+      <b>
+       ${String.fromCharCode(65+i)}
+      </b>
+
+      ${esc(o)}
+
+     </button>
+
+    `
+   )
+   .join('')
+  }
+
+  </div>
+
+ </section>
+ `;
+}
+
+async function answerPre(i){
+
+ const a=ACTIVITIES[state.activity];
+ const x=a.socratic;
+ const ok=i===x.correct;
+
+ state.pre=
+  ok
+  ?100
+  :0;
+
+ haptic(ok);
+
+ await telemetry(
+  'response',
+  {
+   phase:'pre',
+   item:'PRE',
+   concept:x.concept,
+   response:{
+    selected:i
+   },
+   correct:ok,
+   score:state.pre
+  }
+ );
+
+ document.getElementById('screen').innerHTML=`
+
+ <section class="card">
+
+  ${steps(3)}
+
+  <div class="kicker">
+   Idea clave
+  </div>
+
+  <h2>
+   ${
+    ok
+    ?'Buena predicción'
+    :'Revisa el modelo'
+   }
+  </h2>
+
+  <p>
+   ${esc(a.micro)}
+  </p>
+
+  <button
+   class="btn primary"
+   onclick="startGame()"
+  >
+   Entrar en la actividad
+  </button>
+
+ </section>
+ `;
+}
+
+function startGame(){
+
+ state.idx=0;
+ state.correct=0;
+
+ renderItem();
+}
+
+function renderItem(){
+
+ const a=ACTIVITIES[state.activity];
+ const x=a.items[state.idx];
+
+ if(!x){
+  return renderTransfer();
+ }
+
+ document.getElementById('screen').innerHTML=`
+
+ <section class="card">
+
+  ${steps(4)}
+
+  <div class="kicker">
+   ${esc(a.type)}
+   ·
+   ${state.idx+1}/${a.items.length}
+  </div>
+
+  ${
+   a.escape
+   ?`
+    <div class="escapeRow">
+
+    ${
+     a.items
+     .map(
+      (_,i)=>`
+
+       <div
+        class="lockbox ${
+         i<state.idx
+         ?'done'
+         :i===state.idx
+          ?'current'
+          :''
+        }"
+       >
+        ${
+         i<state.idx
+         ?'✓'
+         :i+1
+        }
+       </div>
+
+      `
+     )
+     .join('')
+    }
+
+    </div>
+   `
+   :''
+  }
+
+  <div class="question">
+   ${esc(x.q)}
+  </div>
+
+  <div class="answers">
+
+   ${
+    x.o
+    .map(
+     (o,i)=>`
+
+      <button
+       class="answer"
+       id="ans${i}"
+       onclick="answerItem(${i})"
+      >
+
+       <b>
+        ${String.fromCharCode(65+i)}
+       </b>
+
+       ${esc(o)}
+
+      </button>
+
+     `
+    )
+    .join('')
+   }
+
+  </div>
+
+  <div id="explain"></div>
+
+ </section>
+ `;
+
+ state.itemShown=
+  Date.now();
+}
+
+async function answerItem(i){
+
+ const a=ACTIVITIES[state.activity];
+ const x=a.items[state.idx];
+
+ const ok=
+  i===x.c;
+
+ state.correct+=
+  ok
+  ?1
+  :0;
+
+ state.answers.push({
+  code:x.code,
+  ok
+ });
+
+ haptic(ok);
+
+ document
+ .querySelectorAll('.answer')
+ .forEach(
+  (b,j)=>{
+
+   b.disabled=true;
+
+   if(j===x.c){
+    b.classList.add('good')
+   }
+
+   if(j===i&&!ok){
+    b.classList.add('bad')
+   }
+
+  }
+ );
+
+ document.getElementById('explain').innerHTML=`
+
+ <div
+  class="feedback ${
+   ok
+   ?'good'
+   :'bad'
+  }"
+ >
+  <b>
+   ${
+    ok
+    ?'Correcto'
+    :'No exactamente'
+   }
+  </b>
+
+  <br>
+
+  ${esc(x.e)}
+
+ </div>
+
+ <button
+  class="btn primary"
+  onclick="nextItem()"
+ >
+  Continuar
+ </button>
+ `;
+
+ await telemetry(
+  'response',
+  {
+   phase:'game',
+   item:x.code,
+   concept:x.concept,
+   response:{
+    selected:i
+   },
+   correct:ok,
+   score:ok?100:0,
+   ms:
+    Date.now()-
+    state.itemShown
+  }
+ );
+}
+
+function nextItem(){
+
+ state.idx++;
+
+ renderItem();
+}
+
+function renderTransfer(){
+
+ const a=ACTIVITIES[state.activity];
+ const x=a.transfer;
+
+ document.getElementById('screen').innerHTML=`
+
+ <section class="card">
+
+  ${steps(5)}
+
+  <div class="kicker">
+   Transferencia
+  </div>
+
+  <div class="question">
+   ${esc(x.q)}
+  </div>
+
+  <div class="answers">
+
+   ${
+    x.options
+    .map(
+     (o,i)=>`
+
+      <button
+       class="answer"
+       onclick="answerTransfer(${i})"
+      >
+
+       <b>
+        ${String.fromCharCode(65+i)}
+       </b>
+
+       ${esc(o)}
+
+      </button>
+
+     `
+    )
+    .join('')
+   }
+
+  </div>
+
+ </section>
+ `;
+
+ state.itemShown=
+  Date.now();
+}
+
+async function answerTransfer(i){
+
+ const a=ACTIVITIES[state.activity];
+ const x=a.transfer;
+
+ const ok=
+  i===x.correct;
+
+ state.transfer=
+  ok
+  ?100
+  :0;
+
+ haptic(ok);
+
+ await telemetry(
+  'response',
+  {
+   phase:'transfer',
+   item:x.code,
+   concept:x.concept,
+   response:{
+    selected:i
+   },
+   correct:ok,
+   score:state.transfer,
+   ms:
+    Date.now()-
+    state.itemShown
+  }
+ );
+
+ document.getElementById('screen').innerHTML=`
+
+ <section class="card">
+
+  ${steps(6)}
+
+  <div class="kicker">
+   Explica y reflexiona
+  </div>
+
+  <h2>
+   ${
+    ok
+    ?'Transferencia lograda'
+    :'Esta parte conviene reforzar'
+   }
+  </h2>
+
+  <p>
+   ${
+    ok
+    ?'Has aplicado el concepto a una situación diferente.'
+    :'No pasa nada: el objetivo es detectar dónde conviene revisar el razonamiento.'
+   }
+  </p>
+
+  <label class="note">
+   ${esc(a.reflect)}
+  </label>
+
+  <textarea
+   id="reflection"
+   placeholder="Respuesta breve (opcional)"
+  ></textarea>
+
+  <button
+   class="btn primary"
+   onclick="finishActivity()"
+  >
+   Continuar
+  </button>
+
+ </section>
+ `;
+}
+
+async function finishActivity(){
+
+ const a=
+  ACTIVITIES[state.activity];
+
+ const comment=
+  document
+  .getElementById('reflection')
+  ?.value
+  .trim()||'';
+
+ const game=
+  Math.round(
+   100*
+   state.correct/
+   a.items.length
+  );
+
+ const duration=
+  Date.now()-
+  state.start;
+
+ await telemetry(
+  'reflection',
+  {
+   phase:'reflection',
+   response:{
+    text:comment
+   }
+  }
+ );
+
+ if(!DEMO){
+
+  try{
+
+   await rpc(
+    'cenqal_play_finish_attempt_v1',
+    {
+     p_token:PT,
+     p_attempt_id:state.attempt,
+     p_pre_score:state.pre??0,
+     p_game_score:game,
+     p_transfer_score:state.transfer??0,
+     p_duration_ms:duration,
+     p_metadata:{
+      activity_type:a.type
+     }
+    }
+   );
+
+  }catch(e){
+
+   console.debug(e)
+
+  }
+
+ }
+
+ state.result={
+  game,
+  duration,
+  comment
+ };
+
+ renderFeedback();
+}
+
+function renderFeedback(){
+
+ document.getElementById('screen').innerHTML=`
+
+ <section class="card">
+
+  <div class="kicker">
+   Tu experiencia
+  </div>
+
+  <h2>
+   ¿Te ha gustado esta actividad?
+  </h2>
+
+  <div
+   class="rating"
+   id="sat"
+  >
+
+   ${
+    [
+     ['🙁','Nada'],
+     ['😐','Poco'],
+     ['🙂','Bastante'],
+     ['😍','Mucho']
+    ]
+    .map(
+     (x,i)=>`
+
+      <button
+       class="rate"
+       onclick="rate('sat',${i+1},this)"
+      >
+       <span class="emoji">
+        ${x[0]}
+       </span>
+       ${x[1]}
+      </button>
+
+     `
+    )
+    .join('')
+   }
+
+  </div>
+
+  <h3 style="margin-top:18px">
+   ¿Cuánto crees que has aprendido?
+  </h3>
+
+  <div
+   class="rating"
+   id="learn"
+  >
+
+   ${
+    [
+     ['🫥','Nada'],
+     ['🌱','Poco'],
+     ['🧠','Algo'],
+     ['✨','Mucho']
+    ]
+    .map(
+     (x,i)=>`
+
+      <button
+       class="rate"
+       onclick="rate('learn',${i+1},this)"
+      >
+       <span class="emoji">
+        ${x[0]}
+       </span>
+       ${x[1]}
+      </button>
+
+     `
+    )
+    .join('')
+   }
+
+  </div>
+
+  <h3 style="margin-top:18px">
+   ¿Ahora entiendes mejor el concepto?
+  </h3>
+
+  <div
+   class="rating"
+   id="better"
+  >
+
+   <button
+    class="rate"
+    onclick="rate('better',0,this)"
+   >
+    No
+   </button>
+
+   <button
+    class="rate"
+    onclick="rate('better',1,this)"
+   >
+    No estoy seguro
+   </button>
+
+   <button
+    class="rate"
+    onclick="rate('better',2,this)"
+   >
+    Sí
+   </button>
+
+  </div>
+
+  <button
+   class="btn primary"
+   onclick="saveFeedback()"
+  >
+   Ver resultado
+  </button>
+
+ </section>
+ `;
+}
+
+function rate(k,v,el){
+
+ state.feedback[k]=v;
+
+ el
+ .parentElement
+ .querySelectorAll('.rate')
+ .forEach(
+  x=>x.classList.remove('sel')
+ );
+
+ el.classList.add('sel');
+}
+
+async function saveFeedback(){
+
+ const f=
+  state.feedback;
+
+ if(
+  f.sat==null||
+  f.learn==null||
+  f.better==null
+ ){
+
+  toast(
+   'Marca las tres respuestas para continuar.'
+  );
+
+  return;
+ }
+
+ if(!DEMO){
+
+  try{
+
+   await rpc(
+    'cenqal_play_feedback_v1',
+    {
+     p_token:PT,
+     p_attempt_id:state.attempt,
+     p_satisfaction:f.sat,
+     p_perceived_learning:f.learn,
+     p_understand_better:f.better,
+     p_difficulty:null,
+     p_comment:
+      state.result.comment||
+      null
+    }
+   );
+
+  }catch(e){
+
+   console.debug(e)
+
+  }
+
+ }
+
+ saveProgress(
+  state.activity,
+  {
+   completed:true,
+   game:state.result.game,
+   transfer:state.transfer,
+   at:new Date().toISOString()
+  }
+ );
+
+ renderResult();
+}
+
+function renderResult(){
+
+ const a=
+  ACTIVITIES[state.activity];
+
+ const game=
+  state.result.game;
+
+ const transfer=
+  state.transfer??0;
+
+ const pct=
+  Math.round(
+   (game+transfer)/2
+  );
+
+ const badge=
+  transfer>=100
+  ?'🔬 Transferencia lograda'
+  :game>=80
+   ?'🧠 Buen razonamiento'
+   :'🔄 En proceso';
+
+ document.getElementById('screen').innerHTML=`
+
+ <section class="card summary">
+
+  <div class="kicker">
+   Resultado de aprendizaje
+  </div>
+
+  <div
+   class="scoreRing"
+   style="--pct:${pct}%"
+  >
+   <b>
+    ${pct}%
+   </b>
+  </div>
+
+  <h2>
+   ${esc(a.title)}
+  </h2>
+
+  <p>
+   Predicción inicial:
+   <b>
+    ${
+     state.pre===100
+     ?'✓'
+     :'→ revisar'
+    }
+   </b>
+
+   · Actividad:
+   <b>
+    ${game}%
+   </b>
+
+   · Transferencia:
+   <b>
+    ${transfer}%
+   </b>
+  </p>
+
+  <div class="badge">
+   ${badge}
+  </div>
+
+  <p class="note">
+   Este resultado es formativo.
+   No concede PP ni Og.
+   CENQAL utiliza la información
+   para detectar conceptos que conviene reforzar.
+  </p>
+
+  <button
+   class="btn primary"
+   onclick="openTopic(1)"
+  >
+   Volver a T1
+  </button>
+
+  <button
+   class="btn secondary"
+   onclick="renderTopics()"
+  >
+   Todos los temas
+  </button>
+
+ </section>
+ `;
+}
+
+boot();
+</script>
+</body>
+</html>
