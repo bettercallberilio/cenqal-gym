@@ -202,7 +202,30 @@ async function renderProgress(topic){
  document.getElementById('screen').innerHTML=`<section class="card"><span class="pill">TEMA ${topic}</span><h2>📊 Mi progreso</h2><div class="stats"><div class="stat"><b>${mastered}</b><span>🟢 Dominadas</span></div><div class="stat"><b>${learning}</b><span>🟡 Aprendiendo</span></div><div class="stat"><b>${wrong}</b><span>🔴 Falladas</span></div></div><div class="masteryline">Sin practicar: ${unseen}/40</div><div class="progress"><div style="width:${Math.round(mastered/40*100)}%"></div></div><p class="muted" style="line-height:1.45">Dominio: ${Math.round(mastered/40*100)}%. No hay límite de intentos. El progreso se conserva para que puedas retomar el entrenamiento más adelante.</p><div class="actions"><button class="action" onclick="startTraining(${topic},'unmastered')">🎯 Entrenar lo que no domino</button><button class="action secondary" onclick="openTopic(${topic})">← Volver</button></div></section>`;
 }
 window.openTopic=openTopic;window.renderTopics=renderTopics;window.startTraining=startTraining;window.resumeSession=resumeSession;window.answer=answer;window.nextQuestion=nextQuestion;window.pauseTraining=pauseTraining;window.renderProgress=renderProgress;
-renderTopics();
+if (
+  GYM_PARAMS.get('preview') === '1' ||
+  (GYM_PARAMS.get('gt') || '').trim()
+) {
+  renderTopics();
+} else {
+  document.getElementById('screen').innerHTML = `
+    <section class="card hero">
+      <h2>🔐 Acceso identificado necesario</h2>
+      <p>
+        Para que tu entrenamiento quede vinculado a tu perfil y forme parte
+        de CENQAL Learning Analytics, abre el Gimnasio desde tu chat privado
+        con Mr. Berilio.
+      </p>
+    </section>
+
+    <section class="card">
+      <b>No necesitas volver a registrarte si ya vinculaste tu código CENQAL.</b>
+      <p class="muted" style="line-height:1.45;margin-bottom:0">
+        Vuelve a Berilio, abre el menú y pulsa 🏋️ Gimnasio.
+      </p>
+    </section>
+  `;
+}
 </script>
 <script src="./gym-telemetry-v72.js?v=72"></script>
 </body></html>
