@@ -67,6 +67,9 @@ const tg=window.Telegram?.WebApp;
 if(tg){try{tg.ready();tg.expand();tg.setHeaderColor('secondary_bg_color');}catch(e){}}
 
 const EXAM_SIZE=20;
+const EXAM_TOPIC=1;
+const EXAM_BANK=QUESTIONS.filter(q => Number(q.topic) === EXAM_TOPIC);
+const STORE_KEY='cenqal_exam_t1_v2';
 const STORE_KEY='cenqal_exam_v1';
 const letters=['A','B','C','D'];
 let state=null;
@@ -80,7 +83,7 @@ function clearSaved(){localStorage.removeItem(STORE_KEY)}
 function loadSaved(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'null')}catch(e){return null}}
 
 function buildExam(){
-  const picked=shuffle(QUESTIONS).slice(0,EXAM_SIZE).map(q=>({
+  const picked=shuffle(EXAM_BANK).slice(0,EXAM_SIZE).map(q=>({
     id:q.id,
     topic:q.topic,
     concept:q.concept,
