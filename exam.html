@@ -2,12 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1, viewport-fit=cover"
->
-
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>CENQAL Exam</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -15,471 +10,200 @@
 <style>
 :root{
   --bg:#f3f6f9;
-  --card:#ffffff;
+  --card:#fff;
   --ink:#17324d;
-  --muted:#6a7e91;
-  --line:#d9e2ea;
-  --primary:#1d6fa5;
-  --primary2:#15567f;
+  --muted:#687d90;
+  --line:#d9e3ea;
+  --blue:#1d6fa5;
   --green:#198754;
-  --red:#c33b3b;
-  --amber:#b7791f;
-  --soft:#edf4f8;
-  --shadow:0 8px 24px rgba(20,45,70,.08);
+  --red:#b83232;
+  --amber:#9a6b13
 }
-
-*{
-  box-sizing:border-box;
-}
-
-html,body{
+*{box-sizing:border-box}
+body{
   margin:0;
-  padding:0;
   background:var(--bg);
   color:var(--ink);
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family:Arial,system-ui,sans-serif
 }
-
-body{
-  min-height:100vh;
-}
-
 .app{
-  width:min(760px,100%);
+  max-width:720px;
   margin:auto;
-  padding:
-    max(16px,env(safe-area-inset-top))
-    14px
-    max(28px,env(safe-area-inset-bottom));
+  padding:16px 12px 30px
 }
-
 .brand{
   display:flex;
   align-items:center;
-  gap:12px;
-  margin-bottom:16px;
+  gap:10px;
+  margin-bottom:14px
 }
-
 .logo{
-  width:46px;
-  height:46px;
-  border-radius:14px;
-  background:
-    linear-gradient(
-      135deg,
-      #133f60,
-      #277bb1
-    );
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:white;
-  font-size:24px;
-  box-shadow:var(--shadow);
+  width:44px;
+  height:44px;
+  border-radius:13px;
+  background:var(--blue);
+  color:#fff;
+  display:grid;
+  place-items:center;
+  font-size:24px
 }
-
-.brand h1{
-  margin:0;
-  font-size:21px;
-}
-
-.brand small{
-  color:var(--muted);
-}
-
+.brand h1{margin:0;font-size:20px}
+.brand small{color:var(--muted)}
 .card{
   background:var(--card);
   border:1px solid var(--line);
-  border-radius:18px;
-  padding:18px;
-  margin-bottom:14px;
-  box-shadow:var(--shadow);
+  border-radius:16px;
+  padding:17px;
+  margin-bottom:13px;
+  box-shadow:0 6px 20px #17324d12
 }
-
-.hero{
-  text-align:center;
-  padding:24px 18px;
-}
-
-.hero h2{
-  margin:8px 0;
-  font-size:26px;
-}
-
-.hero p{
-  color:var(--muted);
-  line-height:1.5;
-}
-
+.hero{text-align:center}
 .pill{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:7px 11px;
-  background:#e9f3fa;
-  color:#15567f;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.04em;
-}
-
-.statusPill{
-  display:inline-flex;
-  align-items:center;
+  display:inline-block;
   padding:6px 10px;
   border-radius:999px;
+  background:#e8f3f9;
+  color:#15567f;
   font-size:12px;
-  font-weight:800;
+  font-weight:700
 }
-
-.statusPill.good{
-  background:#e7f7ef;
-  color:#16754a;
-}
-
-.statusPill.warn{
-  background:#fff4d9;
-  color:#8d6512;
-}
-
-.statusPill.bad{
-  background:#fdeaea;
-  color:#a42d2d;
-}
-
+h2{margin:10px 0}
+.muted{color:var(--muted)}
 .action{
-  appearance:none;
-  border:0;
-  border-radius:13px;
-  padding:14px 16px;
   width:100%;
+  border:0;
+  border-radius:12px;
+  padding:14px;
   margin-top:10px;
-  font-size:15px;
-  font-weight:800;
-  cursor:pointer;
+  background:var(--blue);
   color:#fff;
-  background:var(--primary);
-  transition:.15s ease;
+  font-weight:700;
+  font-size:15px
 }
-
-.action:active{
-  transform:scale(.99);
-}
-
-.action:disabled{
-  opacity:.55;
-  cursor:not-allowed;
-}
-
 .action.secondary{
   background:#edf3f7;
   color:var(--ink);
-  border:1px solid var(--line);
+  border:1px solid var(--line)
 }
-
-.action.good{
-  background:var(--green);
-}
-
-.action.bad{
-  background:var(--red);
-}
-
-.questionHead{
+.action:disabled{opacity:.55}
+.head{
   display:flex;
+  justify-content:space-between;
   align-items:flex-start;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:14px;
+  gap:10px
 }
-
-.questionHead h2{
-  margin:0;
-  font-size:18px;
-}
-
 .timer{
-  flex:0 0 auto;
-  font-variant-numeric:tabular-nums;
-  padding:7px 10px;
-  border-radius:10px;
+  padding:7px 9px;
+  border-radius:9px;
   background:#edf3f7;
-  font-weight:900;
+  font-weight:800;
+  font-variant-numeric:tabular-nums
 }
-
-.timer.warning{
-  background:#fff4d9;
-  color:#956812;
-}
-
-.timer.danger{
-  background:#fdeaea;
-  color:#aa2e2e;
-}
-
-.progressrow{
+.timer.warn{background:#fff1d2;color:var(--amber)}
+.timer.bad{background:#fde7e7;color:var(--red)}
+.progressText{
   display:flex;
   justify-content:space-between;
-  gap:10px;
   color:var(--muted);
   font-size:13px;
-  margin-bottom:6px;
+  margin:15px 0 5px
 }
-
 .progress{
-  height:9px;
-  background:#e8eef3;
+  height:8px;
+  background:#e6edf2;
   border-radius:999px;
   overflow:hidden;
-  margin-bottom:20px;
+  margin-bottom:18px
 }
-
-.progress > div{
+.progress i{
+  display:block;
   height:100%;
-  background:var(--primary);
-  transition:width .25s ease;
+  background:var(--blue)
 }
-
 .question{
-  font-size:19px;
-  line-height:1.48;
-  font-weight:750;
-  margin:8px 0 20px;
+  font-size:18px;
+  line-height:1.45;
+  font-weight:700;
+  margin-bottom:17px
 }
-
-.difficulty{
-  color:var(--muted);
-  font-size:12px;
-  margin-top:-10px;
-  margin-bottom:15px;
-}
-
-.answers{
-  display:grid;
-  gap:10px;
-}
-
+.answers{display:grid;gap:9px}
 .answer{
-  appearance:none;
-  display:flex;
-  text-align:left;
   width:100%;
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:#fff;
-  padding:14px;
-  gap:12px;
-  align-items:flex-start;
-  color:var(--ink);
-  font-size:15px;
-  line-height:1.4;
-  cursor:pointer;
-}
-
-.answer:hover{
-  background:#f7fafc;
-}
-
-.answer:disabled{
-  opacity:.6;
-  cursor:wait;
-}
-
-.letter{
-  width:30px;
-  min-width:30px;
-  height:30px;
-  border-radius:9px;
   display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#eaf3f9;
-  color:#15567f;
-  font-weight:900;
+  gap:10px;
+  align-items:flex-start;
+  text-align:left;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:13px;
+  background:#fff;
+  color:var(--ink);
+  font-size:15px
 }
-
+.answer b{
+  min-width:28px;
+  height:28px;
+  border-radius:8px;
+  display:grid;
+  place-items:center;
+  background:#e8f3f9;
+  color:#15567f
+}
 .note{
-  border-radius:13px;
-  padding:13px 14px;
-  font-size:13px;
-  line-height:1.5;
+  margin-top:13px;
+  padding:12px;
+  border-radius:11px;
   background:#edf4f8;
-  color:#4c667c;
+  color:#526c80;
+  font-size:13px;
+  line-height:1.45
 }
-
-.note.warn{
-  background:#fff5dd;
-  color:#775714;
-}
-
-.note.danger{
-  background:#fdeaea;
-  color:#992d2d;
-}
-
-.note.good{
-  background:#e8f7ef;
-  color:#17633f;
-}
-
-.loaderWrap{
-  text-align:center;
-  padding:36px 18px;
-}
-
-.loader{
-  width:34px;
-  height:34px;
-  margin:0 auto 14px;
-  border-radius:50%;
-  border:4px solid #dbe5ec;
-  border-top-color:var(--primary);
-  animation:spin .8s linear infinite;
-}
-
-@keyframes spin{
-  to{transform:rotate(360deg)}
-}
-
+.note.good{background:#e7f7ee;color:#17643f}
+.note.warn{background:#fff3da;color:#775713}
+.note.bad{background:#fde8e8;color:#902b2b}
 .grade{
-  font-size:52px;
-  line-height:1;
-  font-weight:950;
-  color:var(--primary);
-  margin:15px 0 8px;
+  margin:15px 0;
+  font-size:48px;
+  font-weight:900;
+  color:var(--blue)
 }
-
-.bigIcon{
-  font-size:50px;
-}
-
 .stats{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:9px;
-  margin:18px 0;
+  gap:7px;
+  margin:15px 0
 }
-
 .stat{
+  padding:10px 5px;
   background:#f5f8fa;
   border:1px solid var(--line);
-  border-radius:13px;
-  padding:12px 8px;
-  text-align:center;
+  border-radius:11px;
+  text-align:center
 }
-
-.stat b{
-  display:block;
-  font-size:18px;
-}
-
-.stat span{
-  display:block;
-  color:var(--muted);
-  font-size:11px;
-  margin-top:3px;
-}
-
-.field{
-  margin:12px 0;
-}
-
+.stat b{display:block;font-size:18px}
+.stat small{color:var(--muted)}
+.field{margin:12px 0}
 .field label{
   display:block;
+  font-weight:700;
   font-size:12px;
-  font-weight:800;
-  margin-bottom:5px;
+  margin-bottom:5px
 }
-
 .field input{
   width:100%;
+  padding:12px;
   border:1px solid var(--line);
-  border-radius:11px;
-  padding:12px 13px;
-  font-size:15px;
-  color:var(--ink);
-  background:#fff;
+  border-radius:10px;
+  font-size:15px
 }
-
-.reviewItem{
-  border-top:1px solid var(--line);
-  padding:16px 0;
+.loader{text-align:center;padding:30px}
+.review{
+  padding:14px 0;
+  border-top:1px solid var(--line)
 }
-
-.reviewItem:first-child{
-  border-top:0;
-}
-
-.reviewItem h3{
-  font-size:15px;
-  margin:0 0 9px;
-}
-
-.reviewItem .good{
-  color:var(--green);
-}
-
-.reviewItem .bad{
-  color:var(--red);
-}
-
-.muted{
-  color:var(--muted);
-}
-
-.connection{
-  position:fixed;
-  right:10px;
-  bottom:
-    max(10px,env(safe-area-inset-bottom));
-  font-size:11px;
-  padding:6px 9px;
-  border-radius:999px;
-  background:#e8f7ef;
-  color:#17633f;
-  box-shadow:0 3px 12px rgba(0,0,0,.09);
-  z-index:20;
-}
-
-.connection.bad{
-  background:#fdeaea;
-  color:#a42d2d;
-}
-
-@media(max-width:480px){
-  .app{
-    padding-left:10px;
-    padding-right:10px;
-  }
-
-  .card{
-    padding:15px;
-    border-radius:15px;
-  }
-
-  .hero h2{
-    font-size:23px;
-  }
-
-  .question{
-    font-size:17px;
-  }
-
-  .grade{
-    font-size:45px;
-  }
-
-  .stats{
-    gap:6px;
-  }
-}
+.review:first-child{border-top:0}
+.goodText{color:var(--green)}
+.badText{color:var(--red)}
 </style>
 </head>
 
@@ -489,579 +213,642 @@ body{
 
   <div class="brand">
     <div class="logo">⚛️</div>
-
     <div>
       <h1>CENQAL Exam</h1>
-      <small>Evaluación identificada y registrada</small>
+      <small>Evaluación identificada</small>
     </div>
   </div>
 
   <main id="screen">
-
-    <div class="card loaderWrap">
-      <div class="loader"></div>
-      Conectando con CENQAL…
-    </div>
-
+    <div class="card loader">Conectando con CENQAL…</div>
   </main>
 
 </div>
 
-<div
-  id="connection"
-  class="connection">
-  ● CENQAL
-</div>
-
-
 <script>
-/* =========================================================
-   CENQAL EXAM · CLIENTE SEGURO SUPABASE
-   v74.0
-========================================================= */
+/* CENQAL EXAM v74.1 */
 
-const tg = window.Telegram?.WebApp;
+const tg=window.Telegram?.WebApp;
 
-if(tg){
-  try{
-    tg.ready();
-    tg.expand();
-    tg.setHeaderColor('secondary_bg_color');
-  }catch(e){}
-}
-
-
-/* =========================================================
-   PARÁMETROS
-========================================================= */
-
-const PARAMS = new URLSearchParams(
-  window.location.search
-);
-
-const SBURL =
-  (PARAMS.get('sburl') || '')
-    .trim()
-    .replace(/\/+$/,'');
-
-const SBKEY =
-  (PARAMS.get('sbkey') || '')
-    .trim();
-
-let TOKEN =
-  (PARAMS.get('token') || '')
-    .trim();
-
-const EXAM_CODE_PARAM =
-  (PARAMS.get('exam') || '')
-    .trim();
-
-
-/*
-  Una vez leídos los parámetros eliminamos la URL visible,
-  pero TOKEN, SBURL y SBKEY permanecen en memoria.
-*/
 try{
-  history.replaceState(
-    null,
-    '',
-    location.pathname
-  );
+  tg?.ready();
+  tg?.expand();
 }catch(e){}
 
+const P=new URLSearchParams(location.search);
 
-/* =========================================================
-   ESTADO LOCAL DE INTERFAZ
-========================================================= */
+const SBURL=(P.get('sburl')||'').replace(/\/+$/,'');
+const SBKEY=P.get('sbkey')||'';
+let TOKEN=P.get('token')||'';
+const EXAMCODE=P.get('exam')||'';
 
-let CURRENT_STATE = null;
+try{
+  history.replaceState(null,'',location.pathname);
+}catch(e){}
 
-let TIMER_HANDLE = null;
+let timer=null;
+let remaining=0;
+let busy=false;
 
-let REMAINING_SECONDS = 0;
+const esc=v=>String(v??'').replace(
+  /[&<>"']/g,
+  c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c])
+);
 
-let ANSWER_BUSY = false;
+const screen=()=>document.getElementById('screen');
 
-let STATE_BUSY = false;
-
-let VISIBILITY_REFRESH_BUSY = false;
-
-
-/* =========================================================
-   UTILIDADES
-========================================================= */
-
-function esc(value){
-
-  return String(value ?? '')
-    .replace(
-      /[&<>"']/g,
-      c => ({
-        '&':'&amp;',
-        '<':'&lt;',
-        '>':'&gt;',
-        '"':'&quot;',
-        "'":'&#39;'
-      }[c])
-    );
+function vibrate(type='light'){
+  try{
+    tg?.HapticFeedback?.impactOccurred(type);
+  }catch(e){}
 }
-
-
-function setConnection(ok,text){
-
-  const el =
-    document.getElementById('connection');
-
-  if(!el)return;
-
-  el.className =
-    'connection' +
-    (ok ? '' : ' bad');
-
-  el.textContent =
-    ok
-      ? `● ${text || 'CENQAL conectado'}`
-      : `● ${text || 'Sin conexión'}`;
-}
-
 
 function notify(type){
-
   try{
-    tg?.HapticFeedback
-      ?.notificationOccurred(type);
+    tg?.HapticFeedback?.notificationOccurred(type);
   }catch(e){}
 }
 
-
-function haptic(){
-
-  try{
-    tg?.HapticFeedback
-      ?.impactOccurred('light');
-  }catch(e){}
-}
-
-
-function mmss(seconds){
-
-  const n =
-    Math.max(
-      0,
-      Number(seconds || 0)
-    );
-
-  const m =
-    Math.floor(n / 60);
-
-  const s =
-    Math.floor(n % 60);
-
-  return (
-    String(m).padStart(2,'0') +
-    ':' +
-    String(s).padStart(2,'0')
-  );
-}
-
-
-function reasonText(reason){
-
-  const map = {
-
-    invalid_token:
-      'El enlace de acceso no es válido o ha caducado.',
-
-    invalid_choice:
-      'La respuesta seleccionada no es válida.',
-
-    exam_not_found:
-      'No se encuentra esta convocatoria.',
-
-    bad_pin:
-      'El PIN de emergencia no es correcto.',
-
-    student_not_found:
-      'No se encuentra un alumno activo con ese código.',
-
-    closed:
-      'El examen ya no está abierto.',
-
-    question_not_found:
-      'No se ha podido recuperar la siguiente pregunta.',
-
-    review_not_released:
-      'La profesora todavía no ha liberado la revisión.'
-
+function reason(r){
+  const m={
+    invalid_token:'El enlace no es válido o ha caducado.',
+    invalid_choice:'Respuesta no válida.',
+    exam_not_found:'No se encuentra el examen.',
+    bad_pin:'PIN incorrecto.',
+    student_not_found:'No se encuentra ese alumno.',
+    closed:'El examen está cerrado.',
+    question_not_found:'No se encuentra la pregunta.',
+    review_not_released:'La revisión todavía no está disponible.'
   };
-
-  return (
-    map[reason] ||
-    reason ||
-    'Se ha producido un error.'
-  );
+  return m[r]||r||'Error desconocido.';
 }
-
-
-/* =========================================================
-   RPC
-========================================================= */
 
 async function rpc(name,body={}){
-
-  if(!SBURL || !SBKEY){
-
-    throw new Error(
-      'Falta la configuración pública de Supabase.'
-    );
+  if(!SBURL||!SBKEY){
+    throw new Error('Falta la configuración de Supabase.');
   }
 
-  let response;
+  let r;
 
   try{
-
-    response =
-      await fetch(
-        `${SBURL}/rest/v1/rpc/${name}`,
-        {
-          method:'POST',
-
-          headers:{
-            'apikey':SBKEY,
-            'Authorization':
-              `Bearer ${SBKEY}`,
-            'Content-Type':
-              'application/json'
-          },
-
-          body:
-            JSON.stringify(body)
-        }
-      );
-
+    r=await fetch(
+      `${SBURL}/rest/v1/rpc/${name}`,
+      {
+        method:'POST',
+        headers:{
+          apikey:SBKEY,
+          Authorization:`Bearer ${SBKEY}`,
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify(body)
+      }
+    );
   }catch(e){
-
-    setConnection(
-      false,
-      'Sin conexión'
-    );
-
-    throw new Error(
-      'No se puede conectar con CENQAL. Comprueba la conexión a Internet.'
-    );
+    throw new Error('No hay conexión con CENQAL.');
   }
 
+  const txt=await r.text();
 
-  const text =
-    await response.text();
-
-  let data = null;
+  let d;
 
   try{
-
-    data =
-      text
-        ? JSON.parse(text)
-        : null;
-
+    d=txt?JSON.parse(txt):null;
   }catch(e){
-
-    data = text;
+    d=txt;
   }
 
-
-  if(!response.ok){
-
-    setConnection(
-      false,
-      `Error ${response.status}`
-    );
-
+  if(!r.ok){
     throw new Error(
-      data?.message ||
-      data?.error ||
-      String(data || '') ||
-      `HTTP ${response.status}`
+      d?.message||
+      d?.error||
+      `HTTP ${r.status}`
     );
   }
 
-
-  setConnection(
-    true,
-    'CENQAL conectado'
-  );
-
-  return data;
+  return d;
 }
 
-
-/* =========================================================
-   TEMPORIZADOR
-========================================================= */
+function loading(t='Consultando CENQAL…'){
+  screen().innerHTML=
+    `<div class="card loader">${esc(t)}</div>`;
+}
 
 function stopTimer(){
-
-  if(TIMER_HANDLE){
-
-    clearInterval(
-      TIMER_HANDLE
-    );
-
-    TIMER_HANDLE = null;
+  if(timer){
+    clearInterval(timer);
+    timer=null;
   }
 }
 
-
-function updateTimerVisual(){
-
-  const el =
-    document.getElementById('timer');
-
+function clock(){
+  const el=document.getElementById('timer');
   if(!el)return;
 
-  el.textContent =
-    mmss(REMAINING_SECONDS);
+  const m=Math.floor(remaining/60);
+  const s=remaining%60;
 
-  el.className =
-    'timer' +
-    (
-      REMAINING_SECONDS <= 60
-        ? ' danger'
-        : REMAINING_SECONDS <= 300
-          ? ' warning'
-          : ''
-    );
+  el.textContent=
+    `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  el.className=
+    'timer'+
+    (remaining<=60?' bad':remaining<=300?' warn':'');
 }
 
-
-function startTimer(seconds){
-
+function startTimer(sec){
   stopTimer();
 
-  REMAINING_SECONDS =
-    Math.max(
-      0,
-      Number(seconds || 0)
-    );
+  remaining=Math.max(0,Number(sec||0));
+  clock();
 
-  updateTimerVisual();
+  timer=setInterval(()=>{
+    remaining=Math.max(0,remaining-1);
+    clock();
 
-  TIMER_HANDLE =
-    setInterval(
-      async()=>{
-
-        REMAINING_SECONDS--;
-
-        updateTimerVisual();
-
-        if(
-          REMAINING_SECONDS <= 0
-        ){
-
-          stopTimer();
-
-          await loadState(true);
-        }
-
-      },
-      1000
-    );
+    if(remaining===0){
+      stopTimer();
+      loadState();
+    }
+  },1000);
 }
 
+function errorView(msg,fallback=true){
+  stopTimer();
 
-/* =========================================================
-   RENDER BASE
-========================================================= */
+  screen().innerHTML=`
+    <section class="card hero">
+      <div style="font-size:44px">⚠️</div>
+      <h2>No se ha podido continuar</h2>
+      <p class="muted">${esc(msg)}</p>
 
-function loading(text='Consultando CENQAL…'){
+      <button class="action secondary" onclick="loadState()">
+        ↻ Reintentar
+      </button>
 
-  document.getElementById('screen')
-    .innerHTML = `
+      ${
+        fallback
+        ? `<button class="action" onclick="fallbackView()">
+             🔑 Acceso de emergencia
+           </button>`
+        : ''
+      }
+    </section>
+  `;
+}
 
-      <div class="card loaderWrap">
+function fallbackView(){
+  stopTimer();
 
-        <div class="loader"></div>
+  screen().innerHTML=`
+    <section class="card">
 
-        ${esc(text)}
+      <span class="pill">ACCESO DE EMERGENCIA</span>
 
+      <h2>Entrar al examen</h2>
+
+      <p class="muted">
+        Utiliza esta vía solo si no puedes acceder desde Mr. Berilio.
+      </p>
+
+      <div class="field">
+        <label>Código del examen</label>
+        <input id="fExam" value="${esc(EXAMCODE)}">
       </div>
-    `;
+
+      <div class="field">
+        <label>Código CENQAL del alumno</label>
+        <input id="fStudent" placeholder="QAL26-XXXX">
+      </div>
+
+      <div class="field">
+        <label>PIN de emergencia</label>
+        <input id="fPin" type="password">
+      </div>
+
+      <div id="fMsg" class="note warn" style="display:none"></div>
+
+      <button id="fBtn" class="action" onclick="fallbackLogin()">
+        Entrar
+      </button>
+
+    </section>
+  `;
 }
-
-
-function renderError(
-  message,
-  allowFallback=true
-){
-
-  stopTimer();
-
-  document.getElementById('screen')
-    .innerHTML = `
-
-      <section class="card hero">
-
-        <div class="bigIcon">
-          ⚠️
-        </div>
-
-        <h2>
-          No se ha podido continuar
-        </h2>
-
-        <p>
-          ${esc(message)}
-        </p>
-
-        <button
-          class="action secondary"
-          onclick="loadState(true)">
-          ↻ Reintentar
-        </button>
-
-        ${
-          allowFallback
-            ? `
-              <button
-                class="action"
-                onclick="renderFallback()">
-                🔑 Acceso de emergencia
-              </button>
-            `
-            : ''
-        }
-
-      </section>
-    `;
-}
-
-
-/* =========================================================
-   LOGIN DE EMERGENCIA
-========================================================= */
-
-function renderFallback(){
-
-  stopTimer();
-
-  document.getElementById('screen')
-    .innerHTML = `
-
-      <section class="card">
-
-        <span class="pill">
-          ACCESO DE EMERGENCIA
-        </span>
-
-        <h2>
-          Entrar con código CENQAL
-        </h2>
-
-        <p class="muted">
-          Utiliza esta opción solo si no puedes
-          abrir el examen desde Mr. Berilio.
-        </p>
-
-
-        <div class="field">
-
-          <label>
-            Código del examen
-          </label>
-
-          <input
-            id="fallbackExam"
-            autocomplete="off"
-            value="${esc(EXAM_CODE_PARAM)}"
-            placeholder="Código de convocatoria">
-
-        </div>
-
-
-        <div class="field">
-
-          <label>
-            Tu código CENQAL
-          </label>
-
-          <input
-            id="fallbackStudent"
-            autocomplete="off"
-            placeholder="Ej.: QAL26-XXXX">
-
-        </div>
-
-
-        <div class="field">
-
-          <label>
-            PIN de emergencia
-          </label>
-
-          <input
-            id="fallbackPin"
-            type="password"
-            inputmode="numeric"
-            autocomplete="off"
-            placeholder="PIN">
-
-        </div>
-
-
-        <div
-          id="fallbackMessage"
-          class="note warn"
-          style="display:none">
-        </div>
-
-
-        <button
-          id="fallbackButton"
-          class="action"
-          onclick="fallbackLogin()">
-          Entrar al examen
-        </button>
-
-      </section>
-    `;
-}
-
 
 async function fallbackLogin(){
+  const exam=document.getElementById('fExam').value.trim();
+  const student=document.getElementById('fStudent').value.trim();
+  const pin=document.getElementById('fPin').value.trim();
+  const msg=document.getElementById('fMsg');
+  const btn=document.getElementById('fBtn');
 
-  const examCode =
-    document
-      .getElementById('fallbackExam')
-      ?.value
-      ?.trim();
+  if(!exam||!student||!pin){
+    msg.style.display='block';
+    msg.textContent='Completa todos los campos.';
+    return;
+  }
 
-  const studentCode =
-    document
-      .getElementById('fallbackStudent')
-      ?.value
-      ?.trim();
+  btn.disabled=true;
 
-  const pin =
-    document
-      .getElementById('fallbackPin')
-      ?.value
-      ?.trim();
-
-  const msg =
-    document.getElementById(
-      'fallbackMessage'
+  try{
+    const d=await rpc(
+      'cenqal_exam_fallback_login',
+      {
+        p_exam_code:exam,
+        p_student_code:student,
+        p_pin:pin
+      }
     );
 
-  const btn =
-    document.getElementById(
-      'fallbackButton'
+    if(!d?.ok){
+      throw new Error(reason(d?.reason));
+    }
+
+    TOKEN=d.token||'';
+
+    if(!TOKEN){
+      throw new Error('No se ha recibido el token.');
+    }
+
+    await loadState();
+
+  }catch(e){
+    msg.style.display='block';
+    msg.textContent=e.message||String(e);
+    btn.disabled=false;
+  }
+}
+
+async function loadState(){
+  if(!TOKEN){
+    fallbackView();
+    return;
+  }
+
+  loading();
+
+  try{
+    const d=await rpc(
+      'cenqal_exam_state',
+      {p_token:TOKEN}
     );
 
+    if(!d?.ok){
+      throw new Error(reason(d?.reason));
+    }
 
-  if(
-    !examCode ||
-    !studentCode ||
-    !pin
-  ){
+    renderState(d);
 
-    msg.style.display='
+  }catch(e){
+    errorView(e.message||String(e));
+  }
+}
+
+function renderState(d){
+  stopTimer();
+
+  if(d.state==='in_progress'){
+    questionView(d);
+    return;
+  }
+
+  if(d.state==='completed'){
+    completedView(d);
+    return;
+  }
+
+  if(d.state==='locked'){
+    screen().innerHTML=`
+      <section class="card hero">
+        <div style="font-size:44px">🔒</div>
+        <h2>Examen todavía cerrado</h2>
+        <p class="muted">${esc(d.message||'La profesora todavía no lo ha abierto.')}</p>
+        <button class="action" onclick="loadState()">↻ Comprobar</button>
+      </section>`;
+    return;
+  }
+
+  if(d.state==='expired'){
+    screen().innerHTML=`
+      <section class="card hero">
+        <div style="font-size:44px">⌛</div>
+        <h2>Acceso expirado</h2>
+        <p class="muted">${esc(d.title||'')}</p>
+      </section>`;
+    return;
+  }
+
+  if(d.state==='closed'){
+    screen().innerHTML=`
+      <section class="card hero">
+        <div style="font-size:44px">🔒</div>
+        <h2>Convocatoria cerrada</h2>
+        <p class="muted">${esc(d.title||'')}</p>
+      </section>`;
+    return;
+  }
+
+  errorView('Estado de examen no reconocido.');
+}
+
+function questionView(d){
+  const pos=Number(d.position||1);
+  const total=Number(d.question_count||20);
+  const pct=Math.round(((pos-1)/total)*100);
+  const q=d.question||{};
+  const opts=Array.isArray(q.options)?q.options:[];
+
+  screen().innerHTML=`
+    <section class="card">
+
+      <div class="head">
+        <div>
+          <span class="pill">${esc(d.exam_code||'CENQAL EXAM')}</span>
+          <h2>${esc(d.title||'Examen')}</h2>
+        </div>
+
+        <div id="timer" class="timer">--:--</div>
+      </div>
+
+      <div class="progressText">
+        <span>Pregunta ${pos}/${total}</span>
+        <span>${pct}%</span>
+      </div>
+
+      <div class="progress">
+        <i style="width:${pct}%"></i>
+      </div>
+
+      <div class="question">
+        ${esc(q.text||'')}
+      </div>
+
+      <div class="answers">
+
+        ${opts.map((o,i)=>`
+          <button
+            class="answer"
+            onclick="answer(${Number(o.index??i)})">
+
+            <b>${String.fromCharCode(65+i)}</b>
+
+            <span>${esc(o.text||'')}</span>
+          </button>
+        `).join('')}
+
+      </div>
+
+      <div class="note warn">
+        Cada respuesta se guarda inmediatamente en CENQAL.
+        Una vez registrada no puede modificarse.
+      </div>
+
+    </section>
+  `;
+
+  startTimer(d.remaining_seconds);
+}
+
+async function answer(index){
+  if(busy)return;
+
+  busy=true;
+  vibrate();
+
+  document.querySelectorAll('.answer')
+    .forEach(b=>b.disabled=true);
+
+  try{
+    const d=await rpc(
+      'cenqal_exam_answer',
+      {
+        p_token:TOKEN,
+        p_choice_index:Number(index)
+      }
+    );
+
+    if(!d?.ok){
+      throw new Error(reason(d?.reason));
+    }
+
+    renderState(d);
+
+  }catch(e){
+    notify('error');
+
+    errorView(
+      'La respuesta NO ha sido confirmada por CENQAL. '+
+      'No se considera registrada. '+
+      (e.message||String(e)),
+      false
+    );
+
+  }finally{
+    busy=false;
+  }
+}
+
+function completedView(d){
+  stopTimer();
+
+  const score=
+    d.score_out_of_10==null
+    ? null
+    : Number(d.score_out_of_10);
+
+  const passed=
+    score!=null && score>=5;
+
+  notify(passed?'success':'warning');
+
+  screen().innerHTML=`
+    <section class="card hero">
+
+      <div style="font-size:48px">
+        ${passed?'✅':'📚'}
+      </div>
+
+      <span class="pill">
+        ENTREGA REGISTRADA
+      </span>
+
+      <h2>Examen finalizado</h2>
+
+      <div class="grade">
+        ${score==null?'—':score.toFixed(2).replace('.',',')}
+        <span style="font-size:18px">/10</span>
+      </div>
+
+      <div class="stats">
+
+        <div class="stat">
+          <b>${Number(d.correct_count||0)}/${Number(d.question_count||20)}</b>
+          <small>Aciertos</small>
+        </div>
+
+        <div class="stat">
+          <b>${esc(d.topic_number??'—')}</b>
+          <small>Tema</small>
+        </div>
+
+        <div class="stat">
+          <b>${d.review_available?'Sí':'No'}</b>
+          <small>Revisión</small>
+        </div>
+
+      </div>
+
+      <div class="note good">
+        ✓ El intento y la nota están registrados en CENQAL.
+      </div>
+
+      ${
+        d.reason==='time_expired'
+        ? `<div class="note warn">⏱️ El examen se cerró automáticamente al agotarse el tiempo.</div>`
+        : ''
+      }
+
+      ${
+        d.review_available
+        ? `<button class="action" onclick="review()">📖 Ver corrección</button>`
+        : `<div class="note">La corrección detallada aparecerá cuando la profesora libere la revisión.</div>`
+      }
+
+      <button class="action secondary" onclick="loadState()">
+        ↻ Comprobar estado
+      </button>
+
+    </section>
+  `;
+}
+
+async function review(){
+  loading('Cargando corrección…');
+
+  try{
+    const d=await rpc(
+      'cenqal_exam_review',
+      {p_token:TOKEN}
+    );
+
+    if(!d?.ok){
+      throw new Error(reason(d?.reason));
+    }
+
+    reviewView(d);
+
+  }catch(e){
+    errorView(e.message||String(e),false);
+  }
+}
+
+function reviewView(d){
+  const arr=Array.isArray(d.answers)?d.answers:[];
+
+  screen().innerHTML=`
+    <section class="card">
+
+      <span class="pill">REVISIÓN</span>
+
+      <h2>Corrección del examen</h2>
+
+      <div class="stats">
+
+        <div class="stat">
+          <b>${d.score_out_of_10??'—'}</b>
+          <small>Nota /10</small>
+        </div>
+
+        <div class="stat">
+          <b>${d.correct_count??0}</b>
+          <small>Aciertos</small>
+        </div>
+
+        <div class="stat">
+          <b>${d.question_count??0}</b>
+          <small>Preguntas</small>
+        </div>
+
+      </div>
+
+      ${arr.map(a=>`
+        <div class="review">
+
+          <h3 class="${a.is_correct?'goodText':'badText'}">
+            ${a.is_correct?'✅':'❌'}
+            Pregunta ${esc(a.position)}
+          </h3>
+
+          <b>${esc(a.question)}</b>
+
+          <p>
+            <b>Tu respuesta:</b>
+            ${esc(a.selected_text||'—')}
+          </p>
+
+          ${
+            !a.is_correct
+            ? `<p class="goodText">
+                 <b>Correcta:</b>
+                 ${esc(a.correct_text||'—')}
+               </p>`
+            : ''
+          }
+
+          ${
+            a.explanation
+            ? `<div class="note">${esc(a.explanation)}</div>`
+            : ''
+          }
+
+        </div>
+      `).join('')}
+
+      <button class="action secondary" onclick="loadState()">
+        ← Volver
+      </button>
+
+    </section>
+  `;
+}
+
+document.addEventListener(
+  'visibilitychange',
+  ()=>{
+    if(
+      document.visibilityState==='visible' &&
+      TOKEN
+    ){
+      loadState();
+    }
+  }
+);
+
+async function boot(){
+  if(!SBURL||!SBKEY){
+    errorView(
+      'Abre el examen desde Mr. Berilio.',
+      false
+    );
+    return;
+  }
+
+  if(!TOKEN){
+    fallbackView();
+    return;
+  }
+
+  await loadState();
+}
+
+boot();
+</script>
+
+</body>
+</html>
