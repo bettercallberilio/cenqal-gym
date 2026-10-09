@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#11110f">
-<title>CENQAL Atlas · v57.2</title>
+<title>CENQAL Atlas · v57.3</title>
+<meta name="CENQAL_ATLAS_BUILD" content="v57.3-DELIVERY-FOCUS">
 <style>
 :root{
  --ink:#11110f;--paper:#f3efe6;--card:#fffdf8;--muted:#777268;--line:#d9d1c3;
@@ -67,6 +68,18 @@ textarea{min-height:105px;resize:vertical;line-height:1.45}.short{min-height:72p
 .publishState.good{border-color:var(--good)}
 .publishState strong{display:block;margin-bottom:4px}
 .resourceId{font-size:10px;color:var(--muted);word-break:break-all}
+
+.currentDelivery{border:2px solid var(--ink);background:#fffdf8;padding:18px;margin:14px 0 18px;box-shadow:0 7px 20px rgba(0,0,0,.05)}
+.currentDelivery .deliveryTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.currentDelivery .deliveryNo{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--accent)}
+.currentDelivery h2{font-family:Georgia,serif;font-weight:500;font-size:29px;line-height:1.05;margin:7px 0 5px}
+.currentDelivery .deliveryState{display:inline-block;border:1px solid var(--line);padding:5px 8px;font-size:10px;background:var(--paper)}
+.currentDelivery .question{padding:10px 0 12px}
+.currentDelivery .deliveryChecks{border-top:1px solid var(--line);margin-top:12px;padding-top:10px;font-size:11px;line-height:1.55;color:var(--muted)}
+.archiveDetails{margin-top:16px}
+.archiveDetails>summary{cursor:pointer;font-weight:800;border:1px solid var(--line);background:var(--card);padding:12px}
+.deliveryHint{border-left:5px solid var(--accent);background:#fff7df}
+.posterWarning{border:1px solid var(--bad);background:#fff2ef;padding:10px;margin:10px 0;color:var(--bad);font-size:12px;line-height:1.4}
 @media(min-width:650px){
  .grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(4,1fr)}
  .reviewActions{grid-template-columns:repeat(3,1fr)}
@@ -169,6 +182,55 @@ function overall(group){
  return Math.round(fs.reduce((a,f)=>a+(entryFor(f.food_code).progress_percent||0),0)/fs.length)
 }
 function openFood(code){CURRENT=code;VIEW='food';render();window.scrollTo({top:0,behavior:'smooth'})}
+
+function foodOrder(f){
+ const n=Number(f?.display_order);
+ if(Number.isFinite(n)&&n>0)return n;
+ const m=String(f?.food_code||'').match(/(\d+)$/);
+ return m?Number(m[1]):999;
+}
+function currentDeliveryForFoods(fs){
+ const ordered=[...(fs||[])].sort((a,b)=>foodOrder(a)-foodOrder(b));
+ if(!ordered.length)return null;
+ const started=ordered.filter(f=>String(entryFor(f.food_code).status||'not_started')!=='not_started');
+ if(!started.length)return ordered[0];
+ const highest=started.reduce((best,f)=>foodOrder(f)>foodOrder(best)?f:best,started[0]);
+ const st=String(entryFor(highest.food_code).status||'not_started');
+ if(['ready_review','reviewed','final'].includes(st)){
+   return ordered.find(f=>foodOrder(f)>foodOrder(highest))||highest;
+ }
+ return highest;
+}
+function ordinalDeliveryEs(n){
+ return ({1:'Primera',2:'Segunda',3:'Tercera',4:'Cuarta',5:'Quinta',6:'Sexta',7:'Séptima',8:'Octava',9:'Novena',10:'Décima',11:'Undécima',12:'Duodécima',13:'Decimotercera'})[Number(n)]||`Entrega ${n}`;
+}
+function isShareablePosterUrl(v){
+ return /^https?:\/\/\S+/i.test(String(v||'').trim());
+}
+function currentDeliveryCard(fs,preview=false){
+ const f=currentDeliveryForFoods(fs);
+ if(!f)return '';
+ const e=entryFor(f.food_code);
+ const n=foodOrder(f);
+ const total=Math.max(0,...(fs||[]).map(foodOrder).filter(Number.isFinite));
+ const openFn=preview?'openPreviewFood':'openFood';
+ return `<section class="currentDelivery">
+   <div class="deliveryTop">
+     <div>
+       <div class="deliveryNo">${esc(ordinalDeliveryEs(n))} entrega · #${esc(n)} de ${esc(total||fs.length)}</div>
+       <h2>${esc(f.name)}</h2>
+       <div class="sub">${esc(f.subtitle||'')}</div>
+     </div>
+     <span class="deliveryState">${esc(statusText(e.status))} · ${esc(e.progress_percent||0)}%</span>
+   </div>
+   <p class="question">${esc(f.research_question)}</p>
+   <div class="chips" style="padding:0 0 12px">${(f.chemistry_focus||[]).slice(0,5).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
+   <button class="action" onclick="${openFn}('${esc(f.food_code)}')">Abrir ${esc(ordinalDeliveryEs(n).toLowerCase())} entrega →</button>
+   <div class="deliveryChecks">
+     Antes de enviar a revisión: ficha suficientemente completa · mínimo 3 fuentes académicas · póster mediante enlace web compartible <b>https://</b>.
+   </div>
+ </section>`;
+}
 function render(){
  if(DATA.role==='teacher')return renderTeacher();
  if(!DATA.group_code){
@@ -184,12 +246,16 @@ function renderStudentHome(){
  const g=(DATA.groups||[])[0]||{};
  const fs=DATA.foods||[], done=fs.filter(f=>['reviewed','final'].includes(entryFor(f.food_code).status)).length, avg=overall(DATA.group_code);
  const open=(DATA.sessions||[]).find(s=>s.status==='open');
+ const current=currentDeliveryForFoods(fs);
  document.getElementById('root').innerHTML=`${nav('home')}
- <div class="hero"><div class="kicker">${esc(g.name||'Gran Atlas')}</div><h2>26 alimentos.<br>Química que transforma.</h2><p>${esc(g.subtitle||'')}</p></div>
- ${open?`<div class="banner session"><strong>⏱️ Sesión abierta · ${esc(foodFor(open.food_code)?.name)}</strong><small>Desde ${fmt(open.started_at)} · ${esc(open.objective)}</small></div>`:''}
+ <div class="hero"><div class="kicker">${esc(g.name||'Gran Atlas')}</div><h2>Gran Atlas CENQAL</h2><p>${esc(g.subtitle||'')}</p></div>
+ ${open?`<div class="banner session"><strong>⏱️ Sesión abierta · ${esc(foodFor(open.food_code)?.name)}</strong><small>Desde ${fmt(open.started_at)} · ${esc(open.objective)}${current&&open.food_code!==current.food_code?'<br>Ciérrala antes de comenzar una nueva sesión.':''}</small></div>`:''}
+ ${currentDeliveryCard(fs,false)}
  <div class="stats"><div class="stat"><b>${fs.length}</b><span>ALIMENTOS</span></div><div class="stat"><b>${done}</b><span>REVISADOS</span></div><div class="stat"><b>${avg}%</b><span>PROGRESO</span></div></div>
- <h2 class="sectionTitle">Archivo de procesados</h2>
- <div class="grid">${fs.map(foodCard).join('')}</div>`;
+ <details class="archiveDetails">
+   <summary>🗂️ Ver archivo completo del equipo (${fs.length} alimentos)</summary>
+   <div class="grid" style="margin-top:10px">${fs.map(foodCard).join('')}</div>
+ </details>`;
 }
 function foodCard(f){
  const e=entryFor(f.food_code);
@@ -206,10 +272,14 @@ function field(id,label,help,short=false){
 function renderFood(){
  const f=foodFor(CURRENT),e=entryFor(CURRENT);if(!f)return go('home');
  const open=(DATA.sessions||[]).find(s=>s.status==='open');
+ const cur=currentDeliveryForFoods(DATA.foods||[]);
+ const isCurrent=cur?.food_code===f.food_code;
+ const posterBad=!!String(e.poster_url||'').trim()&&!isShareablePosterUrl(e.poster_url);
  document.getElementById('root').innerHTML=`${nav('home')}
  <button class="back" onclick="go('home')">← Volver al Atlas</button>
  <div class="hero"><div class="kicker">${esc(f.food_code)} · ${esc(statusText(e.status))} · ${e.progress_percent||0}%</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
  <div class="chips">${(f.chemistry_focus||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
+ ${isCurrent?`<div class="banner deliveryHint"><strong>📌 Entrega en curso · #${foodOrder(f)}</strong><small>Esta es la ficha que el equipo debe trabajar ahora.</small></div>`:cur?`<div class="banner"><strong>ℹ️ Entrega actual: #${foodOrder(cur)} · ${esc(cur.name)}</strong><small>Puedes consultar esta ficha, pero la entrega en curso es la indicada arriba.</small></div>`:'' }
  ${open?`<div class="banner session"><strong>⏱️ Hay una sesión abierta con ${esc(foodFor(open.food_code)?.name)}</strong><small>${esc(open.objective)}</small></div>`:`<button class="action alt" onclick="startForCurrent()">⏱️ Iniciar sesión con este alimento</button>`}
  <div class="card">
  ${field('identity_text','01 · Identidad del producto','Qué es, origen, materias primas y por qué el procesado define su identidad.',true)}
@@ -225,7 +295,7 @@ function renderFood(){
  ${field('conclusion_text','11 · Conclusión crítica','Tres ideas que explican el producto y una idea inicial que el grupo haya corregido.')}
  ${field('surprising_fact_text','12 · Dato que sorprende','Un hallazgo breve y verificable que merezca ocupar un lugar visual destacado.',true)}
  ${field('sources_text','13 · Evidencia científica','Mínimo 3 fuentes académicas; al menos una reciente. DOI/PMID/URL y base consultada. CENQAL/Mr. Berilio es punto de partida, no sustituto de la fuente original.')}
- <label class="label">Enlace al póster</label><div class="help">Canva, Drive u otro enlace de trabajo del equipo.</div><input id="poster_url" value="${esc(e.poster_url||'')}" placeholder="https://…">
+ <label class="label">Enlace al póster</label><div class="help">Canva, Drive, SharePoint u otro enlace web compartible. Debe comenzar por http:// o https://. No sirve una ruta file:/// del ordenador.</div><input id="poster_url" value="${esc(e.poster_url||'')}" placeholder="https://…">${posterBad?`<div class="posterWarning">⚠️ Este enlace no es compartible. Sustitúyelo por un enlace web que la profesora pueda abrir.</div>`:''}
  ${e.teacher_feedback?`<div class="banner"><strong>👩‍🏫 Revisión docente</strong><small>${esc(e.teacher_feedback)}</small></div>`:''}
  </div>
  <div class="formActions"><button class="action" onclick="saveEntry()">Guardar ficha</button><button class="action alt" onclick="markReady()">Enviar a revisión</button></div>`;
@@ -233,12 +303,32 @@ function renderFood(){
 async function saveEntry(){
  const keys=['identity_text','matrix_text','molecules_text','processing_text','transformations_text','water_aw_text','sensory_text','stability_text','industry_text','scheme_text','conclusion_text','surprising_fact_text','sources_text','poster_url'];
  const payload={};keys.forEach(k=>payload[k]=val(k));
- try{let d=await rpc('cenqal_atlas_save_entry',{p_token:TOKEN,p_food_code:CURRENT,p_payload:payload});if(!d.ok)throw new Error(d.error);toast(`Guardado · ${d.entry.progress_percent}%`);await refresh(true)}
- catch(e){toast('⚠️ '+e.message)}
+ try{
+   let d=await rpc('cenqal_atlas_save_entry',{p_token:TOKEN,p_food_code:CURRENT,p_payload:payload});
+   if(!d.ok)throw new Error(d.error);
+   toast(`Guardado · ${d.entry.progress_percent}%`);
+   await refresh(true);
+   return true;
+ }catch(e){
+   toast('⚠️ '+e.message);
+   return false;
+ }
 }
 async function markReady(){
- try{await saveEntry();let d=await rpc('cenqal_atlas_mark_ready',{p_token:TOKEN,p_food_code:CURRENT});if(!d.ok)throw new Error(d.error==='insufficient_progress'?`Completa más apartados (${d.progress}%)`:d.error);toast('✅ Lista para revisión');await refresh(true)}
- catch(e){toast('⚠️ '+e.message)}
+ const poster=val('poster_url').trim();
+ if(!isShareablePosterUrl(poster)){
+   toast('⚠️ Para entregar necesitas un enlace web compartible al póster (https://…).');
+   document.getElementById('poster_url')?.focus();
+   return;
+ }
+ try{
+   const saved=await saveEntry();
+   if(!saved)return;
+   let d=await rpc('cenqal_atlas_mark_ready',{p_token:TOKEN,p_food_code:CURRENT});
+   if(!d.ok)throw new Error(d.error==='insufficient_progress'?`Completa más apartados (${d.progress}%)`:d.error);
+   toast('✅ Entrega enviada a revisión');
+   await refresh(true);
+ }catch(e){toast('⚠️ '+e.message)}
 }
 async function startForCurrent(){
  let objective=prompt('Objetivo concreto para las próximas dos horas:','Dejar perfilados proceso, moléculas y transformaciones clave.');
@@ -345,7 +435,8 @@ function renderTeacherHome(){
  ${[a,b].map(x=>`<div class="card teacherGroup"><div class="kicker">${esc(x.g.name||'')}</div><h2 class="sectionTitle">${x.fs.length} alimentos · ${x.avg}%</h2>
  <div class="stats"><div class="stat"><b>${x.members}</b><span>ALUMNOS</span></div><div class="stat"><b>${x.reviewed}</b><span>REVISADOS</span></div><div class="stat"><b>${x.avg}%</b><span>PROGRESO</span></div></div>
  <p class="help">Última sesión cerrada: ${x.last?`${fmt(x.last.closed_at)} · ${esc(foodFor(x.last.food_code)?.name)}`:'—'}</p>
- <div class="grid">${x.fs.map(foodCard).join('')}</div></div>`).join('')}`;
+ ${currentDeliveryCard(x.fs,false)}
+ <details class="archiveDetails"><summary>Ver las ${x.fs.length} fichas del equipo</summary><div class="grid" style="margin-top:10px">${x.fs.map(foodCard).join('')}</div></details></div>`).join('')}`;
 }
 function renderStudents(){
  const map=new Map((DATA.memberships||[]).map(m=>[String(m.telegram_user_id),m.group_code]));
@@ -397,7 +488,6 @@ function renderTeacherFood(){
    <div class="publishState"><strong>🔒 Aún no publicable</strong><div class="help">Primero debes validar esta ficha como <b>Final</b>. Solo después aparecerá el botón de publicación.</div></div>
    </div>`;
  }
-
  document.getElementById('root').innerHTML=`${nav('home')}<button class="back" onclick="go('home')">← Volver</button>
  <div class="hero"><div class="kicker">${esc(f.group_code)} · ${esc(f.food_code)} · ${e.progress_percent||0}%</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
  <div class="card"><h3 class="sectionTitle">Ficha del grupo</h3>
@@ -479,13 +569,15 @@ function renderTeacherPreviewHome(){
  const done=fs.filter(f=>['reviewed','final'].includes(entryFor(f.food_code).status)).length;
  const avg=overall(PREVIEW_GROUP);
  const open=(DATA.sessions||[]).find(s=>s.group_code===PREVIEW_GROUP&&s.status==='open');
+ const current=currentDeliveryForFoods(fs);
  document.getElementById('root').innerHTML=`${previewNav('home')}
  <div class="previewBar"><div><strong>👁 Vista alumno · Grupo ${esc(PREVIEW_GROUP)}</strong><br><small>Simulación docente de solo lectura. Ningún botón modifica el trabajo.</small></div><button class="action small" onclick="exitStudentPreview()">← Volver al panel</button></div>
- <div class="hero"><div class="kicker">${esc(g.name||('Grupo '+PREVIEW_GROUP))}</div><h2>26 alimentos.<br>Química que transforma.</h2><p>${esc(g.subtitle||'')}</p></div>
- ${open?`<div class="banner session"><strong>⏱️ Sesión abierta · ${esc(foodFor(open.food_code)?.name)}</strong><small>Desde ${fmt(open.started_at)} · ${esc(open.objective)}</small></div>`:''}
+ <div class="hero"><div class="kicker">${esc(g.name||('Grupo '+PREVIEW_GROUP))}</div><h2>Gran Atlas CENQAL</h2><p>${esc(g.subtitle||'')}</p></div>
+ ${open?`<div class="banner session"><strong>⏱️ Sesión abierta · ${esc(foodFor(open.food_code)?.name)}</strong><small>Desde ${fmt(open.started_at)} · ${esc(open.objective)}${current&&open.food_code!==current.food_code?'<br>Debe cerrarse antes de iniciar otra.':''}</small></div>`:''}
+ ${currentDeliveryCard(fs,true)}
  <div class="stats"><div class="stat"><b>${fs.length}</b><span>ALIMENTOS</span></div><div class="stat"><b>${done}</b><span>REVISADOS</span></div><div class="stat"><b>${avg}%</b><span>PROGRESO</span></div></div>
- <h2 class="sectionTitle">Archivo de procesados</h2>
- <div class="grid">${fs.map(f=>{
+ <details class="archiveDetails"><summary>🗂️ Ver archivo completo del equipo (${fs.length} alimentos)</summary>
+ <div class="grid" style="margin-top:10px">${fs.map(f=>{
    const e=entryFor(f.food_code);
    return `<article class="card food" onclick="openPreviewFood('${esc(f.food_code)}')">
     <div class="foodHead"><div class="num">${esc(f.food_code)} · ${esc(statusText(e.status))}</div><h3>${esc(f.name)}</h3><div class="sub">${esc(f.subtitle||'')}</div></div>
@@ -493,7 +585,7 @@ function renderTeacherPreviewHome(){
     <div class="chips">${(f.chemistry_focus||[]).slice(0,5).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
     <div class="foodFoot"><div class="progress"><i style="width:${e.progress_percent||0}%"></i></div><span class="pct">${e.progress_percent||0}%</span></div>
    </article>`;
- }).join('')}</div>`;
+ }).join('')}</div></details>`;
 }
 
 function renderTeacherPreviewFood(){
@@ -519,7 +611,7 @@ function renderTeacherPreviewFood(){
  ${previewField('conclusion_text','11 · Conclusión crítica','Tres ideas que explican el producto y una idea inicial que el grupo haya corregido.')}
  ${previewField('surprising_fact_text','12 · Dato que sorprende','Un hallazgo breve y verificable que merezca ocupar un lugar visual destacado.',true)}
  ${previewField('sources_text','13 · Evidencia científica','Mínimo 3 fuentes académicas; al menos una reciente. DOI/PMID/URL y base consultada. CENQAL/Mr. Berilio es punto de partida, no sustituto de la fuente original.')}
- <label class="label">Enlace al póster</label><div class="help">Canva, Drive u otro enlace de trabajo del equipo.</div><input readonly value="${esc(e.poster_url||'')}" placeholder="https://…">
+ <label class="label">Enlace al póster</label><div class="help">Debe ser un enlace web compartible (http:// o https://), nunca una ruta file:/// local.</div><input readonly value="${esc(e.poster_url||'')}" placeholder="https://…">
  ${e.teacher_feedback?`<div class="banner"><strong>👩‍🏫 Revisión docente</strong><small>${esc(e.teacher_feedback)}</small></div>`:''}
  </div>
  <div class="formActions"><button class="action" onclick="previewOnly()">💾 Guardar ficha</button><button class="action alt" onclick="previewOnly()">📨 Enviar a revisión</button></div>`;
@@ -584,5 +676,4 @@ load();
 </script>
 </body>
 </html>
-
 
