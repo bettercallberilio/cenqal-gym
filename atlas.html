@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#11110f">
-<title>CENQAL Atlas · v57.3</title>
-<meta name="CENQAL_ATLAS_BUILD" content="v57.3-DELIVERY-FOCUS">
+<title>CENQAL Atlas · v57.4</title>
+<meta name="CENQAL_ATLAS_BUILD" content="v57.4-DELIVERY-SEQUENCE">
 <style>
 :root{
  --ink:#11110f;--paper:#f3efe6;--card:#fffdf8;--muted:#777268;--line:#d9d1c3;
@@ -80,6 +80,14 @@ textarea{min-height:105px;resize:vertical;line-height:1.45}.short{min-height:72p
 .archiveDetails>summary{cursor:pointer;font-weight:800;border:1px solid var(--line);background:var(--card);padding:12px}
 .deliveryHint{border-left:5px solid var(--accent);background:#fff7df}
 .posterWarning{border:1px solid var(--bad);background:#fff2ef;padding:10px;margin:10px 0;color:var(--bad);font-size:12px;line-height:1.4}
+.food.locked{opacity:.62;background:#f1eee7;cursor:not-allowed}
+.food.locked .foodHead{background:#ece8df}
+.lockBadge{display:inline-block;border:1px solid var(--line);padding:4px 7px;font-size:10px;background:#ece8df;margin-top:7px}
+.completeAtlas{border:2px solid var(--good);background:#f5fbf7;padding:18px;margin:14px 0 18px}
+.completeAtlas h2{font-family:Georgia,serif;font-weight:500;font-size:29px;margin:7px 0}
+.completeAtlas.pending{border-color:var(--warn);background:#fff9ed}
+.readOnlyNotice{border-left:5px solid var(--good);background:#f5fbf7}
+.futureNotice{border-left:5px solid var(--warn);background:#fff9ed}
 @media(min-width:650px){
  .grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(4,1fr)}
  .reviewActions{grid-template-columns:repeat(3,1fr)}
@@ -189,15 +197,30 @@ function foodOrder(f){
  const m=String(f?.food_code||'').match(/(\d+)$/);
  return m?Number(m[1]):999;
 }
-function currentDeliveryForFoods(fs){
+function atlasSequenceState(fs){
  const ordered=[...(fs||[])].sort((a,b)=>foodOrder(a)-foodOrder(b));
- if(!ordered.length)return null;
+ const total=ordered.length;
+ const submitted=ordered.filter(f=>['ready_review','reviewed','final'].includes(String(entryFor(f.food_code).status||'not_started'))).length;
+ const validated=ordered.filter(f=>['reviewed','final'].includes(String(entryFor(f.food_code).status||'not_started'))).length;
+ return {
+   ordered,
+   total,
+   submitted,
+   validated,
+   allSubmitted:total>0&&submitted===total,
+   allValidated:total>0&&validated===total
+ };
+}
+function currentDeliveryForFoods(fs){
+ const seq=atlasSequenceState(fs);
+ const ordered=seq.ordered;
+ if(!ordered.length||seq.allSubmitted)return null;
  const started=ordered.filter(f=>String(entryFor(f.food_code).status||'not_started')!=='not_started');
  if(!started.length)return ordered[0];
  const highest=started.reduce((best,f)=>foodOrder(f)>foodOrder(best)?f:best,started[0]);
  const st=String(entryFor(highest.food_code).status||'not_started');
  if(['ready_review','reviewed','final'].includes(st)){
-   return ordered.find(f=>foodOrder(f)>foodOrder(highest))||highest;
+   return ordered.find(f=>foodOrder(f)>foodOrder(highest))||null;
  }
  return highest;
 }
@@ -207,9 +230,36 @@ function ordinalDeliveryEs(n){
 function isShareablePosterUrl(v){
  return /^https?:\/\/\S+/i.test(String(v||'').trim());
 }
+function deliveryRelation(f,fs){
+ const seq=atlasSequenceState(fs);
+ if(seq.allSubmitted)return 'past';
+ const cur=currentDeliveryForFoods(fs);
+ if(!cur)return 'past';
+ const n=foodOrder(f),cn=foodOrder(cur);
+ return n>cn?'future':n===cn?'current':'past';
+}
+function isEntryLockedAfterSubmit(e){
+ return ['ready_review','reviewed','final'].includes(String(e?.status||''));
+}
+function completionCard(fs){
+ const seq=atlasSequenceState(fs);
+ if(!seq.allSubmitted)return '';
+ if(seq.allValidated){
+   return `<section class="completeAtlas">
+     <div class="kicker">Gran Atlas · ciclo completado</div>
+     <h2>🏁 ${seq.total}/${seq.total} entregas completadas</h2>
+     <p>El equipo ha terminado la secuencia del Gran Atlas y todas las fichas están revisadas o validadas.</p>
+   </section>`;
+ }
+ return `<section class="completeAtlas pending">
+   <div class="kicker">Gran Atlas · todas las entregas enviadas</div>
+   <h2>📨 ${seq.total}/${seq.total} entregas presentadas</h2>
+   <p>Ya no hay una entrega nueva. Quedan fichas pendientes de revisión docente antes de cerrar el Gran Atlas como completado.</p>
+ </section>`;
+}
 function currentDeliveryCard(fs,preview=false){
  const f=currentDeliveryForFoods(fs);
- if(!f)return '';
+ if(!f)return completionCard(fs);
  const e=entryFor(f.food_code);
  const n=foodOrder(f);
  const total=Math.max(0,...(fs||[]).map(foodOrder).filter(Number.isFinite));
@@ -259,8 +309,19 @@ function renderStudentHome(){
 }
 function foodCard(f){
  const e=entryFor(f.food_code);
- return `<article class="card food" onclick="openFood('${esc(f.food_code)}')">
-  <div class="foodHead"><div class="num">${esc(f.food_code)} · ${esc(statusText(e.status))}</div><h3>${esc(f.name)}</h3><div class="sub">${esc(f.subtitle||'')}</div></div>
+ const studentMode=DATA?.role!=='teacher';
+ const rel=studentMode?deliveryRelation(f,DATA.foods||[]):null;
+ const locked=studentMode&&rel==='future';
+ const click=locked
+   ?`toast('🔒 Esta entrega todavía no está abierta. Continúa con la entrega actual.')`
+   :`openFood('${esc(f.food_code)}')`;
+ return `<article class="card food ${locked?'locked':''}" onclick="${click}">
+  <div class="foodHead">
+    <div class="num">${esc(f.food_code)} · ${esc(statusText(e.status))}</div>
+    <h3>${esc(f.name)}</h3>
+    <div class="sub">${esc(f.subtitle||'')}</div>
+    ${locked?`<span class="lockBadge">🔒 Entrega futura</span>`:''}
+  </div>
   <p class="question">${esc(f.research_question)}</p>
   <div class="chips">${(f.chemistry_focus||[]).slice(0,5).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
   <div class="foodFoot"><div class="progress"><i style="width:${e.progress_percent||0}%"></i></div><span class="pct">${e.progress_percent||0}%</span></div>
@@ -271,16 +332,28 @@ function field(id,label,help,short=false){
 }
 function renderFood(){
  const f=foodFor(CURRENT),e=entryFor(CURRENT);if(!f)return go('home');
+ const rel=deliveryRelation(f,DATA.foods||[]);
+ if(rel==='future'){
+   const cur=currentDeliveryForFoods(DATA.foods||[]);
+   document.getElementById('root').innerHTML=`${nav('home')}
+   <button class="back" onclick="go('home')">← Volver al Atlas</button>
+   <div class="hero"><div class="kicker">${esc(f.food_code)} · entrega futura</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
+   <div class="banner futureNotice"><strong>🔒 Esta entrega todavía no está abierta</strong><small>${cur?`La entrega actual es #${foodOrder(cur)} · ${esc(cur.name)}.`:'No hay una nueva entrega activa.'} Puedes ver el nombre en el archivo, pero no editarla ni iniciar una sesión todavía.</small></div>`;
+   return;
+ }
  const open=(DATA.sessions||[]).find(s=>s.status==='open');
  const cur=currentDeliveryForFoods(DATA.foods||[]);
  const isCurrent=cur?.food_code===f.food_code;
  const posterBad=!!String(e.poster_url||'').trim()&&!isShareablePosterUrl(e.poster_url);
+ const submittedLocked=isEntryLockedAfterSubmit(e);
+ const editDisabled=submittedLocked?'disabled readonly':'';
  document.getElementById('root').innerHTML=`${nav('home')}
  <button class="back" onclick="go('home')">← Volver al Atlas</button>
  <div class="hero"><div class="kicker">${esc(f.food_code)} · ${esc(statusText(e.status))} · ${e.progress_percent||0}%</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
  <div class="chips">${(f.chemistry_focus||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
- ${isCurrent?`<div class="banner deliveryHint"><strong>📌 Entrega en curso · #${foodOrder(f)}</strong><small>Esta es la ficha que el equipo debe trabajar ahora.</small></div>`:cur?`<div class="banner"><strong>ℹ️ Entrega actual: #${foodOrder(cur)} · ${esc(cur.name)}</strong><small>Puedes consultar esta ficha, pero la entrega en curso es la indicada arriba.</small></div>`:'' }
- ${open?`<div class="banner session"><strong>⏱️ Hay una sesión abierta con ${esc(foodFor(open.food_code)?.name)}</strong><small>${esc(open.objective)}</small></div>`:`<button class="action alt" onclick="startForCurrent()">⏱️ Iniciar sesión con este alimento</button>`}
+ ${isCurrent?`<div class="banner deliveryHint"><strong>📌 Entrega en curso · #${foodOrder(f)}</strong><small>Esta es la ficha que el equipo debe trabajar ahora.</small></div>`:cur?`<div class="banner"><strong>ℹ️ Entrega actual: #${foodOrder(cur)} · ${esc(cur.name)}</strong><small>Esta ficha pertenece a una entrega anterior.</small></div>`:''}
+ ${submittedLocked?`<div class="banner readOnlyNotice"><strong>🔒 Entrega ya presentada</strong><small>La ficha queda en consulta y no puede modificarse mientras esté ${esc(statusText(e.status).toLowerCase())}. Si necesita cambios, la profesora debe devolverla a trabajo.</small></div>`:''}
+ ${!submittedLocked?(open?`<div class="banner session"><strong>⏱️ Hay una sesión abierta con ${esc(foodFor(open.food_code)?.name)}</strong><small>${esc(open.objective)}</small></div>`:`<button class="action alt" onclick="startForCurrent()">⏱️ Iniciar sesión con este alimento</button>`):''}
  <div class="card">
  ${field('identity_text','01 · Identidad del producto','Qué es, origen, materias primas y por qué el procesado define su identidad.',true)}
  ${field('matrix_text','02 · Matriz y composición','Describe la matriz alimentaria y los componentes que realmente importan para entender el proceso. Evita una tabla nutricional sin interpretación.')}
@@ -295,10 +368,13 @@ function renderFood(){
  ${field('conclusion_text','11 · Conclusión crítica','Tres ideas que explican el producto y una idea inicial que el grupo haya corregido.')}
  ${field('surprising_fact_text','12 · Dato que sorprende','Un hallazgo breve y verificable que merezca ocupar un lugar visual destacado.',true)}
  ${field('sources_text','13 · Evidencia científica','Mínimo 3 fuentes académicas; al menos una reciente. DOI/PMID/URL y base consultada. CENQAL/Mr. Berilio es punto de partida, no sustituto de la fuente original.')}
- <label class="label">Enlace al póster</label><div class="help">Canva, Drive, SharePoint u otro enlace web compartible. Debe comenzar por http:// o https://. No sirve una ruta file:/// del ordenador.</div><input id="poster_url" value="${esc(e.poster_url||'')}" placeholder="https://…">${posterBad?`<div class="posterWarning">⚠️ Este enlace no es compartible. Sustitúyelo por un enlace web que la profesora pueda abrir.</div>`:''}
+ <label class="label">Enlace al póster</label><div class="help">Canva, Drive, SharePoint u otro enlace web compartible. Debe comenzar por http:// o https://. No sirve una ruta file:/// del ordenador.</div><input id="poster_url" ${editDisabled} value="${esc(e.poster_url||'')}" placeholder="https://…">${posterBad?`<div class="posterWarning">⚠️ Este enlace no es compartible. Sustitúyelo por un enlace web que la profesora pueda abrir.</div>`:''}
  ${e.teacher_feedback?`<div class="banner"><strong>👩‍🏫 Revisión docente</strong><small>${esc(e.teacher_feedback)}</small></div>`:''}
  </div>
- <div class="formActions"><button class="action" onclick="saveEntry()">Guardar ficha</button><button class="action alt" onclick="markReady()">Enviar a revisión</button></div>`;
+ ${submittedLocked?'':`<div class="formActions"><button class="action" onclick="saveEntry()">Guardar ficha</button><button class="action alt" onclick="markReady()">Enviar a revisión</button></div>`}`;
+ if(submittedLocked){
+   document.querySelectorAll('#root textarea,#root input').forEach(el=>{el.readOnly=true;el.disabled=true});
+ }
 }
 async function saveEntry(){
  const keys=['identity_text','matrix_text','molecules_text','processing_text','transformations_text','water_aw_text','sensory_text','stability_text','industry_text','scheme_text','conclusion_text','surprising_fact_text','sources_text','poster_url'];
@@ -331,6 +407,11 @@ async function markReady(){
  }catch(e){toast('⚠️ '+e.message)}
 }
 async function startForCurrent(){
+ const f=foodFor(CURRENT);
+ if(f&&deliveryRelation(f,DATA.foods||[])==='future'){
+   toast('🔒 Esa entrega todavía no está abierta.');
+   return;
+ }
  let objective=prompt('Objetivo concreto para las próximas dos horas:','Dejar perfilados proceso, moléculas y transformaciones clave.');
  if(!objective)return;
  try{let d=await rpc('cenqal_atlas_start_session',{p_token:TOKEN,p_food_code:CURRENT,p_objective:objective});if(!d.ok)throw new Error(d.error);toast(d.already_open?'Ya había una sesión abierta':'Sesión iniciada');VIEW='session';CURRENT=null;await refresh()}
@@ -579,8 +660,10 @@ function renderTeacherPreviewHome(){
  <details class="archiveDetails"><summary>🗂️ Ver archivo completo del equipo (${fs.length} alimentos)</summary>
  <div class="grid" style="margin-top:10px">${fs.map(f=>{
    const e=entryFor(f.food_code);
-   return `<article class="card food" onclick="openPreviewFood('${esc(f.food_code)}')">
-    <div class="foodHead"><div class="num">${esc(f.food_code)} · ${esc(statusText(e.status))}</div><h3>${esc(f.name)}</h3><div class="sub">${esc(f.subtitle||'')}</div></div>
+   const rel=deliveryRelation(f,fs);
+   const locked=rel==='future';
+   return `<article class="card food ${locked?'locked':''}" onclick="${locked?`toast('🔒 Entrega futura · vista alumno')`:`openPreviewFood('${esc(f.food_code)}')`}">
+    <div class="foodHead"><div class="num">${esc(f.food_code)} · ${esc(statusText(e.status))}</div><h3>${esc(f.name)}</h3><div class="sub">${esc(f.subtitle||'')}</div>${locked?`<span class="lockBadge">🔒 Entrega futura</span>`:''}</div>
     <p class="question">${esc(f.research_question)}</p>
     <div class="chips">${(f.chemistry_focus||[]).slice(0,5).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
     <div class="foodFoot"><div class="progress"><i style="width:${e.progress_percent||0}%"></i></div><span class="pct">${e.progress_percent||0}%</span></div>
@@ -590,6 +673,16 @@ function renderTeacherPreviewHome(){
 
 function renderTeacherPreviewFood(){
  const f=foodFor(CURRENT),e=entryFor(CURRENT);if(!f)return previewGo('home');
+ const pfs=previewFoods();
+ if(deliveryRelation(f,pfs)==='future'){
+   const cur=currentDeliveryForFoods(pfs);
+   document.getElementById('root').innerHTML=`${previewNav('home')}
+   <div class="previewBar"><div><strong>👁 Vista alumno · Grupo ${esc(PREVIEW_GROUP)}</strong><br><small>Solo lectura.</small></div><button class="action small" onclick="exitStudentPreview()">← Panel docente</button></div>
+   <button class="back" onclick="previewGo('home')">← Volver al Atlas</button>
+   <div class="hero"><div class="kicker">${esc(f.food_code)} · entrega futura</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
+   <div class="banner futureNotice"><strong>🔒 Esta entrega todavía no está abierta</strong><small>${cur?`La entrega actual es #${foodOrder(cur)} · ${esc(cur.name)}.`:'No hay una nueva entrega activa.'}</small></div>`;
+   return;
+ }
  const open=(DATA.sessions||[]).find(s=>s.group_code===PREVIEW_GROUP&&s.status==='open');
  document.getElementById('root').innerHTML=`${previewNav('home')}
  <div class="previewBar"><div><strong>👁 Vista alumno · Grupo ${esc(PREVIEW_GROUP)}</strong><br><small>Solo lectura. Estás viendo los controles que tendrá el alumnado.</small></div><button class="action small" onclick="exitStudentPreview()">← Panel docente</button></div>
