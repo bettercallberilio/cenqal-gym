@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CENQAL GYM v73 · TRAZABILIDAD FIABLE + TIEMPO ACTIVO POR TEMA
+   CENQAL GYM v73.1 · TRAZABILIDAD FIABLE + TIEMPO ACTIVO POR TEMA
 
    Sustituye gym-telemetry-v72.js cuando el SQL v73 esté instalado.
 
@@ -24,8 +24,59 @@
       ? (GYM_PARAMS.get('preview') === '1')
       : false;
 
-  if (PREVIEW_MODE || !TRACKING_TOKEN) {
-    console.debug('CENQAL Gym v73: vista sin trazabilidad de alumno.');
+  function v731TeacherPreviewNotice() {
+    const screen = document.getElementById('screen');
+    if (!screen) return;
+
+    let box = document.getElementById('v731TeacherPreviewNotice');
+    if (!box) {
+      box = document.createElement('section');
+      box.id = 'v731TeacherPreviewNotice';
+      box.className = 'card';
+      box.style.border = '1px solid rgba(255,193,7,.55)';
+      box.style.background = 'rgba(255,193,7,.08)';
+      box.innerHTML = `
+        <b>👩‍🏫 VISTA DOCENTE</b>
+        <p class="muted" style="line-height:1.45;margin-bottom:0">
+          Las cifras de progreso que puedas ver en esta pantalla proceden del
+          almacenamiento local de este dispositivo. No son datos de un alumno,
+          no forman parte de Learning Analytics y no alteran PP, Oganesones ni notas.
+        </p>
+      `;
+      screen.prepend(box);
+    }
+
+    screen.querySelectorAll('button').forEach(btn => {
+      const txt = String(btn.textContent || '').trim();
+      if (txt.includes('Mi progreso')) {
+        btn.textContent = '📊 Progreso local de este dispositivo';
+      }
+    });
+  }
+
+  function v731InstallTeacherPreview() {
+    ['renderTopics', 'openTopic', 'renderProgress'].forEach(name => {
+      const baseFn = window[name];
+      if (typeof baseFn !== 'function') return;
+
+      window[name] = async function () {
+        const out = await baseFn.apply(this, arguments);
+        v731TeacherPreviewNotice();
+        return out;
+      };
+    });
+
+    setTimeout(v731TeacherPreviewNotice, 0);
+    console.debug('CENQAL Gym v73.1: vista docente claramente diferenciada.');
+  }
+
+  if (PREVIEW_MODE) {
+    v731InstallTeacherPreview();
+    return;
+  }
+
+  if (!TRACKING_TOKEN) {
+    console.debug('CENQAL Gym v73.1: vista sin trazabilidad de alumno.');
     return;
   }
 
@@ -35,7 +86,7 @@
     !GYM_SBURL ||
     !GYM_SBKEY
   ) {
-    console.debug('CENQAL Gym v73: faltan parámetros públicos de Supabase.');
+    console.debug('CENQAL Gym v73.1: faltan parámetros públicos de Supabase.');
     return;
   }
 
@@ -372,6 +423,7 @@
       }
 
       v73Touch();
+      await v73LoadMyTopicMetrics();
       v73Banner('Respuesta guardada y sincronizada.', 'ok');
 
     } catch (error) {
@@ -629,12 +681,79 @@
     const v73RenderTopicsBase = renderTopics;
 
     renderTopics = async function () {
+      await v73LoadMyTopicMetrics();
       const out = await v73RenderTopicsBase.apply(this, arguments);
       v73DecorateTopicButtons();
       return out;
     };
 
     window.renderTopics = renderTopics;
+  }
+
+  function v731MetricForTopic(topic) {
+    return (v73TopicMetrics || []).find(
+      x => Number(x.topic_number) === Number(topic)
+    ) || null;
+  }
+
+  function v731DecorateTopicDetail(topic) {
+    const screen = document.getElementById('screen');
+    if (!screen) return;
+
+    const old = document.getElementById('v731ServerTopicStatus');
+    if (old) old.remove();
+
+    const metric = v731MetricForTopic(topic);
+    if (!metric) return;
+
+    const practiced = Number(metric.practiced_questions || 0);
+    const mastered = Number(metric.mastered_questions || 0);
+    const responses = Number(metric.responses || 0);
+    const recovered = Number(metric.recovered_practiced_questions || 0);
+    const recoveredMastered = Number(metric.recovered_mastered_questions || 0);
+    const recoveredWrong = Number(metric.recovered_wrong_questions || 0);
+    const quality = String(metric.time_quality || 'NONE').toUpperCase();
+
+    let qualityText = '';
+    if (quality === 'MEASURED') qualityText = ' · tiempo medido v73';
+    if (quality === 'MIXED') qualityText = ' · tiempo mixto';
+    if (quality === 'ESTIMATED') qualityText = ' · tiempo histórico estimado';
+
+    const box = document.createElement('section');
+    box.id = 'v731ServerTopicStatus';
+    box.className = 'card';
+
+    box.innerHTML = `
+      <b>🛰 CENQAL registrado · Tema ${Number(topic)}</b>
+      <p class="muted" style="line-height:1.55;margin-bottom:0">
+        👀 ${practiced}/40 practicadas ·
+        ✅ ${mastered}/40 dominadas ·
+        🧾 ${responses} respuestas ·
+        ⏱ ${v73FormatTopicTime(metric.active_hours)}${qualityText}
+        ${
+          recovered > 0
+            ? `<br>📦 Progreso local recuperado: ${recovered}/40 practicadas ·
+               ${recoveredMastered}/40 dominadas · ${recoveredWrong} por repasar.
+               <br><small>Se conserva como evidencia separada: no crea horas ni respuestas históricas ficticias.</small>`
+            : ''
+        }
+      </p>
+    `;
+
+    screen.prepend(box);
+  }
+
+  if (typeof openTopic === 'function') {
+    const v731OpenTopicBase = openTopic;
+
+    openTopic = async function (topic) {
+      await v73LoadMyTopicMetrics();
+      const out = await v731OpenTopicBase.apply(this, arguments);
+      v731DecorateTopicDetail(topic);
+      return out;
+    };
+
+    window.openTopic = openTopic;
   }
 
   // ------------------------------------------------------------------------
@@ -648,7 +767,7 @@
     v73DecorateTopicButtons();
 
     console.debug(
-      'CENQAL Gym v73: sincronización fiable y tiempo por tema activos.'
+      'CENQAL Gym v73.1: sincronización fiable y tiempo por tema activos.'
     );
   }
 
