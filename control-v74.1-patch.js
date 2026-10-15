@@ -572,6 +572,113 @@
     };
   }
 
+
+  // Marca inequívoca para distinguir la vista de pruebas de producción.
+  (function v741MarkPreview(){
+    if(document.getElementById('v741PreviewNotice'))return;
+    const notice=document.createElement('div');
+    notice.id='v741PreviewNotice';
+    notice.setAttribute('role','status');
+    notice.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99998;'+
+      'padding:7px 12px;text-align:center;background:#172b4d;color:#fff;'+
+      'font:600 12px/1.4 system-ui,sans-serif;box-shadow:0 2px 8px #0004';
+    notice.textContent='🧪 CENQAL v74.1 · VISTA DE PRUEBAS · SOLO LECTURA';
+    document.body.appendChild(notice);
+  })();
+
+  let v741PreparedExcelUrl=null;
+  const v741ExcelMime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+  function v741ExcelMessage(message,isError=false){
+    const el=document.getElementById('v741ExcelFeedback');
+    if(el){
+      el.textContent=message;
+      el.style.color=isError?'#b91c1c':'#264367';
+    }
+  }
+
+  // El trabajo asíncrono de Supabase termina ANTES del clic de descarga.
+  // El clic explícito conserva la activación del usuario en Chrome y WebView.
+  window.v741PrepareExcel=function(workbook,filename){
+    if(typeof XLSX==='undefined'||typeof XLSX.write!=='function'){
+      throw new Error('No se ha cargado el generador de Excel.');
+    }
+    const bytes=XLSX.write(workbook,{bookType:'xlsx',type:'array',compression:true});
+    const blob=new Blob([bytes],{type:v741ExcelMime});
+    if(blob.size===0)throw new Error('El Excel generado está vacío.');
+    const safeName=String(filename||'CENQAL_Analytics.xlsx')
+      .replace(/[\\/:*?"<>|]+/g,'_').slice(0,130);
+
+    const url=URL.createObjectURL(blob);
+    if(v741PreparedExcelUrl)URL.revokeObjectURL(v741PreparedExcelUrl);
+    v741PreparedExcelUrl=url;
+
+    let panel=document.getElementById('v741ExcelPanel');
+    if(!panel){
+      panel=document.createElement('section');
+      panel.id='v741ExcelPanel';
+      panel.setAttribute('role','dialog');
+      panel.setAttribute('aria-label','Descargar Excel de CENQAL');
+      panel.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;'+
+        'bottom:max(12px,env(safe-area-inset-bottom));max-width:560px;'+
+        'margin:0 auto;z-index:99999;box-sizing:border-box;'+
+        'background:#fff;color:#17324d;border:2px solid #3a789b;'+
+        'border-radius:16px;padding:16px;box-shadow:0 5px 30px #0006;'+
+        'font:14px/1.5 system-ui,sans-serif';
+      document.body.appendChild(panel);
+    }
+    panel.innerHTML=[
+      '<div style="display:flex;justify-content:space-between;gap:8px;align-items:start">',
+      '<b style="font-size:16px">📊 Excel preparado</b>',
+      '<button type="button" id="v741ExcelClose" aria-label="Cerrar" ',
+      'style="border:0;background:transparent;font-size:22px;color:#17324d">×</button></div>',
+      '<p id="v741ExcelName" style="margin:7px 0;overflow-wrap:anywhere"></p>',
+      '<div style="display:flex;flex-wrap:wrap;gap:9px;margin:12px 0">',
+      '<a id="v741ExcelDownload" href="#" style="display:inline-block;padding:10px 14px;',
+      'background:#1f618d;color:white;border-radius:8px;text-decoration:none;',
+      'font-weight:700">⬇ Descargar Excel</a>',
+      '<button type="button" id="v741ExcelShare" style="padding:10px 14px;',
+      'border:1px solid #1f618d;border-radius:8px;background:#edf4fc;',
+      'color:#17324d;font-weight:700">Compartir / Guardar</button></div>',
+      '<p id="v741ExcelFeedback" aria-live="polite"',
+      ' style="margin:6px 0;color:#264367;font-size:13px">',
+      'Archivo listo. Pulsa Descargar o Compartir; todavía no se ha guardado.</p>'
+    ].join('');
+    document.getElementById('v741ExcelName').textContent=safeName;
+    const download=document.getElementById('v741ExcelDownload');
+    download.href=url;
+    download.download=safeName;
+    download.addEventListener('click',()=>{
+      v741ExcelMessage('Descarga solicitada. Comprueba Descargas; si no aparece, prueba Compartir / Guardar.');
+    });
+
+    const share=document.getElementById('v741ExcelShare');
+    const file=typeof File==='function'?new File([blob],safeName,{type:v741ExcelMime}):null;
+    let canShare=false;
+    try{
+      canShare=Boolean(file&&typeof navigator.share==='function'&&
+        typeof navigator.canShare==='function'&&navigator.canShare({files:[file]}));
+    }catch(_){canShare=false}
+    if(!canShare){
+      share.hidden=true;
+    }else{
+      share.addEventListener('click',async()=>{
+        try{
+          await navigator.share({files:[file],title:'Excel CENQAL'});
+          v741ExcelMessage('Se ha abierto el menú de compartir. Comprueba dónde guardaste el archivo.');
+        }catch(error){
+          if(error?.name!=='AbortError')
+            v741ExcelMessage('No se pudo compartir. Usa Descargar Excel.',true);
+        }
+      });
+    }
+    document.getElementById('v741ExcelClose').addEventListener('click',()=>{
+      panel.remove();
+      // No revocar mientras el navegador pueda estar procesando la descarga.
+    });
+    return {filename:safeName,bytes:blob.size,shareAvailable:canShare};
+  };
+
   window.v741AppendOfficialEx1Audit=function(wb,anonymized=false,anonMap=null,sid=null){
     const rows=[];
     const students=sid==null?(state.students||[]):
