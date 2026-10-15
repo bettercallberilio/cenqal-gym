@@ -13,6 +13,8 @@
   let v741EconomyRows = [];
   let v741RecoveredByStudent = new Map();
   let v741Generation = 0;
+  let v741TeacherEx1Course=null, v741TeacherEx1Status='pendiente';
+  let v741TeacherEx1ByStudent=new Map();
 
   const _loadGame = loadGame;
   const _loadLearning = loadLearning;
@@ -80,6 +82,9 @@
       v741EconomyRows=[];
       v741RecoveredByStudent=new Map();
       v741Generation++;
+      v741TeacherEx1Course=null;
+      v741TeacherEx1Status='pendiente';
+      v741TeacherEx1ByStudent=new Map();
     }
   }
 
@@ -195,6 +200,63 @@
       if(v741RecoveredByStudent.has(key))return v741RecoveredByStudent.get(key);
     }
     return null;
+  }
+
+
+  // Confirmación docente para EX1 2026-2027: 8 estudiantes, 10/10.
+  // Es una anotación de SOLO LECTURA que no modifica notas, medias ni PP.
+  function v741TeacherEx1For(obj={}){
+    for(const key of v741StudentKeys(obj)){
+      if(v741TeacherEx1ByStudent.has(key))return v741TeacherEx1ByStudent.get(key);
+    }
+    return null;
+  }
+
+  async function v741PrepareTeacherEx1(force=false){
+    const course=v741CourseKey(),generation=v741Generation;
+    const year=String(state.snapshot?.course?.academic_year||'').trim();
+    if(!/^2026[-/](2027|27)$/.test(year)){
+      v741TeacherEx1Status='curso no confirmado';
+      return;
+    }
+    if(!force&&v741TeacherEx1Course===course)return;
+    const raw=await rpc('cenqal_control_learning_export_v69',{
+      p_token:TOKEN,p_course_id:v69CourseId()
+    });
+    if(course!==v741CourseKey()||generation!==v741Generation)return;
+    const students=(state.students||[]).filter(s=>s.student_code);
+    const roster=new Map(students.map(s=>[String(s.student_code).trim().toUpperCase(),s]));
+    const codes=new Set((Array.isArray(raw?.exams)?raw.exams:[])
+      .filter(x=>Number(x.topic_number)===1 || /^EX-T1-/i.test(String(x.exam_code||'')))
+      .map(x=>String(x.student_code||'').trim().toUpperCase())
+      .filter(k=>roster.has(k)));
+    v741TeacherEx1Course=course;
+    v741TeacherEx1ByStudent=new Map();
+    if(codes.size!==8){
+      v741TeacherEx1Status='sin correspondencia segura: '+codes.size+' registros';
+      return;
+    }
+    for(const code of codes){
+      const student=roster.get(code);
+      const existing=v741RecoveryFor(student);
+      if(existing && Number(existing.score)!==10){
+        v741TeacherEx1Status='discrepancia con nota registrada';
+        v741TeacherEx1ByStudent=new Map();
+        return;
+      }
+    }
+    const map=new Map();
+    for(const code of codes){
+      const student=roster.get(code);
+      const existing=v741RecoveryFor(student);
+      if(existing)continue;
+      for(const key of v741StudentKeys(student)){
+        map.set(key,{score:10,manual:true,
+          source:'declaracion_docente_no_persistida'});
+      }
+    }
+    v741TeacherEx1ByStudent=map;
+    v741TeacherEx1Status='ocho alumnos conciliados con los registros de EX1';
   }
 
   function v741ExamScoreField(row){
@@ -517,21 +579,22 @@
     const data=state.learning||{};
     const gym=data.exam_gym||[];
     const rows=(state.students||[]).filter(s=>s.active!==false).map(s=>{
-      const rec=v741RecoveryFor(s);
+      const rec=v741RecoveryFor(s)||v741TeacherEx1For(s);
       const matches=gym.filter(x=>v741IsTopic1(x)&&v741Matches(s,x));
       const technical=matches.length===1?v741ExamScoreField(matches[0]):null;
       const score=rec?.score;
-      const label=!rec?'Sin registro inequívoco':
+      const label=!rec?'Sin nota registrada · comprobar alta':
+        rec.manual?'10/10 confirmado por la profesora · pendiente de registrar':
         matches.length===0?'Oficial disponible · sin fila técnica':
         matches.length>1?'Revisar múltiples intentos':
         technical?'Comparación disponible':'Nota técnica no verificable';
       return {s,score,technical:technical?.value??null,label};
     });
     card.innerHTML=`
-      <h3>📝 EX1 · consulta de calificación oficial</h3>
-      <p class="subtle">Datos académicos y evidencias técnicas por separado. Si faltan fuentes, no se inventan notas ni se corrigen PP.</p>
+      <h3>📝 EX1 · calificaciones docentes y registros oficiales</h3>
+      <p class="subtle">La profesora confirma 10/10 para ocho alumnos. ${esc(v741TeacherEx1Status)}. Las notas comunicadas solo se muestran en esta vista de pruebas; aún no constan guardadas como notas oficiales de CENQAL. Gonzalo está pendiente de alta. No se modifican medias, PP ni intentos técnicos.</p>
       <div class="tablewrap"><table class="table">
-        <thead><tr><th>Alumno</th><th>EX1 oficial</th><th>Intento técnico</th><th>Revisión</th></tr></thead>
+        <thead><tr><th>Alumno</th><th>EX1 docente / oficial</th><th>Intento técnico</th><th>Fuente y revisión</th></tr></thead>
         <tbody>${rows.map(x=>`<tr>
           <td>${esc(x.s.full_name||x.s.student_code||'—')}</td>
           <td><b>${x.score==null?'—':esc(Number(x.score).toFixed(2))+'/10'}</b></td>
@@ -669,7 +732,7 @@
 
   function v741RenderOfficialExamInStudentCard(){
     const d=state.studentDetail||{};
-    const rec=v741OfficialEx1FromWorkspace(d);
+    const rec=v741OfficialEx1FromWorkspace(d)||v741TeacherEx1For(d.student||{});
     if(!rec||rec.ambiguous)return;
 
     const container=document.getElementById('studentSections');
@@ -688,14 +751,14 @@
       ?.attempt?.score_out_of_10;
 
     card.innerHTML=`
-      <summary>📝 EX1 · calificación oficial recuperada</summary>
+      <summary>📝 EX1 · ${rec.manual?'nota docente (no guardada)':'calificación oficial recuperada'}</summary>
       <div class="detailBody">
         <div class="miniList">
-          <div class="miniRow"><span>Nota oficial CENQAL</span><b>${esc(Number(rec.score).toFixed(1))}/10</b></div>
-          <div class="miniRow"><span>Fuente</span><b>Registro oficial de calificación</b></div>
+          <div class="miniRow"><span>${rec.manual?'Nota docente comunicada':'Nota oficial CENQAL'}</span><b>${esc(Number(rec.score).toFixed(1))}/10</b></div>
+          <div class="miniRow"><span>Fuente</span><b>${rec.manual?'Declaración docente no persistida':'Registro oficial de CENQAL'}</b></div>
           <div class="miniRow"><span>Intento técnico original</span><b>${technical==null?'—':esc(Number(technical).toFixed(1)+'/10')}</b></div>
         </div>
-        <div class="note" style="margin-top:10px">La nota oficial se usa para la lectura académica. El intento técnico se conserva como evidencia y no se modifica.</div>
+        <div class="note" style="margin-top:10px">${rec.manual?'10/10 comunicado por la profesora, solo para revisión. No está guardado en Supabase ni genera PP.':'Nota oficial registrada; los intentos técnicos siguen sin modificación.'}</div>
       </div>
     `;
     container.prepend(card);
@@ -732,6 +795,9 @@
     if(course!==v741CourseKey())return result;
     try{
       await v741LoadWorkspaces(force);
+      if(course!==v741CourseKey())return result;
+      try{await v741PrepareTeacherEx1(force)}
+      catch(err){v741TeacherEx1Status='error de lectura';console.warn('EX1 docente',err)}
       if(course!==v741CourseKey())return result;
       v741ApplyRecoveredEx1ToLearning(state.learning);
       renderLearning();
@@ -776,6 +842,9 @@
       v741EconomyRows=[];
       v741RecoveredByStudent=new Map();
       v741Generation++;
+      v741TeacherEx1Course=null;
+      v741TeacherEx1Status='pendiente';
+      v741TeacherEx1ByStudent=new Map();
       return result;
     };
   }
@@ -892,15 +961,16 @@
     const students=sid==null?(state.students||[]):
       (state.students||[]).filter(x=>String(studentIdOf(x))===String(sid));
     for(const student of students){
-      const rec=v741RecoveryFor(student);
+      const rec=v741RecoveryFor(student)||v741TeacherEx1For(student);
       const code=String(student.student_code||'');
       const alias=anonMap?.get(code)||'ANON';
       rows.push({
         codigo:anonymized?alias:code,
         alumno:anonymized?alias:studentName(student),
-        ex1_oficial:rec?.score??'',
-        estado:rec?'identificada':'sin_nota_inequivoca_o_conflicto',
-        nota:'Solo lectura. Los registros técnicos originales figuran en EXAMENES / GYM_EXAMEN.'
+        ex1_docente_u_oficial:rec?.score??'',
+        origen:rec?.manual?'DOCENTE_NO_GUARDADO':rec?'CENQAL_OFICIAL':'SIN_REGISTRO',
+        estado:rec?.manual?'10/10 pendiente de registrar':rec?'oficial_localizada':'sin_nota_inequivoca',
+        nota:'Solo lectura. Las notas docentes no se han guardado en CENQAL ni generan PP.'
       });
     }
     if(typeof v69AddSheet==='function')v69AddSheet(wb,'EX1_OFICIAL',rows,[22,32,22,34,72]);
