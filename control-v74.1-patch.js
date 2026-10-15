@@ -12,6 +12,7 @@
   let v741WorkspaceCourseKey = null;
   let v741EconomyRows = [];
   let v741RecoveredByStudent = new Map();
+  let v741Generation = 0;
 
   const _loadGame = loadGame;
   const _loadLearning = loadLearning;
@@ -28,23 +29,28 @@
     );
   }
 
-  function v741StudentKey(value){
-    return String(value ?? '').trim().toLowerCase();
+  function v741StudentKeys(obj={}){
+    const result=[];
+    for(const [type,value] of [
+      ['id',obj.student_id],['id',obj.id],['id',obj.cenqal_student_id],
+      ['code',obj.student_code],['telegram',obj.telegram_user_id]
+    ]){
+      if(value==null||String(value).trim()==='')continue;
+      const key=type+':'+String(value).trim().toLowerCase();
+      if(!result.includes(key))result.push(key);
+    }
+    return result;
   }
 
-  function v741StudentKeys(obj={}){
-    const out=[];
-    for(const value of [
-      obj.student_id,
-      obj.id,
-      obj.cenqal_student_id,
-      obj.student_code,
-      obj.telegram_user_id
-    ]){
-      const k=v741StudentKey(value);
-      if(k && !out.includes(k))out.push(k);
-    }
-    return out;
+  function v741Number(value){
+    if(value==null||value===''||typeof value==='boolean')return null;
+    const n=Number(value);
+    return Number.isFinite(n)?n:null;
+  }
+
+  function v741Matches(a,b){
+    const keys=v741StudentKeys(a);
+    return v741StudentKeys(b).some(k=>keys.includes(k));
   }
 
   function v741ResetCacheIfCourseChanged(){
@@ -54,6 +60,7 @@
       v741WorkspaceCache.clear();
       v741EconomyRows=[];
       v741RecoveredByStudent=new Map();
+      v741Generation++;
     }
   }
 
@@ -91,60 +98,29 @@
   }
 
   function v741OfficialEx1FromWorkspace(workspace){
-    const grades=Array.isArray(workspace?.analytics?.grades)
-      ?workspace.analytics.grades
-      :[];
-
-    const candidates=grades.filter(g=>{
-      const exact=[
-        g.item_code,
-        g.activity_code,
-        g.exam_code,
-        g.source_code
-      ].some(v=>String(v||'').trim().toUpperCase()===V741_EXAM_CODE);
-
-      if(exact)return true;
-
-      const text=[
-        g.item_code,
-        g.item_title,
-        g.activity_code,
-        g.activity_title,
-        g.source_code,
-        g.source_type
-      ].map(v=>String(v||'').toUpperCase()).join(' ');
-
-      return /(^|[^A-Z0-9])EX\s*0?1([^A-Z0-9]|$)/.test(text);
-    });
-
-    const valid=candidates
-      .map(g=>({
-        row:g,
-        score:Number(
-          g.effective_score ??
-          g.score_out_of_10 ??
-          g.score ??
-          g.grade
-        ),
-        time:new Date(g.updated_at||g.created_at||0).getTime()||0
-      }))
-      .filter(x=>Number.isFinite(x.score)&&x.score>=0&&x.score<=10)
-      .sort((a,b)=>b.time-a.time);
-
+    const grades=Array.isArray(workspace?.analytics?.grades)?workspace.analytics.grades:[];
+    // Un código inequívoco; no basta que el título mencione EX1.
+    const matches=grades.filter(g=>[g.item_code,g.activity_code,g.exam_code]
+      .some(v=>String(v??'').trim().toUpperCase()==='EX1'));
+    const valid=matches.map(g=>({
+      row:g,score:v741Number(g.effective_score??g.score_out_of_10??g.score??g.grade),
+      time:Date.parse(g.updated_at||g.created_at||'')||0
+    })).filter(x=>x.score!==null&&x.score>=0&&x.score<=10);
     if(!valid.length)return null;
-
-    return {
-      score:valid[0].score,
-      row:valid[0].row
-    };
+    // Si existen notas oficiales incompatibles, no decidir automáticamente.
+    if(new Set(valid.map(x=>x.score)).size>1)return {ambiguous:true};
+    valid.sort((a,b)=>b.time-a.time);
+    return {score:valid[0].score,row:valid[0].row};
   }
 
   async function v741LoadWorkspaces(force=false){
     v741ResetCacheIfCourseChanged();
+    const requestCourse=v741CourseKey(),requestGeneration=v741Generation;
     if(!state.students?.length){
       await loadStudents(force).catch(()=>null);
     }
 
+    if(requestCourse!==v741CourseKey()||requestGeneration!==v741Generation)return [];
     const students=(state.students||[]).filter(s=>s.active!==false);
     const workspaces=await v741MapLimit(
       students,
@@ -152,6 +128,7 @@
       async s=>({student:s,workspace:await v741WorkspaceForStudent(s,force)})
     );
 
+    if(requestCourse!==v741CourseKey()||requestGeneration!==v741Generation)return [];
     const recovered=new Map();
     const economy=[];
 
@@ -160,7 +137,7 @@
       const w=item.workspace||{};
       const official=v741OfficialEx1FromWorkspace(w);
 
-      if(official){
+      if(official&&!official.ambiguous){
         for(const key of v741StudentKeys(s)){
           recovered.set(key,official);
         }
@@ -208,6 +185,7 @@
       });
     }
 
+    if(requestCourse!==v741CourseKey()||requestGeneration!==v741Generation)return [];
     v741RecoveredByStudent=recovered;
     v741EconomyRows=economy;
     return workspaces;
@@ -222,8 +200,8 @@
 
   function v741ExamScoreField(row){
     for(const key of ['exam_score','score_out_of_10','exam_average','score']){
-      const v=Number(row?.[key]);
-      if(Number.isFinite(v)&&v>=0&&v<=10)return {key,value:v};
+      const v=v741Number(row?.[key]);
+      if(v!==null&&v>=0&&v<=10)return {key,value:v};
     }
     return null;
   }
@@ -545,6 +523,7 @@
       v741WorkspaceCache.clear();
       v741EconomyRows=[];
       v741RecoveredByStudent=new Map();
+      v741Generation++;
       return result;
     };
   }
