@@ -264,6 +264,95 @@
     v741TeacherEx1Status='ocho alumnos conciliados con los registros de EX1';
   }
 
+
+  // Gráfica Gym/Examen: EX1 comunicado por la profesora (8 x 10/10),
+  // distinguible de las notas ya persistidas en CENQAL. Sólo lectura.
+  const v741BaseChart=v69Chart;
+  function v741TeacherChartReady(){
+    return v741TeacherEx1Course===v741CourseKey() &&
+      v741TeacherEx1Status==='ocho alumnos conciliados con los registros de EX1';
+  }
+
+  function v741ChartFootnote(canvasId,show,individual=false){
+    const canvas=document.getElementById(canvasId);
+    if(!canvas||!canvas.parentElement)return;
+    const id=individual?'v741StudentExamChartNote':'v741GroupExamChartNote';
+    let note=document.getElementById(id);
+    if(!show){
+      if(note)note.remove();
+      return;
+    }
+    if(!note){
+      note=document.createElement('div');
+      note.id=id;
+      note.className='note';
+      note.style.cssText='margin-top:10px;padding:9px 12px;font-size:13px;line-height:1.5';
+      canvas.parentElement.appendChild(note);
+    }
+    note.textContent=individual
+      ?'EX1: 10/10 comunicado por la profesora. Nota pendiente de registro oficial; no modifica PP ni la media académica almacenada.'
+      :'EX1: nota media comunicada por la profesora, 10/10 (8 alumnos evaluados). Se representa como serie independiente; pendiente de registro oficial en CENQAL. Gonzalo no está dado de alta. No modifica PP.';
+  }
+
+  function v741OverlayTeacherExamOnChart(config,canvasId){
+    if(!v741TeacherChartReady() || !config?.data?.datasets || !Array.isArray(config.data.labels)){
+      v741ChartFootnote(canvasId,false,canvasId==='studentTopicChart');
+      return config;
+    }
+    const individual=canvasId==='studentTopicChart';
+    if(canvasId!=='groupSummaryChart'&&!individual)return config;
+
+    const student=individual ? {
+      ...(state.studentLearning?.student||{}),
+      student_id:state.currentStudentId
+    } : null;
+    const record=individual ? (v741TeacherEx1For(student)||v741RecoveryFor(student)) : null;
+    const show=!individual || (record?.score===10);
+    if(!show){
+      v741ChartFootnote(canvasId,false,individual);
+      return config;
+    }
+    const t1index=config.data.labels.findIndex(x=>String(x).trim().toUpperCase()==='T1');
+    if(t1index<0){
+      v741ChartFootnote(canvasId,false,individual);
+      return config;
+    }
+
+    // No cambiar state.learning ni state.studentLearning. Clonar solo el gráfico.
+    const datasets=config.data.datasets.map(x=>({...x,data:Array.isArray(x.data)?[...x.data]:x.data}));
+    for(const ds of datasets){
+      const label=String(ds.label||'').trim().toLowerCase();
+      if(label==='nota media examen'||label==='examen'){
+        // La evidencia EX1 técnica era defectuosa: no tratarla como oficial.
+        if(Array.isArray(ds.data))ds.data[t1index]=null;
+        ds.label=individual?'Examen registrado':'Nota media examen registrada';
+      }
+    }
+    const teacherPoint=config.data.labels.map((_,i)=>i===t1index?10:null);
+    datasets.push({
+      type:'line',
+      label:individual?'EX1 · 10/10 docente (sin guardar)':
+        'EX1 · 10/10 docente, 8 alumnos (sin guardar)',
+      data:teacherPoint,
+      yAxisID:'y2',
+      showLine:false,
+      pointStyle:'rectRot',
+      pointRadius:8,
+      pointHoverRadius:10,
+      borderWidth:3,
+      borderColor:'#b45309',
+      backgroundColor:'#f59e0b',
+      tension:0
+    });
+    v741ChartFootnote(canvasId,true,individual);
+    return {...config,data:{...config.data,datasets}};
+  }
+
+  v69Chart=function(key,canvasId,config){
+    const modified=v741OverlayTeacherExamOnChart(config,canvasId);
+    return v741BaseChart(key,canvasId,modified);
+  };
+
   function v741ExamScoreField(row){
     for(const key of ['exam_score','score_out_of_10','exam_average','score']){
       const v=v741Number(row?.[key]);
@@ -827,8 +916,16 @@
       if(student)await v741WorkspaceForStudent(student,false);
       if(!v741RecoveredByStudent.size)await v741LoadWorkspaces(false);
       if(course!==v741CourseKey()||String(state.currentStudentId)!==String(sid))return result;
+      // Si se abre la ficha individual antes de Learning Analytics, obtener
+      // también la anotación docente para representarla en su gráfica.
+      if(v741TeacherEx1Course!==course){
+        try{await v741PrepareTeacherEx1(false)}
+        catch(e){console.warn('EX1 docente individual:',e)}
+      }
+      if(course!==v741CourseKey()||String(state.currentStudentId)!==String(sid))return result;
       v741PatchStudentLearning(state.studentLearning,sid);
       renderStudentLearningAnalytics();
+      v741RenderOfficialExamInStudentCard();
     }catch(e){
       console.warn('CENQAL v74.1 individual EX1 recovery:',e);
     }
