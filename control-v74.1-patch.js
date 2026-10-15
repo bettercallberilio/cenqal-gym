@@ -146,41 +146,21 @@
         }
       }
 
-      const events=Array.isArray(w.gamification_events)?w.gamification_events:[];
-      const earned=events.reduce(
-        (sum,e)=>sum+Math.max(0,Number(e.oganeson_delta||0)),
-        0
-      );
-      const spent=events.reduce(
-        (sum,e)=>sum+Math.abs(Math.min(0,Number(e.oganeson_delta||0))),
-        0
-      );
-      const ledger=events.reduce(
-        (sum,e)=>sum+Number(e.oganeson_delta||0),
-        0
-      );
-
-      const game=(state.game||[]).find(g=>{
-        const sk=v741StudentKeys(s);
-        return v741StudentKeys(g).some(k=>sk.includes(k));
-      })||{};
-
-      const balance=Number(
-        w.gamification_profile?.oganeson_balance ??
-        game.oganeson_balance ??
-        0
-      );
-
+      const events=Array.isArray(w.gamification_events)?w.gamification_events:null;
+      const deltas=events?.map(e=>v741Number(e.oganeson_delta))||[];
+      const hasLedger=events!==null && deltas.every(v=>v!==null);
+      const earned=hasLedger?deltas.reduce((n,v)=>n+Math.max(0,v),0):null;
+      const spent=hasLedger?deltas.reduce((n,v)=>n+Math.max(0,-v),0):null;
+      const ledger=hasLedger?earned-spent:null;
+      const game=(state.game||[]).find(g=>v741Matches(s,g))||{};
+      const balance=v741Number(w.gamification_profile?.oganeson_balance??game.oganeson_balance);
+      const complete=!w.__v741_error && hasLedger && balance!==null;
       economy.push({
         student_id:studentIdOf(s),
         student_code:s.student_code||w.student?.student_code||game.student_code||'',
         student_name:s.full_name||studentName(s)||game.student_name||'',
-        earned,
-        spent,
-        balance,
-        ledger,
-        movements:events.length,
-        coherent:Math.abs((earned-spent)-balance)<0.000001,
+        earned,spent,balance,ledger,movements:events?.length??null,complete,
+        coherent:complete?Math.abs(ledger-balance)<0.000001:null,
         error:w.__v741_error||''
       });
     }
@@ -362,15 +342,16 @@
     const hint=document.getElementById('v741EconomyHint');
     if(!metrics||!body)return;
 
-    const totalEarned=rows.reduce((s,x)=>s+Number(x.earned||0),0);
-    const totalSpent=rows.reduce((s,x)=>s+Number(x.spent||0),0);
-    const totalBalance=rows.reduce((s,x)=>s+Number(x.balance||0),0);
-    const issues=rows.filter(x=>x.error||!x.coherent).length;
+    const verified=rows.filter(x=>x.complete);
+    const totalEarned=verified.reduce((s,x)=>s+x.earned,0);
+    const totalSpent=verified.reduce((s,x)=>s+x.spent,0);
+    const totalBalance=verified.reduce((s,x)=>s+x.balance,0);
+    const issues=rows.filter(x=>!x.complete||!x.coherent).length;
 
     metrics.innerHTML=[
-      metric('🪙 Og ganados',totalEarned,'acumulado del grupo'),
-      metric('🛒 Og gastados',totalSpent,'canjes y movimientos negativos'),
-      metric('👛 Saldo actual',totalBalance,'moneda disponible'),
+      metric('🪙 Og ganados',totalEarned,'acumulado verificable: '+verified.length+' alumnos'),
+      metric('🛒 Og gastados',totalSpent,'movimientos negativos verificables'),
+      metric('👛 Saldo actual',totalBalance,'saldos verificables'),
       metric(issues?'⚠️ Revisar':'✅ Coherencia',issues,issues?'filas con error o diferencia':'ganados − gastados = saldo')
     ].join('');
 
@@ -379,14 +360,16 @@
         <td><b>${i+1}</b></td>
         <td><b>${esc(x.student_code||'—')}</b></td>
         <td>${esc(x.student_name||'—')}</td>
-        <td><b>${esc(x.earned)}</b></td>
-        <td>${esc(x.spent)}</td>
-        <td><b>${esc(x.balance)}</b></td>
-        <td>${esc(x.movements)}</td>
+        <td><b>${x.earned==null?'—':esc(x.earned)}</b></td>
+        <td>${x.spent==null?'—':esc(x.spent)}</td>
+        <td><b>${x.balance==null?'—':esc(x.balance)}</b></td>
+        <td>${x.movements==null?'—':esc(x.movements)}</td>
         <td>${
           x.error
-            ?`<span class="status bad" title="${esc(x.error)}">Error de lectura</span>`
-            :x.coherent
+            ?'<span class="status bad">Error de lectura</span>'
+            :!x.complete
+              ?'<span class="status warn">Datos incompletos</span>'
+              :x.coherent
               ?'<span class="status ok">✓ Coherente</span>'
               :`<span class="status bad">${esc((x.earned-x.spent)-x.balance)} Og de diferencia</span>`
         }</td>
