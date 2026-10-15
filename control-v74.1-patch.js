@@ -193,78 +193,66 @@
     return code===V741_EXAM_CODE;
   }
 
+  const v741ProcessedLearning=new WeakSet();
   function v741ApplyRecoveredEx1ToLearning(d){
-    if(!d||!v741RecoveredByStudent.size)return d;
-
+    if(!d || v741ProcessedLearning.has(d))return d;
+    v741ProcessedLearning.add(d);
     const changes=[];
     const examGym=Array.isArray(d.exam_gym)?d.exam_gym:[];
-
+    let pending=0;
     for(const row of examGym){
       if(!v741IsTopic1(row))continue;
       const rec=v741RecoveryFor(row);
-      const sf=v741ExamScoreField(row);
-      if(!rec||!sf)continue;
-
-      const old=sf.value;
-      const next=Number(rec.score);
-      if(!Number.isFinite(next)||old===next)continue;
-
-      row[sf.key]=next;
-      row.exam_score_source='cenqal_grade_entries';
-      row.exam_score_recovered=true;
-      changes.push({row,old,next,delta:next-old});
-    }
-
-    for(const s of (d.students||[])){
-      const rec=v741RecoveryFor(s);
       if(!rec)continue;
-
-      const own=changes.find(ch=>{
-        const a=v741StudentKeys(ch.row);
-        return v741StudentKeys(s).some(k=>a.includes(k));
-      });
-      if(!own)continue;
-
-      const count=Number(s.exam_count||0);
-      const avg=Number(s.exam_average);
-      if(count>0&&Number.isFinite(avg)){
-        s.exam_average=Math.max(0,Math.min(10,(avg*count-own.old+own.next)/count));
+      row.exam_score_official=rec.score;
+      row.exam_score_source_official='cenqal_grade_entries';
+      const sf=v741ExamScoreField(row);
+      if(!sf || examGym.filter(x=>v741IsTopic1(x)&&v741Matches(x,row)).length!==1){
+        row.exam_score_pending_review=true;
+        pending++;
+        continue;
       }
-
-      const passed=Number(s.exam_passed);
-      if(Number.isFinite(passed)){
-        s.exam_passed=passed+(own.old<5&&own.next>=5?1:0)-(own.old>=5&&own.next<5?1:0);
+      // Se conserva la nota técnica y se añade explícitamente la oficial.
+      row.exam_score_technical=sf.value;
+      changes.push({row,old:sf.value,next:rec.score,delta:rec.score-sf.value});
+    }
+    const processed=new Set();
+    for(const change of changes){
+      const student=(d.students||[]).find(x=>v741Matches(x,change.row));
+      if(!student || processed.has(student)){pending++;continue}
+      processed.add(student);
+      student.exam1_official_score=change.next;
+      student.exam1_technical_score=change.old;
+      student.exam1_score_source='cenqal_grade_entries';
+      const count=v741Number(student.exam_count), avg=v741Number(student.exam_average);
+      if(count===null||count<=0||avg===null){pending++;continue}
+      student.exam_average=Math.max(0,Math.min(10,avg+change.delta/count));
+      const passed=v741Number(student.exam_passed);
+      if(passed!==null){
+        student.exam_passed=Math.max(0,Math.min(count,
+          passed+(change.old<5&&change.next>=5?1:0)-(change.old>=5&&change.next<5?1:0)));
       }
-
-      s.exam1_official_score=own.next;
-      s.exam1_score_source='cenqal_grade_entries';
     }
-
-    const topic1=(d.topics||[]).find(v741IsTopic1);
-    if(topic1&&changes.length){
-      const count=Number(topic1.exam_count||0);
-      const avg=Number(topic1.exam_average);
-      const delta=changes.reduce((sum,x)=>sum+x.delta,0);
-      if(count>0&&Number.isFinite(avg)){
-        topic1.exam_average=Math.max(0,Math.min(10,avg+delta/count));
-      }
-      topic1.exam_score_source='cenqal_grade_entries';
+    // Si la fila técnica no existe, no se inventan denominadores ni medias.
+    const knownStudents=(d.students||[]).filter(x=>v741RecoveryFor(x)).length;
+    pending+=Math.max(0,knownStudents-processed.size);
+    const topic=(d.topics||[]).find(v741IsTopic1);
+    if(topic&&changes.length){
+      const count=v741Number(topic.exam_count),avg=v741Number(topic.exam_average);
+      if(count!==null&&count>0&&avg!==null){
+        topic.exam_average=Math.max(0,Math.min(10,avg+
+          changes.reduce((sum,x)=>sum+x.delta,0)/count));
+        topic.exam_score_source='reconciliacion_lectura_ex1';
+      }else pending++;
     }
-
-    const weighted=(d.students||[])
-      .filter(s=>Number(s.exam_count||0)>0&&Number.isFinite(Number(s.exam_average)))
-      .reduce((acc,s)=>{
-        const c=Number(s.exam_count||0);
-        acc.sum+=Number(s.exam_average)*c;
-        acc.count+=c;
-        return acc;
-      },{sum:0,count:0});
-
-    if(d.summary&&weighted.count){
-      d.summary.exam_average=weighted.sum/weighted.count;
+    if(changes.length&&d.summary){
+      const weighted=(d.students||[]).filter(x=>v741Number(x.exam_count)>0 && v741Number(x.exam_average)!==null)
+        .reduce((acc,x)=>{const c=Number(x.exam_count);acc.sum+=Number(x.exam_average)*c;acc.count+=c;return acc},{sum:0,count:0});
+      if(weighted.count)d.summary.exam_average=weighted.sum/weighted.count;
     }
-
-    d.__v741_recovered_ex1=changes.length;
+    d.__v741_recovered_ex1=changes.filter(x=>x.delta!==0).length;
+    d.__v741_checked_ex1=changes.length;
+    d.__v741_pending_ex1=pending;
     return d;
   }
 
@@ -280,10 +268,11 @@
       const anchor=view.querySelector('.metrics');
       if(anchor)anchor.before(note);
     }
-    const count=Number(state.learning?.__v741_recovered_ex1||0);
-    note.innerHTML=count
-      ?`✅ <b>EX1 recuperado:</b> ${count} resultados se muestran con la calificación oficial registrada en CENQAL. Los intentos técnicos originales se conservan sin modificarse.`
-      :'ℹ️ EX1: no se ha aplicado ninguna sustitución de nota oficial en esta carga.';
+    const checked=Number(state.learning?.__v741_checked_ex1||0);
+    const changed=Number(state.learning?.__v741_recovered_ex1||0);
+    const pending=Number(state.learning?.__v741_pending_ex1||0);
+    note.textContent='EX1 · '+checked+' correspondencias verificadas, '+changed+
+      ' ajustes de lectura y '+pending+' pendientes de revisión. Los intentos técnicos se conservan sin modificar.';
   }
 
   function v741EnsureEconomySection(){
