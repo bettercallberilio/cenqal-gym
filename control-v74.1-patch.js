@@ -19,6 +19,25 @@
   const _loadStudentLearningAnalytics = loadStudentLearningAnalytics;
   const _renderStudentDetail = renderStudentDetail;
   const _clearCourseScopedState = typeof clearCourseScopedState === 'function' ? clearCourseScopedState : null;
+  // Modo auditoría: sólo se permiten consultas RPC. No altera ningún registro.
+  const v741ReadOnlyRpc=new Set([
+    'cenqal_control_snapshot','cenqal_control_courses','cenqal_control_students',
+    'cenqal_control_class_progress','cenqal_control_student_catalog',
+    'cenqal_control_student_workspace','cenqal_control_deliveries_v67',
+    'cenqal_control_calendar','cenqal_control_challenges','cenqal_control_exams',
+    'cenqal_control_evidences','cenqal_control_audit_log',
+    'cenqal_control_gamification','cenqal_control_learning_analytics_v69',
+    'cenqal_control_learning_export_v69','cenqal_control_student_learning_v69',
+    'cenqal_control_new_course_preview'
+  ]);
+  const v741OriginalRpc=rpc;
+  rpc=async function(name,body={}){
+    if(!v741ReadOnlyRpc.has(String(name))){
+      throw new Error('Rama v74.1 de solo lectura: no se permiten ajustes ni modificaciones.');
+    }
+    return v741OriginalRpc(name,body);
+  };
+
 
   function v741CourseKey(){
     return String(
