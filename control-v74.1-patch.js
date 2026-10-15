@@ -370,47 +370,41 @@
     }
   }
 
-  function v741PatchStudentLearning(d, sid){
-    if(!d)return;
-    const candidate={student_id:sid,...(d.student||{}),...(d.summary||{})};
-    const rec=v741RecoveryFor(candidate);
+  const v741ProcessedStudents=new WeakSet();
+  function v741PatchStudentLearning(d,sid){
+    if(!d || v741ProcessedStudents.has(d))return;
+    v741ProcessedStudents.add(d);
+    const rec=v741RecoveryFor({student_id:sid,...(d.student||{})});
     if(!rec)return;
-
+    d.__v741_official_ex1=rec.score;
     const t1=(d.topics||[]).find(v741IsTopic1);
     const sf=v741ExamScoreField(t1||{});
     if(sf){
-      const old=sf.value;
-      const next=Number(rec.score);
-      if(old!==next){
-        t1[sf.key]=next;
+      t1.exam_score_technical=sf.value;
+      t1.exam_score_official=rec.score;
+      const count=v741Number(d.summary?.exam_count),avg=v741Number(d.summary?.exam_average);
+      if(count!==null&&count>0&&avg!==null){
+        d.summary.exam_average=Math.max(0,Math.min(10,avg+(rec.score-sf.value)/count));
+        const passed=v741Number(d.summary?.exam_passed);
+        if(passed!==null)d.summary.exam_passed=Math.max(0,Math.min(count,
+          passed+(sf.value<5&&rec.score>=5?1:0)-(sf.value>=5&&rec.score<5?1:0)));
+        t1[sf.key]=rec.score;
         t1.exam_score_source='cenqal_grade_entries';
-        const count=Number(d.summary?.exam_count||0);
-        const avg=Number(d.summary?.exam_average);
-        if(count>0&&Number.isFinite(avg)){
-          d.summary.exam_average=Math.max(0,Math.min(10,(avg*count-old+next)/count));
-        }
-        const passed=Number(d.summary?.exam_passed);
-        if(Number.isFinite(passed)){
-          d.summary.exam_passed=passed+(old<5&&next>=5?1:0)-(old>=5&&next<5?1:0);
-        }
+        d.__v741_recovered_ex1=true;
+      }else d.__v741_pending_ex1=true;
+    }else d.__v741_pending_ex1=true;
+    for(const exam of (d.exams||[])){
+      if(v741IsTopic1(exam)){
+        exam.exam_score_official=rec.score;
+        exam.exam_score_source_official='cenqal_grade_entries';
       }
     }
-
-    for(const e of (d.exams||[])){
-      if(!v741IsTopic1(e))continue;
-      const esf=v741ExamScoreField(e);
-      if(esf){
-        e[esf.key]=Number(rec.score);
-        e.exam_score_source='cenqal_grade_entries';
-      }
-    }
-    d.__v741_recovered_ex1=true;
   }
 
   function v741RenderOfficialExamInStudentCard(){
     const d=state.studentDetail||{};
     const rec=v741OfficialEx1FromWorkspace(d);
-    if(!rec)return;
+    if(!rec||rec.ambiguous)return;
 
     const container=document.getElementById('studentSections');
     if(!container)return;
@@ -443,10 +437,20 @@
 
   loadGame=async function(force=false){
     v741EnsureEconomySection();
+    const course=v741CourseKey();
     const result=await _loadGame(force);
+    if(course!==v741CourseKey())return result;
     try{
       await v741LoadWorkspaces(force);
+      if(course!==v741CourseKey())return result;
       v741RenderEconomy();
+      // Esta rama es de comprobación: los ajustes PP/Og quedan deshabilitados.
+      const body=document.getElementById('gameBody');
+      body?.querySelectorAll('button').forEach(b=>{
+        b.disabled=true;
+        b.title='Bloqueado en revisión v74.1: no registrar movimientos académicos.';
+        b.textContent='Solo consulta';
+      });
     }catch(e){
       const body=document.getElementById('v741EconomyBody');
       if(body)body.innerHTML=`<tr><td colspan="8" class="empty">${esc(e.message||e)}</td></tr>`;
@@ -455,9 +459,12 @@
   };
 
   loadLearning=async function(force=false){
+    const course=v741CourseKey();
     const result=await _loadLearning(force);
+    if(course!==v741CourseKey())return result;
     try{
       await v741LoadWorkspaces(force);
+      if(course!==v741CourseKey())return result;
       v741ApplyRecoveredEx1ToLearning(state.learning);
       renderLearning();
       v741EnsureLearningNotice();
@@ -469,11 +476,14 @@
   };
 
   loadStudentLearningAnalytics=async function(sid){
+    const course=v741CourseKey();
     const result=await _loadStudentLearningAnalytics(sid);
+    if(course!==v741CourseKey()||String(state.currentStudentId)!==String(sid))return result;
     try{
       const student=(state.students||[]).find(s=>String(studentIdOf(s))===String(sid));
       if(student)await v741WorkspaceForStudent(student,false);
       if(!v741RecoveredByStudent.size)await v741LoadWorkspaces(false);
+      if(course!==v741CourseKey()||String(state.currentStudentId)!==String(sid))return result;
       v741PatchStudentLearning(state.studentLearning,sid);
       renderStudentLearningAnalytics();
     }catch(e){
@@ -500,5 +510,23 @@
     };
   }
 
+  window.v741AppendOfficialEx1Audit=function(wb,anonymized=false,anonMap=null,sid=null){
+    const rows=[];
+    const students=sid==null?(state.students||[]):
+      (state.students||[]).filter(x=>String(studentIdOf(x))===String(sid));
+    for(const student of students){
+      const rec=v741RecoveryFor(student);
+      const code=String(student.student_code||'');
+      const alias=anonMap?.get(code)||'ANON';
+      rows.push({
+        codigo:anonymized?alias:code,
+        alumno:anonymized?alias:studentName(student),
+        ex1_oficial:rec?.score??'',
+        estado:rec?'identificada':'sin_nota_inequivoca_o_conflicto',
+        nota:'Solo lectura. Los registros técnicos originales figuran en EXAMENES / GYM_EXAMEN.'
+      });
+    }
+    if(typeof v69AddSheet==='function')v69AddSheet(wb,'EX1_OFICIAL',rows,[22,32,22,34,72]);
+  };
   v741EnsureEconomySection();
 })();
