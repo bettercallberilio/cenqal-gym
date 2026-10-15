@@ -224,6 +224,11 @@
       p_token:TOKEN,p_course_id:v69CourseId()
     });
     if(course!==v741CourseKey()||generation!==v741Generation)return;
+    const sourceYear=String(raw?.course?.academic_year||'').trim();
+    if(sourceYear && !/^2026[-/](2027|27)$/.test(sourceYear)){
+      v741TeacherEx1Status='curso exportado no coincide';
+      return;
+    }
     const students=(state.students||[]).filter(s=>s.student_code);
     const roster=new Map(students.map(s=>[String(s.student_code).trim().toUpperCase(),s]));
     const codes=new Set((Array.isArray(raw?.exams)?raw.exams:[])
@@ -352,8 +357,10 @@
     const checked=Number(state.learning?.__v741_checked_ex1||0);
     const changed=Number(state.learning?.__v741_recovered_ex1||0);
     const pending=Number(state.learning?.__v741_pending_ex1||0);
-    note.textContent='EX1 · '+checked+' correspondencias verificadas, '+changed+
-      ' ajustes de lectura y '+pending+' pendientes de revisión. Los intentos técnicos se conservan sin modificar.';
+    note.textContent='EX1 · 10/10 comunicado por la profesora para ocho alumnos. Estado: '+
+      v741TeacherEx1Status+'. Nota visible sólo en pruebas y sin registrar en CENQAL. '+
+      checked+' correspondencias oficiales verificadas, '+changed+
+      ' ajustes de lectura, '+pending+' pendientes de revisión. No se modifican intentos ni PP.';
   }
 
 
@@ -427,7 +434,7 @@
     const acc=v741Number(x.gym_accuracy_pct);
     const users=v741Number(x.gym_users)||0;
     const status=v741TopicSelected===1
-      ?'EX1: calificación oficial de carga manual. El intento técnico no es fiable y no se modifica.'
+      ?'EX1: ocho alumnos obtuvieron 10/10 según la profesora. Esta versión sólo muestra la información docente; no representa una calificación ya registrada en CENQAL y no modifica medias ni PP.'
       :v741TopicSelected===2
         ?(v741Number(x.exam_count)>0
           ?'EX2: hay registros de examen. Verificar las notas oficiales antes de utilizarlas para PP.'
