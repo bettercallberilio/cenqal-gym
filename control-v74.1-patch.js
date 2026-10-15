@@ -367,7 +367,9 @@
     const status=v741TopicSelected===1
       ?'EX1: calificación oficial de carga manual. El intento técnico no es fiable y no se modifica.'
       :v741TopicSelected===2
-        ?'EX2: pendiente de realización. Aún no procede mostrar calificaciones ni PP.'
+        ?(v741Number(x.exam_count)>0
+          ?'EX2: hay registros de examen. Verificar las notas oficiales antes de utilizarlas para PP.'
+          :'EX2: pendiente de realización. No se muestran calificaciones inexistentes.')
         :'Examen: sólo se muestran notas registradas y verificadas, sin estimaciones.';
     const mastery=v741Percent(mast,pract);
     panel.innerHTML=[
