@@ -294,6 +294,46 @@
       ' ajustes de lectura y '+pending+' pendientes de revisión. Los intentos técnicos se conservan sin modificar.';
   }
 
+  function v741ShowEx1Audit(){
+    const view=document.getElementById('view-learning');
+    if(!view)return;
+    let card=document.getElementById('v741Ex1Audit');
+    if(!card){
+      card=document.createElement('section');
+      card.id='v741Ex1Audit';
+      card.className='card';
+      card.style.marginBottom='14px';
+      const analytics=view.querySelector('.analyticsGrid');
+      if(analytics)analytics.before(card);
+      else view.appendChild(card);
+    }
+    const data=state.learning||{};
+    const gym=data.exam_gym||[];
+    const rows=(state.students||[]).filter(s=>s.active!==false).map(s=>{
+      const rec=v741RecoveryFor(s);
+      const matches=gym.filter(x=>v741IsTopic1(x)&&v741Matches(s,x));
+      const technical=matches.length===1?v741ExamScoreField(matches[0]):null;
+      const score=rec?.score;
+      const label=!rec?'Sin registro inequívoco':
+        matches.length===0?'Oficial disponible · sin fila técnica':
+        matches.length>1?'Revisar múltiples intentos':
+        technical?'Comparación disponible':'Nota técnica no verificable';
+      return {s,score,technical:technical?.value??null,label};
+    });
+    card.innerHTML=`
+      <h3>📝 EX1 · consulta de calificación oficial</h3>
+      <p class="subtle">Datos académicos y evidencias técnicas por separado. Si faltan fuentes, no se inventan notas ni se corrigen PP.</p>
+      <div class="tablewrap"><table class="table">
+        <thead><tr><th>Alumno</th><th>EX1 oficial</th><th>Intento técnico</th><th>Revisión</th></tr></thead>
+        <tbody>${rows.map(x=>`<tr>
+          <td>${esc(x.s.full_name||x.s.student_code||'—')}</td>
+          <td><b>${x.score==null?'—':esc(Number(x.score).toFixed(2))+'/10'}</b></td>
+          <td>${x.technical==null?'—':esc(Number(x.technical).toFixed(2))+'/10'}</td>
+          <td>${esc(x.label)}</td>
+        </tr>`).join('')||'<tr><td colspan="4">Sin alumnos cargados.</td></tr>'}</tbody>
+      </table></div>`;
+  }
+
   function v741EnsureEconomySection(){
     const view=document.getElementById('view-game');
     if(!view||document.getElementById('v741EconomySection'))return;
@@ -463,6 +503,8 @@
       await v741LoadWorkspaces(force);
       if(course!==v741CourseKey())return result;
       v741RenderEconomy();
+      const warning=document.getElementById('v741EconomyHint');
+      if(warning)warning.textContent+=' Los PP de referencia proceden de pruebas técnicas: las correcciones permanecen bloqueadas durante la auditoría.';
       // Esta rama es de comprobación: los ajustes PP/Og quedan deshabilitados.
       const body=document.getElementById('gameBody');
       body?.querySelectorAll('button').forEach(b=>{
@@ -487,6 +529,7 @@
       v741ApplyRecoveredEx1ToLearning(state.learning);
       renderLearning();
       v741EnsureLearningNotice();
+      v741ShowEx1Audit();
     }catch(e){
       console.warn('CENQAL v74.1 EX1 recovery:',e);
       v741EnsureLearningNotice();
