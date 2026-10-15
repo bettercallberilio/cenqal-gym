@@ -3666,6 +3666,7 @@ async function exportLearningExcel(anonymized=false){
     let alerts=v69AlertRows(state.learning?.alerts);if(anonymized)alerts=alerts.map(x=>v69AnonRow(x,map));v69AddSheet(wb,'SEMAFORO',alerts,Array(8).fill(20));
     v69AddSheet(wb,'RANKINGS',clean(students.map(x=>({student_code:x.student_code,full_name:x.full_name,pp_total:x.pp_total,pp_rank:x.pp_rank,gym_active_minutes:x.gym_active_minutes,gym_usage_rank:x.gym_usage_rank,gym_mastery_pct:x.gym_mastery_pct,gym_mastery_rank:x.gym_mastery_rank,knowledge_gain:x.knowledge_gain,improvement_rank:x.improvement_rank}))),Array(12).fill(18));
     v69AddSheet(wb,'DICCIONARIO',v69Dictionary(),[24,70]);
+    if(window.v741AppendOfficialEx1Audit)window.v741AppendOfficialEx1Audit(wb,anonymized,map);
     const year=String(raw.course?.academic_year||'curso').replace(/[^0-9A-Za-z_-]+/g,'_');XLSX.writeFile(wb,`CENQAL_Learning_Analytics_${year}${anonymized?'_ANON':''}.xlsx`);
     toast('Excel generado.');
   }catch(e){toast(e.message||'No se pudo generar el Excel.',true)}
@@ -3676,6 +3677,7 @@ function exportStudentLearningExcel(){
     const d=state.studentLearning;if(!d)return toast('Carga primero la ficha analítica.',true);const wb=v69Workbook(),s=d.student||{},sum=d.summary||{};
     v69AddSheet(wb,'RESUMEN',[{alumno:s.full_name,codigo:s.student_code,grupo:s.group_name,...sum}],[26,22,18,...Array(30).fill(16)]);
     v69AddSheet(wb,'TEMAS',d.topics||[],Array(12).fill(17));v69AddSheet(wb,'SESIONES_GYM',d.sessions||[],Array(22).fill(17));v69AddSheet(wb,'EXAMENES',d.exams||[],Array(18).fill(17));v69AddSheet(wb,'PRE_POST',[d.pre_post||{}],Array(24).fill(18));v69AddSheet(wb,'DICCIONARIO',v69Dictionary(),[24,70]);
+    if(window.v741AppendOfficialEx1Audit)window.v741AppendOfficialEx1Audit(wb,false,null,state.currentStudentId);
     XLSX.writeFile(wb,`CENQAL_${String(s.student_code||'alumno').replace(/[^0-9A-Za-z_-]+/g,'_')}_Learning_Analytics.xlsx`);
   }catch(e){toast(e.message||'No se pudo exportar el alumno.',true)}
 }
@@ -3688,6 +3690,6 @@ function exportStudentLearningExcel(){
 boot();
   </script>
 
-<script src="./control-v74.1-patch.js?v=741"></script>
+<script src="./control-v74.1-patch.js?v=742"></script>
 </body>
 </html>
