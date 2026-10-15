@@ -294,6 +294,211 @@
       ' ajustes de lectura y '+pending+' pendientes de revisión. Los intentos técnicos se conservan sin modificar.';
   }
 
+
+  // Diagnóstico docente por tema. Lecturas RPC exclusivamente; nunca adjudica notas.
+  let v741TopicSelected=1;
+  const v741TopicDetailCache=new Map();
+  const v741TopicNames={
+    1:'Enlace químico y propiedades del agua',
+    2:'Química orgánica, grupos funcionales e hidratos de carbono',
+    3:'Aminoácidos y proteínas',
+    4:'Lípidos',
+    5:'Enzimas',
+    6:'Sistemas dispersos, disoluciones y termoquímica',
+    7:'Cinética, equilibrio químico y ácido-base',
+    8:'Oxidación-reducción y transferencia de electrones'
+  };
+  const v741Percent=(num,den)=>{
+    if(!Number.isFinite(num)||!Number.isFinite(den)||den<=0)return '—';
+    return (100*num/den).toFixed(1)+' %';
+  };
+
+  function v741RenderTopicDashboard(){
+    const view=document.getElementById('view-learning');
+    if(!view)return;
+    let panel=document.getElementById('v741TopicDashboard');
+    if(!panel){
+      panel=document.createElement('section');
+      panel.id='v741TopicDashboard';
+      panel.className='card';
+      panel.style.margin='14px 0';
+      const base=document.getElementById('learningTopics')?.closest('.card');
+      if(base)base.before(panel);
+      else view.appendChild(panel);
+      panel.innerHTML=[
+        '<div class="sectionTitle"><div><h3>🔎 Diagnóstico de aprendizaje por tema</h3>',
+        '<p>Acierto, cobertura, dominio, alumnos y dificultades. Sólo seguimiento docente.</p>',
+        '</div></div>',
+        '<div class="searchrow"><label for="v741TopicSelector">Tema</label>',
+        '<select id="v741TopicSelector" aria-label="Seleccionar tema">',
+        ...Array.from({length:8},(_,i)=>'<option value="'+(i+1)+'">T'+(i+1)+' · '+v741TopicNames[i+1]+'</option>'),
+        '</select>',
+        '<button class="btn" id="v741TopicLoadDetail" type="button">🔍 Ver dificultades y evolución</button></div>',
+        '<div id="v741TopicOverview"></div>',
+        '<div id="v741TopicDiagnostics" aria-live="polite"></div>'
+      ].join('');
+      panel.querySelector('#v741TopicSelector').addEventListener('change',event=>{
+        v741TopicSelected=Number(event.target.value)||1;
+        v741RenderTopicOverview();
+        const cached=v741TopicDetailCache.get(v741CourseKey());
+        if(cached)v741ShowTopicDetails(cached);
+        else document.getElementById('v741TopicDiagnostics').textContent=
+          'Pulsa «Ver dificultades y evolución» para obtener el detalle.';
+      });
+      panel.querySelector('#v741TopicLoadDetail').addEventListener('click',v741LoadTopicDetails);
+    }
+    const selector=panel.querySelector('#v741TopicSelector');
+    selector.value=String(v741TopicSelected);
+    v741RenderTopicOverview();
+    const cached=v741TopicDetailCache.get(v741CourseKey());
+    if(cached)v741ShowTopicDetails(cached);
+  }
+
+  function v741RenderTopicOverview(){
+    const panel=document.getElementById('v741TopicOverview');
+    if(!panel)return;
+    const topics=state.learning?.topics||[];
+    const x=topics.find(t=>Number(t.topic_number)===v741TopicSelected)||{};
+    const pract=v741Number(x.practiced_questions)||0;
+    const mast=v741Number(x.mastered_questions)||0;
+    const attempts=v741Number(x.gym_attempts)||0;
+    const acc=v741Number(x.gym_accuracy_pct);
+    const users=v741Number(x.gym_users)||0;
+    const status=v741TopicSelected===1
+      ?'EX1: calificación oficial de carga manual. El intento técnico no es fiable y no se modifica.'
+      :v741TopicSelected===2
+        ?'EX2: pendiente de realización. Aún no procede mostrar calificaciones ni PP.'
+        :'Examen: sólo se muestran notas registradas y verificadas, sin estimaciones.';
+    const mastery=v741Percent(mast,pract);
+    panel.innerHTML=[
+      '<div class="metrics grid" style="margin-top:12px">',
+      metric('👥 Alumnos en Gym',users,'usuarios distintos en T'+v741TopicSelected),
+      metric('🧠 Respuestas',attempts,'incluye repeticiones'),
+      metric('🎯 Precisión',acc===null?'—':acc.toFixed(1)+' %','aciertos/respuestas'),
+      metric('📚 Cobertura',pract,'preguntas-alumno practicadas'),
+      metric('✅ Dominio',mastery,mast+' dominadas de '+pract+' practicadas'),
+      '</div><p class="note" style="margin:12px 0">',
+      esc(status),
+      '</p><p class="analyticsHint">Un acierto aislado no equivale a dominio. La cobertura y el dominio se cuentan por pareja alumno–pregunta; no son 40 preguntas únicas del grupo.</p>'
+    ].join('');
+  }
+
+  async function v741LoadTopicDetails(){
+    const elem=document.getElementById('v741TopicDiagnostics');
+    const btn=document.getElementById('v741TopicLoadDetail');
+    if(!elem||!btn)return;
+    const course=v741CourseKey(),generation=v741Generation;
+    btn.disabled=true;
+    elem.textContent='Cargando respuestas, sesiones y dominio desde CENQAL…';
+    try{
+      const raw=await rpc('cenqal_control_learning_export_v69',{
+        p_token:TOKEN,p_course_id:v69CourseId()
+      });
+      if(course!==v741CourseKey()||generation!==v741Generation)return;
+      if(!raw||!Array.isArray(raw.gym_attempts))throw Error('No hay respuestas detalladas disponibles en la exportación.');
+      v741TopicDetailCache.set(course,raw);
+      v741ShowTopicDetails(raw);
+    }catch(e){
+      if(course===v741CourseKey())elem.textContent=
+        'No se ha podido consultar el detalle: '+String(e?.message||e);
+    }finally{btn.disabled=false}
+  }
+
+  function v741ShowTopicDetails(raw){
+    const el=document.getElementById('v741TopicDiagnostics');
+    if(!el)return;
+    const t=v741TopicSelected;
+    const rows=(raw.gym_attempts||[]).filter(r=>Number(r.topic_number)===t);
+    const ss=(raw.gym_sessions||[]).filter(r=>Number(r.topic_number)===t);
+    const mm=(raw.gym_mastery||[]).filter(r=>Number(r.topic_number)===t);
+    if(!rows.length){
+      el.innerHTML='<p class="note">Todavía no hay respuestas registradas para este tema. Sin actividad no se asigna ningún juicio de rendimiento.</p>';
+      return;
+    }
+    const map=new Map(),students=new Map(),sessions=new Map(),mastery=new Map();
+    for(const r of rows){
+      const question=String(r.question_id||r.question_code||'—');
+      const item=map.get(question)||{id:question,n:0,wrong:0,students:new Set()};
+      item.n++;
+      if(r.is_correct!==true)item.wrong++;
+      if(r.student_code!=null)item.students.add(String(r.student_code));
+      map.set(question,item);
+      const code=String(r.student_code||'SIN_CODIGO');
+      const a=students.get(code)||{code,answers:[],wrong:0};
+      a.answers.push(r);
+      if(r.is_correct!==true)a.wrong++;
+      students.set(code,a);
+    }
+    for(const r of ss){
+      const code=String(r.student_code||'SIN_CODIGO');
+      const st=sessions.get(code)||{n:0,active:0};
+      st.n++;
+      st.active+=Math.max(0,v741Number(r.active_minutes)||0);
+      sessions.set(code,st);
+    }
+    for(const r of mm){
+      const code=String(r.student_code||'SIN_CODIGO');
+      const m=mastery.get(code)||{practiced:0,mastered:0};
+      m.practiced++;
+      if(r.mastered===true)m.mastered++;
+      mastery.set(code,m);
+    }
+    const troubles=[...map.values()].filter(q=>q.n>=5&&q.wrong>=2)
+      .sort((a,b)=>b.wrong-a.wrong||b.wrong/b.n-a.wrong/a.n||b.n-a.n)
+      .slice(0,8);
+    const studentRows=[...students.values()].sort((a,b)=>b.answers.length-a.answers.length).map(st=>{
+      const m=mastery.get(st.code)||{practiced:0,mastered:0};
+      const se=sessions.get(st.code)||{n:0,active:0};
+      const count=st.answers.length,correct=count-st.wrong;
+      const ordered=[...st.answers].sort((a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||'')));
+      const half=Math.floor(ordered.length/2);
+      let change='—';
+      if(half>=5){
+        const first=ordered.slice(0,half),last=ordered.slice(-half);
+        const a=first.filter(x=>x.is_correct===true).length/half;
+        const b=last.filter(x=>x.is_correct===true).length/half;
+        const delta=Math.round((b-a)*100);
+        change=(delta>0?'+':'')+delta+' pp';
+      }
+      return {code:st.code,n:count,accuracy:v741Percent(correct,count),
+        coverage:m.practiced,mastered:m.mastered,mastery:v741Percent(m.mastered,m.practiced),
+        sessions:se.n,minutes:Math.round(se.active),change};
+    });
+    const groupMinutes=ss.reduce((sum,s)=>sum+Math.max(0,v741Number(s.active_minutes)||0),0);
+    const actualCorrect=rows.filter(r=>r.is_correct===true).length;
+    const statusCounts={};
+    ss.forEach(x=>{const status=String(x.status||'sin estado');statusCounts[status]=(statusCounts[status]||0)+1});
+    el.innerHTML=[
+      '<h4 style="margin:18px 0 8px">Evidencias del tema T'+t+'</h4>',
+      '<div class="metrics grid">',
+      metric('📆 Sesiones',ss.length,Object.entries(statusCounts).map(([k,v])=>k+': '+v).join(' · ')),
+      metric('⏱ Tiempo activo',Math.round(groupMinutes)+' min','suma de los registros disponibles'),
+      metric('✅ Aciertos',actualCorrect+' / '+rows.length,'respuestas con repeticiones'),
+      metric('🔴 Preguntas a revisar',troubles.length,'al menos 2 errores y 5 respuestas'),
+      '</div>',
+      '<h4 style="margin:18px 0 8px">🔴 Preguntas que concentran errores</h4>',
+      '<div class="tablewrap"><table class="table"><thead><tr>',
+      '<th>ID de pregunta</th><th>Errores</th><th>Respuestas</th><th>Acierto</th><th>Alumnos que la intentaron</th>',
+      '</tr></thead><tbody>',
+      troubles.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+x.wrong+'</td>'+
+        '<td>'+x.n+'</td><td>'+v741Percent(x.n-x.wrong,x.n)+'</td>'+
+        '<td>'+x.students.size+'</td></tr>').join('')||
+        '<tr><td colspan="5">No hay preguntas que superen el umbral de revisión.</td></tr>',
+      '</tbody></table></div>',
+      '<p class="analyticsHint">Los errores repetidos pueden proceder de un mismo alumno. La tabla describe dificultades observadas, no diagnostica conceptos sin vincular la pregunta a un enunciado validado.</p>',
+      '<h4 style="margin:18px 0 8px">👥 Seguimiento individual dentro del tema</h4>',
+      '<div class="tablewrap"><table class="table"><thead><tr>',
+      '<th>Código</th><th>Respuestas</th><th>Acierto</th><th>Practicadas / 40</th>',
+      '<th>Dominadas</th><th>Dominio</th><th>Sesiones</th><th>Min activos</th><th>Evolución de acierto</th>',
+      '</tr></thead><tbody>',
+      studentRows.map(x=>'<tr><td><b>'+esc(x.code)+'</b></td><td>'+x.n+'</td><td>'+x.accuracy+
+        '</td><td>'+x.coverage+' / 40</td><td>'+x.mastered+'</td><td>'+x.mastery+
+        '</td><td>'+x.sessions+'</td><td>'+x.minutes+'</td><td>'+x.change+'</td></tr>').join(''),
+      '</tbody></table></div>',
+      '<p class="analyticsHint">Evolución: diferencia de acierto entre primera y última mitad de respuestas cronológicas (puntos porcentuales). Es descriptiva, no una medición causal del aprendizaje; sólo aparece con 10 o más respuestas.</p>'
+    ].join('');
+  }
+
   function v741ShowEx1Audit(){
     const view=document.getElementById('view-learning');
     if(!view)return;
@@ -530,6 +735,7 @@
       renderLearning();
       v741EnsureLearningNotice();
       v741ShowEx1Audit();
+      v741RenderTopicDashboard();
     }catch(e){
       console.warn('CENQAL v74.1 EX1 recovery:',e);
       v741EnsureLearningNotice();
