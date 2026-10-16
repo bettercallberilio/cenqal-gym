@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#11110f">
-<title>CENQAL Atlas · v57.4</title>
-<meta name="CENQAL_ATLAS_BUILD" content="v57.4-DELIVERY-SEQUENCE">
+<title>CENQAL Atlas · v57.5</title>
+<meta name="CENQAL_ATLAS_BUILD" content="v57.5-OPEN-TEAM-FOODS">
 <style>
 :root{
  --ink:#11110f;--paper:#f3efe6;--card:#fffdf8;--muted:#777268;--line:#d9d1c3;
@@ -302,19 +302,16 @@ function renderStudentHome(){
  ${open?`<div class="banner session"><strong>⏱️ Sesión abierta · ${esc(foodFor(open.food_code)?.name)}</strong><small>Desde ${fmt(open.started_at)} · ${esc(open.objective)}${current&&open.food_code!==current.food_code?'<br>Ciérrala antes de comenzar una nueva sesión.':''}</small></div>`:''}
  ${currentDeliveryCard(fs,false)}
  <div class="stats"><div class="stat"><b>${fs.length}</b><span>ALIMENTOS</span></div><div class="stat"><b>${done}</b><span>REVISADOS</span></div><div class="stat"><b>${avg}%</b><span>PROGRESO</span></div></div>
- <details class="archiveDetails">
-   <summary>🗂️ Ver archivo completo del equipo (${fs.length} alimentos)</summary>
-   <div class="grid" style="margin-top:10px">${fs.map(foodCard).join('')}</div>
- </details>`;
+ <section class="card" style="margin:14px 0"><h3>📂 Fichas de tu equipo · acceso abierto</h3>
+ <p class="help">Puedes abrir y completar cualquiera de los ${fs.length} alimentos asignados a tu equipo, en el orden que necesitéis. Las fichas ya enviadas a revisión permanecen en solo lectura.</p></section>
+ <div class="grid" style="margin-top:10px">${fs.map(foodCard).join('')}</div>`;
 }
 function foodCard(f){
  const e=entryFor(f.food_code);
  const studentMode=DATA?.role!=='teacher';
  const rel=studentMode?deliveryRelation(f,DATA.foods||[]):null;
- const locked=studentMode&&rel==='future';
- const click=locked
-   ?`toast('🔒 Esta entrega todavía no está abierta. Continúa con la entrega actual.')`
-   :`openFood('${esc(f.food_code)}')`;
+ const locked=false; // Acceso docente: todos los alimentos asignados son visibles.
+ const click=`openFood('${esc(f.food_code)}')`;
  return `<article class="card food ${locked?'locked':''}" onclick="${click}">
   <div class="foodHead">
     <div class="num">${esc(f.food_code)} · ${esc(statusText(e.status))}</div>
@@ -333,14 +330,7 @@ function field(id,label,help,short=false){
 function renderFood(){
  const f=foodFor(CURRENT),e=entryFor(CURRENT);if(!f)return go('home');
  const rel=deliveryRelation(f,DATA.foods||[]);
- if(rel==='future'){
-   const cur=currentDeliveryForFoods(DATA.foods||[]);
-   document.getElementById('root').innerHTML=`${nav('home')}
-   <button class="back" onclick="go('home')">← Volver al Atlas</button>
-   <div class="hero"><div class="kicker">${esc(f.food_code)} · entrega futura</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
-   <div class="banner futureNotice"><strong>🔒 Esta entrega todavía no está abierta</strong><small>${cur?`La entrega actual es #${foodOrder(cur)} · ${esc(cur.name)}.`:'No hay una nueva entrega activa.'} Puedes ver el nombre en el archivo, pero no editarla ni iniciar una sesión todavía.</small></div>`;
-   return;
- }
+ // La secuencia ordena el trabajo pero no bloquea las fichas asignadas al equipo.
  const open=(DATA.sessions||[]).find(s=>s.status==='open');
  const cur=currentDeliveryForFoods(DATA.foods||[]);
  const isCurrent=cur?.food_code===f.food_code;
@@ -351,7 +341,7 @@ function renderFood(){
  <button class="back" onclick="go('home')">← Volver al Atlas</button>
  <div class="hero"><div class="kicker">${esc(f.food_code)} · ${esc(statusText(e.status))} · ${e.progress_percent||0}%</div><h2>${esc(f.name)}</h2><p>${esc(f.research_question)}</p></div>
  <div class="chips">${(f.chemistry_focus||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
- ${isCurrent?`<div class="banner deliveryHint"><strong>📌 Entrega en curso · #${foodOrder(f)}</strong><small>Esta es la ficha que el equipo debe trabajar ahora.</small></div>`:cur?`<div class="banner"><strong>ℹ️ Entrega actual: #${foodOrder(cur)} · ${esc(cur.name)}</strong><small>Esta ficha pertenece a una entrega anterior.</small></div>`:''}
+ ${isCurrent?`<div class="banner deliveryHint"><strong>📌 Ficha sugerida · #${foodOrder(f)}</strong><small>Podéis trabajar también las demás fichas de vuestro equipo.</small></div>`:`<div class="banner"><strong>📂 Ficha disponible para el equipo</strong><small>Podéis editarla y guardarla aunque no sea la siguiente en el orden sugerido.</small></div>`}
  ${submittedLocked?`<div class="banner readOnlyNotice"><strong>🔒 Entrega ya presentada</strong><small>La ficha queda en consulta y no puede modificarse mientras esté ${esc(statusText(e.status).toLowerCase())}. Si necesita cambios, la profesora debe devolverla a trabajo.</small></div>`:''}
  ${!submittedLocked?(open?`<div class="banner session"><strong>⏱️ Hay una sesión abierta con ${esc(foodFor(open.food_code)?.name)}</strong><small>${esc(open.objective)}</small></div>`:`<button class="action alt" onclick="startForCurrent()">⏱️ Iniciar sesión con este alimento</button>`):''}
  <div class="card">
@@ -408,10 +398,7 @@ async function markReady(){
 }
 async function startForCurrent(){
  const f=foodFor(CURRENT);
- if(f&&deliveryRelation(f,DATA.foods||[])==='future'){
-   toast('🔒 Esa entrega todavía no está abierta.');
-   return;
- }
+ // La secuencia recomendada no bloquea el inicio de sesiones.
  let objective=prompt('Objetivo concreto para las próximas dos horas:','Dejar perfilados proceso, moléculas y transformaciones clave.');
  if(!objective)return;
  try{let d=await rpc('cenqal_atlas_start_session',{p_token:TOKEN,p_food_code:CURRENT,p_objective:objective});if(!d.ok)throw new Error(d.error);toast(d.already_open?'Ya había una sesión abierta':'Sesión iniciada');VIEW='session';CURRENT=null;await refresh()}
