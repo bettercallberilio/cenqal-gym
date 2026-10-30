@@ -1,0 +1,17 @@
+name: Gym navigation regression
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'test_gym_navigation_v74.cjs'
+      - '.github/workflows/gym-navigation-test.yml'
+  workflow_dispatch:
+
+jobs:
+  gym-client-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check student JavaScript behavior
+        run: node --test test_gym_navigation_v74.cjs

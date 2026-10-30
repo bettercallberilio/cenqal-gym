@@ -72,24 +72,88 @@ let state={view:'topics',topic:1,session:null,currentQuestion:null,answered:fals
 function haptic(type='light'){try{tg?.HapticFeedback?.impactOccurred(type)}catch(e){}}
 function notify(type){try{tg?.HapticFeedback?.notificationOccurred(type)}catch(e){}}
 
+// v74 · Guardado redundante sin bloqueos: Telegram CloudStorage puede no invocar
+// el callback o rechazar objetos grandes. Nunca borrar el progreso antiguo.
+const GYM_STORE_TIMEOUT_MS=1200;
+function gymLocalRead(key){
+ try{return localStorage.getItem(key)}catch(e){return null}
+}
+function gymLocalWrite(key,value){
+ try{localStorage.setItem(key,String(value));return true}catch(e){
+  console.debug('CENQAL Gym · copia local no disponible',e);return false
+ }
+}
+function gymStoragePreferLatest(key,local,remote){
+ if(!remote)return local;
+ if(!local)return remote;
+ if(local===remote)return local;
+ try{
+  const a=JSON.parse(local),b=JSON.parse(remote);
+  if(key.startsWith('cq_gym_session_')&&a?.startedAt&&b?.startedAt){
+   if(Number(a.startedAt)!==Number(b.startedAt))
+    return Number(a.startedAt)>Number(b.startedAt)?local:remote;
+   if(a.roundId===b.roundId){
+    const ai=Number(a.index||0),bi=Number(b.index||0);
+    if(ai!==bi)return ai>bi?local:remote;
+   }
+   return local;
+  }
+  if(key.startsWith('cq_gym_mastery_')&&a&&b){
+   const latest=x=>Math.max(0,...Object.values(x).map(v=>Number(v?.updatedAt||0)));
+   const al=latest(a),bl=latest(b);
+   if(al!==bl)return al>bl?local:remote;
+   const ac=Object.keys(a).length,bc=Object.keys(b).length;
+   if(ac!==bc)return ac>bc?local:remote;
+   return local;
+  }
+ }catch(e){}
+ return local;
+}
 const storage={
  async get(key){
-   return new Promise(resolve=>{
-    try{if(tg?.CloudStorage){tg.CloudStorage.getItem(key,(err,val)=>resolve(!err&&val?val:null));return}}catch(e){}
-    resolve(localStorage.getItem(key));
-   })
+  const backup=gymLocalRead(key);
+  if(!tg?.CloudStorage)return backup;
+  return new Promise(resolve=>{
+   let settled=false;
+   const finish=value=>{
+    if(settled)return;
+    settled=true;clearTimeout(timer);resolve(value);
+   };
+   const timer=setTimeout(()=>finish(backup),GYM_STORE_TIMEOUT_MS);
+   try{
+    tg.CloudStorage.getItem(key,(err,val)=>{
+     if(err||!val){finish(backup);return}
+     const chosen=gymStoragePreferLatest(key,backup,String(val));
+     if(chosen!==backup)gymLocalWrite(key,chosen);
+     finish(chosen);
+    });
+   }catch(e){finish(backup)}
+  });
  },
  async set(key,val){
-   return new Promise(resolve=>{
-    try{if(tg?.CloudStorage){tg.CloudStorage.setItem(key,String(val),()=>resolve());return}}catch(e){}
-    localStorage.setItem(key,String(val));resolve();
-   })
+  const value=String(val);
+  // Copia inmediata de seguridad, aunque la nube de Telegram falle.
+  gymLocalWrite(key,value);
+  if(!tg?.CloudStorage)return;
+  return new Promise(resolve=>{
+   let settled=false;
+   const finish=()=>{if(settled)return;settled=true;clearTimeout(timer);resolve()};
+   const timer=setTimeout(finish,GYM_STORE_TIMEOUT_MS);
+   try{tg.CloudStorage.setItem(key,value,err=>{
+    if(err)console.debug('CENQAL Gym · copia nube pendiente',err);
+    finish();
+   })}catch(e){finish()}
+  });
  },
  async remove(key){
-   return new Promise(resolve=>{
-    try{if(tg?.CloudStorage){tg.CloudStorage.removeItem(key,()=>resolve());return}}catch(e){}
-    localStorage.removeItem(key);resolve();
-   })
+  try{localStorage.removeItem(key)}catch(e){}
+  if(!tg?.CloudStorage)return;
+  return new Promise(resolve=>{
+   let settled=false;
+   const finish=()=>{if(settled)return;settled=true;clearTimeout(timer);resolve()};
+   const timer=setTimeout(finish,GYM_STORE_TIMEOUT_MS);
+   try{tg.CloudStorage.removeItem(key,()=>finish())}catch(e){finish()}
+  });
  }
 };
 function keyMastery(t){return `cq_gym_mastery_t${t}_v1`}
@@ -189,12 +253,26 @@ async function answer(i){
  const fb=document.createElement('div');fb.className=`feedback ${isCorrect?'good':'bad'}`;fb.innerHTML=`<h3>${isCorrect?'✅ Correcto':'❌ Incorrecto'}</h3><p><b>¿Por qué?</b> ${esc(q.explanation)}</p><div class="concept">${status}</div><button class="action" style="margin-top:13px" onclick="nextQuestion()">${s.index+1>=s.order.length?'🏁 Ver resultado':'Siguiente →'}</button>`;
  document.querySelector('.answers').after(fb);window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 }
-async function nextQuestion(){const s=state.session;s.index++;await saveJSON(keySession(s.topic),s);showCurrent()}
+async function nextQuestion(){
+ const s=state.session;
+ if(!s||!state.answered||s.index>=s.order.length)return;
+ // Tras la respuesta confirmada por Supabase, avanzar la interfaz sin
+ // esperar a Telegram CloudStorage: así Siguiente nunca queda congelado.
+ s.index++;
+ if(s.index>=s.order.length){
+  await finishSession();
+  return;
+ }
+ await showCurrent();
+ try{await saveJSON(keySession(s.topic),s)}
+ catch(e){console.debug('CENQAL Gym · el servidor conserva la respuesta',e)}
+}
 async function pauseTraining(){await saveJSON(keySession(state.session.topic),state.session);haptic();openTopic(state.session.topic)}
 async function finishSession(){
  const s=state.session,m=await mastery(s.topic);const mastered=Object.values(m).filter(x=>x.mastered).length;const pct=Math.round(100*s.correct/Math.max(1,s.order.length));
- await storage.remove(keySession(s.topic));state.session=null;
+ state.session=null;
  document.getElementById('screen').innerHTML=`<section class="card center"><div class="big">${mastered===40?'🏆':'🏁'}</div><h2>${mastered===40?'Tema dominado':'Entrenamiento completado'}</h2><p><b>${s.correct}/${s.order.length}</b> correctas en esta vuelta · ${pct}%</p><p class="muted">Dominio acumulado: <b>${mastered}/40</b></p><div class="actions"><button class="action" onclick="startTraining(${s.topic},'full')">🔄 Entrenar otra vez</button><button class="action secondary" onclick="startTraining(${s.topic},'unmastered')">🎯 Lo que no domino</button><button class="action secondary" onclick="startTraining(${s.topic},'wrong')">❌ Repasar fallos</button><button class="action secondary" onclick="openTopic(${s.topic})">← Volver al tema</button></div></section>`;
+ try{await storage.remove(keySession(s.topic))}catch(e){console.debug('CENQAL Gym · sesión terminada, copia local pendiente',e)}
 }
 async function renderProgress(topic){
  const m=await mastery(topic),bank=qBank(topic);let mastered=0,learning=0,wrong=0,unseen=0;
