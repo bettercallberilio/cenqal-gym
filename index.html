@@ -259,6 +259,10 @@ async function nextQuestion(){
  // Tras la respuesta confirmada por Supabase, avanzar la interfaz sin
  // esperar a Telegram CloudStorage: así Siguiente nunca queda congelado.
  s.index++;
+ if(s.index>=s.order.length){
+  await finishSession();
+  return;
+ }
  await showCurrent();
  try{await saveJSON(keySession(s.topic),s)}
  catch(e){console.debug('CENQAL Gym · el servidor conserva la respuesta',e)}
