@@ -46,6 +46,22 @@ test('Local session newer than stale cloud is not rolled back',async()=>{
  assert.equal(await x.ctx.storageRef.get('cq_gym_session_t3_v1'),current);
 });
 
+
+test('Late CloudStorage callback never overwrites later local answer progress',async()=>{
+ let callback;
+ const x=sandboxWithCloud({
+  getItem:(key,cb)=>{callback=cb},
+  setItem:(key,value,cb)=>cb(null),
+  removeItem:(key,cb)=>cb(null)
+ });
+ const key='cq_gym_session_t3_v1';
+ x.items.set(key,JSON.stringify({startedAt:111,roundId:'r',index:1}));
+ await x.ctx.storageRef.get(key); // Cloud timeout; local data is authoritative now.
+ await x.ctx.storageRef.set(key,JSON.stringify({startedAt:111,roundId:'r',index:2}));
+ callback(null,JSON.stringify({startedAt:111,roundId:'r',index:9}));
+ assert.equal(JSON.parse(x.items.get(key)).index,2);
+});
+
 test('Most recent cloud session is recoverable when local copy is missing',async()=>{
  const remote=JSON.stringify({startedAt:111,roundId:'r',index:9});
  const x=sandboxWithCloud({getItem:(k,cb)=>cb(null,remote),setItem:(k,v,cb)=>cb(null),removeItem:(k,cb)=>cb(null)});

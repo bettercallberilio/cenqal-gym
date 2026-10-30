@@ -119,12 +119,15 @@ const storage={
     if(settled)return;
     settled=true;clearTimeout(timer);resolve(value);
    };
-   const timer=setTimeout(()=>finish(backup),GYM_STORE_TIMEOUT_MS);
+   const timer=setTimeout(()=>finish(gymLocalRead(key)),GYM_STORE_TIMEOUT_MS);
    try{
     tg.CloudStorage.getItem(key,(err,val)=>{
-     if(err||!val){finish(backup);return}
-     const chosen=gymStoragePreferLatest(key,backup,String(val));
-     if(chosen!==backup)gymLocalWrite(key,chosen);
+     // Un callback tardío nunca puede sobrescribir lo practicado entretanto.
+     if(settled)return;
+     const current=gymLocalRead(key);
+     if(err||!val){finish(current);return}
+     const chosen=gymStoragePreferLatest(key,current,String(val));
+     if(chosen!==current)gymLocalWrite(key,chosen);
      finish(chosen);
     });
    }catch(e){finish(backup)}
