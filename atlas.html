@@ -181,6 +181,188 @@ function previewField(id,label,help,short=false){
  const e=entryFor(CURRENT);
  return `<div class="readonlyField"><label class="label">${label}</label><div class="help">${help}</div><textarea class="${short?'short':''}" readonly>${esc(e[id]||'')}</textarea></div>`;
 }
+
+const ATLAS_RUBRIC_KEYS=[
+  ['identity_matrix','Identidad, matriz y composición relevante',10],
+  ['molecules_rigor','Moléculas protagonistas y rigor químico',15],
+  ['process_variables','Procesado y variables críticas',15],
+  ['transformations','Transformaciones y mecanismos químicos',20],
+  ['water_stability','Agua, actividad de agua y estabilidad',10],
+  ['chemistry_sensory','Relación química a percepción',10],
+  ['technology_control','Control tecnológico e industria',10],
+  ['integration_critical','Esquema integrador y pensamiento crítico',5],
+  ['scientific_evidence','Evidencia científica y fuentes',5]
+];
+function atlasAssessmentData(e){
+  const teacher=DATA?.role==='teacher';
+  const reviewed=['reviewed','final'].includes(String(e.status||''));
+  const previous=e.first_attempt_snapshot||null;
+  const current=e.ai_evaluation?.criteria?e.ai_evaluation:null;
+  const past=previous?.ai_evaluation?.criteria?previous.ai_evaluation:null;
+  const showCurrent=teacher||reviewed;
+  const details=showCurrent?current:(e.revision_used?past:null);
+  const old=showCurrent&&e.revision_used?past:null;
+  const finalScore=reviewed&&e.teacher_score!=null?Number(e.teacher_score):null;
+  const previousScore=previous?.teacher_score!=null?Number(previous.teacher_score):null;
+  return {details,old,finalScore,previousScore,teacher,reviewed,previous};
+}
+function atlasCriteriaHtml(ev){
+  if(!ev||!ev.criteria)return '<p class="help">Aún no hay desglose disponible.</p>';
+  return '<div class="atlasRubricList">'+ATLAS_RUBRIC_KEYS.map(function(def){
+    const c=ev.criteria[def[0]]||{};
+    const pts=c.score==null?'—':String(c.score);
+    return '<div class="atlasCriterion"><div class="atlasCriterionHead"><strong>'+esc(c.label||def[1])+'</strong><b>'+esc(pts)+' / '+esc(c.max_points??def[2])+'</b></div>'
+      +'<div class="help">'+esc(c.feedback||'Sin observación específica.')+'</div></div>';
+  }).join('')+'</div>';
+}
+function atlasRubricCard(e,f){
+  const info=atlasAssessmentData(e);
+  const ev=info.details;
+  const hasReview=!!ev||info.finalScore!=null||!!e.teacher_feedback;
+  if(!hasReview){
+    if(['ready_review','reviewed'].includes(e.status))return '<div class="card"><h3 class="sectionTitle">📋 Evaluación y rúbrica</h3><p class="help">La ficha está pendiente de evaluación y validación docente.</p></div>';
+    return '';
+  }
+  let headline='<div class="atlasRubricScores">';
+  if(ev)headline+='<div><strong>'+esc(ev.total??'—')+' / 100</strong><small>Desglose orientativo de IA</small></div>';
+  if(info.finalScore!=null)headline+='<div><strong>'+esc(info.finalScore)+' / 100</strong><small>Nota docente '+(e.status==='final'?'validada':'en revisión')+'</small></div>';
+  else if(!info.teacher)headline+='<div><strong>Pendiente</strong><small>Validación docente</small></div>';
+  headline+='</div>';
+  let out='<div class="card atlasRubricCard"><h3 class="sectionTitle">📋 Rúbrica detallada · Gran Atlas</h3>';
+  if(e.revision_used && !info.reviewed)out+='<div class="banner"><strong>🔁 Segundo intento en curso</strong><small>Se muestra el desglose del primer intento. La nota inicial se conserva hasta que se valide la nueva entrega.</small></div>';
+  else out+='<p class="help">Los criterios de la IA son una orientación formativa; la nota final es la validada por la profesora. Un ajuste docente de la nota global no modifica retrospectivamente los puntos de cada criterio.</p>';
+  out+=headline+atlasCriteriaHtml(ev);
+  if(ev?.summary)out+='<p class="help"><strong>Resumen:</strong> '+esc(ev.summary)+'</p>';
+  for(const pair of [['strengths','Puntos fuertes'],['improvements','Aspectos a mejorar'],['manual_checks','Comprobaciones docentes pendientes']]){
+    const arr=Array.isArray(ev?.[pair[0]])?ev[pair[0]]:[];
+    if(arr.length)out+='<div class="atlasRubricExtra"><strong>'+pair[1]+'</strong><ul>'+arr.map(s=>'<li>'+esc(s)+'</li>').join('')+'</ul></div>';
+  }
+  if(e.teacher_feedback)out+='<div class="banner"><strong>👩‍🏫 Feedback de la profesora</strong><small>'+esc(e.teacher_feedback)+'</small></div>';
+  else if(info.previous?.teacher_feedback && !info.reviewed)out+='<div class="banner"><strong>👩‍🏫 Feedback del primer intento</strong><small>'+esc(info.previous.teacher_feedback)+'</small></div>';
+  if(info.old){
+    out+='<details class="archiveDetails"><summary>📚 Consultar evaluación del primer intento ('+esc(info.previousScore??'—')+'/100)</summary>'+atlasCriteriaHtml(info.old)+'</details>';
+  }
+  out+='<button type="button" class="action alt" onclick="downloadAtlasRubricPdf()">⬇ Descargar informe de rúbrica en PDF</button></div>';
+  return out;
+}
+function atlasSecondAttemptControls(e){
+  if(DATA?.role==='teacher')return '';
+  if(e.status==='final' && e.teacher_validated_at && !e.revision_used)
+    return '<div class="card"><h3 class="sectionTitle">🔁 Segundo intento de mejora</h3><p class="help">Podéis corregir esta ficha una sola vez después de leer el feedback. Se guardará el primer intento y la nota actual. La nueva nota requerirá validación docente.</p><button type="button" class="action alt" onclick="beginAtlasRevision()">Abrir segundo intento</button></div>';
+  if(e.revision_used && ['in_progress','profiled'].includes(e.status))
+    return '<div class="banner session"><strong>🔁 Segundo intento abierto</strong><small>Editad la ficha y enviadla de nuevo cuando esté lista. Solo existe esta oportunidad adicional.</small></div>';
+  if(e.revision_used && e.status==='ready_review')
+    return '<div class="banner"><strong>📨 Segundo intento entregado</strong><small>En espera de nueva revisión docente. El primer intento está conservado.</small></div>';
+  if(e.revision_used && e.status==='final')
+    return '<div class="banner"><strong>✅ Segundo intento completado</strong><small>Se conserva el historial y ambas evaluaciones. No se permite una tercera entrega.</small></div>';
+  return '';
+}
+async function beginAtlasRevision(){
+  const f=foodFor(CURRENT);
+  if(!f||DATA?.role==='teacher')return;
+  if(!confirm('¿Abrir el segundo y último intento para '+f.name+'? La primera entrega y su nota quedarán conservadas.'))return;
+  try{
+    const d=await rpc('cenqal_atlas_begin_revision_v76',{p_token:TOKEN,p_food_code:CURRENT});
+    if(!d.ok)throw new Error(({second_attempt_already_used:'El segundo intento ya fue utilizado.',two_attempts_maximum:'Esta ficha ya tiene dos o más entregas.',atlas_publication_must_be_withdrawn:'La ficha está publicada: solicita a la profesora que retire primero la publicación.',teacher_validation_required:'Es necesario que la profesora valide antes la primera entrega.'})[d.error]||d.error);
+    toast('🔁 Segundo intento abierto');
+    await refresh(true);
+  }catch(e){toast('⚠️ '+e.message)}
+}
+function atlasPdfNormalize(raw){
+  return String(raw??'').replace(/\r/g,'').replace(/[→⇒⟶]/g,' -> ').replace(/[–—−]/g,'-')
+    .replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[•●]/g,'-')
+    .replace(/β/g,'beta').replace(/α/g,'alfa').replace(/²/g,'2').replace(/³/g,'3')
+    .replace(/[^\x0A\x20-\x7E\xA0-\xFF]/g,' ');
+}
+function atlasPdfReport(e,f,ev,info){
+  const lines=[];
+  function add(s,style){lines.push({text:atlasPdfNormalize(s),style:style||'normal'});}
+  add('CENQAL | INFORME DE EVALUACION', 'heading');
+  add('Gran Atlas - '+(f?.name||e.food_code||'Ficha'), 'title');
+  add('Equipo '+(e.group_code||'-')+' | '+(e.food_code||'-')+' | Generado '+new Date().toLocaleDateString('es-ES'));
+  add('Version de rubrica: '+(ev?.rubric_version||e.evaluation_version||'CENQAL-ATLAS-v73.4'));
+  add('Pre-evaluacion IA: '+(ev?.total??'Pendiente')+' / 100');
+  if(info.finalScore!=null)add('NOTA DOCENTE: '+info.finalScore+' / 100','heading');
+  else if(e.revision_used && !info.reviewed)add('Segundo intento abierto - datos del primer intento','heading');
+  else add('Nota docente: pendiente de validacion');
+  add('El desglose es una evaluacion automatica orientativa. La calificacion valida es la confirmada por la profesora.');
+  add('DESGLOSE POR CRITERIOS', 'heading');
+  for(const [key,label,maxPts] of ATLAS_RUBRIC_KEYS){
+    const c=ev?.criteria?.[key]||{};
+    add((c.label||label)+' - '+(c.score??'-')+' / '+(c.max_points??maxPts),'sub');
+    add(c.feedback||'Sin comentario especifico.');
+  }
+  if(ev?.summary){add('RESUMEN','heading');add(ev.summary);}
+  for(const [key,label] of [['strengths','PUNTOS FUERTES'],['improvements','MEJORAS'],['manual_checks','REVISION DOCENTE PENDIENTE']]){
+    const arr=Array.isArray(ev?.[key])?ev[key]:[];
+    if(arr.length){add(label,'heading');arr.forEach(x=>add('- '+x));}
+  }
+  const fb=info.reviewed?e.teacher_feedback:(info.previous?.teacher_feedback||e.teacher_feedback);
+  if(fb){add('OBSERVACIONES DE LA PROFESORA','heading');add(fb);}
+  if(info.previous && info.reviewed){
+    add('HISTORIAL DE INTENTOS','heading');
+    add('Primera nota validada: '+(info.previousScore??'-')+'/100. La evaluacion anterior se conserva en CENQAL.');
+  }
+  return lines;
+}
+function atlasSimplePdf(lines){
+  const pages=[[]];let y=789;
+  function emit(text,style){
+    const size=style==='title'?15:style==='heading'?11:style==='sub'?10:9;
+    const lh=style==='title'?23:style==='heading'?19:style==='sub'?16:14;
+    if(y<70){pages.push([]);y=789;}
+    const bold=style!=='normal';
+    const escaped=String(text).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+    pages[pages.length-1].push('BT /'+(bold?'F2':'F1')+' '+size+' Tf 44 '+y+' Td ('+escaped+') Tj ET');
+    y-=lh;
+  }
+  function wrap(t,cap){
+    const result=[];for(const paragraph of String(t).split('\n')){
+      const words=paragraph.split(/\s+/);let row='';
+      for(let w of words){if(!w)continue;
+        if(w.length>cap){while(w.length>cap){if(row){result.push(row);row=''}result.push(w.slice(0,cap));w=w.slice(cap)}}
+        if(row&&row.length+1+w.length>cap){result.push(row);row=w}else row+=(row?' ':'')+w;
+      }
+      result.push(row||' ');
+    }return result;
+  }
+  for(const item of lines){for(const w of wrap(item.text,item.style==='title'?61:item.style==='heading'?76:95))emit(w,item.style);}
+  const objects=['','', '', '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'];
+  const count=pages.length;
+  const ids=[];
+  for(let i=0;i<count;i++){
+    const pageId=5+i*2,contentId=pageId+1;
+    ids.push(pageId+' 0 R');
+    const contents=['BT /F2 9 Tf 44 815 Td (CENQAL - GRAN ATLAS) Tj ET']
+      .concat(pages[i],['BT /F1 8 Tf 44 42 Td (Pagina '+(i+1)+' / '+count+') Tj ET']).join('\n');
+    const bytes=Array.from(contents).map(c=>c.charCodeAt(0)&255);
+    objects[pageId]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents '+contentId+' 0 R >>';
+    objects[contentId]='<< /Length '+bytes.length+' >>\nstream\n'+contents+'\nendstream';
+  }
+  objects[1]='<< /Type /Catalog /Pages 2 0 R >>';
+  objects[2]='<< /Type /Pages /Kids ['+ids.join(' ')+'] /Count '+count+' >>';
+  let data='%PDF-1.4\n';const offsets=[0];
+  for(let i=1;i<objects.length;i++){
+    offsets[i]=data.length;
+    data+=i+' 0 obj\n'+objects[i]+'\nendobj\n';
+  }
+  const xref=data.length;
+  data+='xref\n0 '+objects.length+'\n0000000000 65535 f \n';
+  for(let i=1;i<objects.length;i++)data+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
+  data+='trailer\n<< /Size '+objects.length+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF';
+  return new Blob([Uint8Array.from(data,c=>c.charCodeAt(0)&255)],{type:'application/pdf'});
+}
+function downloadAtlasRubricPdf(){
+  const e=entryFor(CURRENT),f=foodFor(CURRENT),info=atlasAssessmentData(e),ev=info.details;
+  if(!ev){toast('Aún no hay rúbrica evaluada para descargar.');return}
+  const blob=atlasSimplePdf(atlasPdfReport(e,f,ev,info));
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='CENQAL_Atlas_Rubrica_'+String(e.group_code||'Grupo').replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+String(e.food_code||'Ficha').replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+
 function entryFor(code){return (DATA.entries||[]).find(e=>e.food_code===code)||{food_code:code,progress_percent:0,status:'not_started'}}
 function foodFor(code){return (DATA.foods||[]).find(f=>f.food_code===code)}
 function statusText(s){return ({not_started:'No iniciado',in_progress:'En curso',profiled:'Perfilado',ready_review:'Listo para revisión',reviewed:'Revisado',final:'Final'})[s]||s}
@@ -361,6 +543,8 @@ function renderFood(){
  <label class="label">Enlace al póster</label><div class="help">Canva, Drive, SharePoint u otro enlace web compartible. Debe comenzar por http:// o https://. No sirve una ruta file:/// del ordenador.</div><input id="poster_url" ${editDisabled} value="${esc(e.poster_url||'')}" placeholder="https://…">${posterBad?`<div class="posterWarning">⚠️ Este enlace no es compartible. Sustitúyelo por un enlace web que la profesora pueda abrir.</div>`:''}
  ${e.teacher_feedback?`<div class="banner"><strong>👩‍🏫 Revisión docente</strong><small>${esc(e.teacher_feedback)}</small></div>`:''}
  </div>
+ ${atlasRubricCard(e,f)}
+ ${atlasSecondAttemptControls(e)}
  ${submittedLocked?'':`<div class="formActions"><button class="action" onclick="saveEntry()">Guardar ficha</button><button class="action alt" onclick="markReady()">Enviar a revisión</button></div>`}`;
  if(submittedLocked){
    document.querySelectorAll('#root textarea,#root input').forEach(el=>{el.readOnly=true;el.disabled=true});
@@ -562,6 +746,7 @@ function renderTeacherFood(){
  ${[['Matriz','matrix_text'],['Moléculas','molecules_text'],['Proceso','processing_text'],['Transformaciones','transformations_text'],['Agua / aᵥ','water_aw_text'],['Química → percepción','sensory_text'],['Estabilidad','stability_text'],['Control tecnológico','industry_text'],['Esquema','scheme_text'],['Conclusión','conclusion_text'],['Dato','surprising_fact_text'],['Fuentes','sources_text']].map(x=>`<div class="reviewBox"><b>${x[0]}</b><p>${esc(e[x[1]]||'—')}</p></div>`).join('')}
  ${e.poster_url?`<p><a href="${esc(e.poster_url)}" target="_blank">↗ Abrir póster del equipo</a></p>`:''}
  </div>
+ ${atlasRubricCard(e,f)}
  <div class="card"><h3 class="sectionTitle">Revisión docente</h3>
  <div class="help">Estado actual: <b>${esc(statusText(e.status))}</b>. Escribe el comentario y pulsa directamente la acción que corresponda.</div>
  <textarea id="t_feedback">${esc(e.teacher_feedback||'')}</textarea>
