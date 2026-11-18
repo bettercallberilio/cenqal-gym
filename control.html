@@ -1109,6 +1109,7 @@ document.getElementById('modalBack')
   );
 
 function modal(html){
+  document.getElementById('modal').classList.remove('pdfOpen');
   document.getElementById('modal').innerHTML=html;
   document.getElementById('modalBack')
     .classList.add('show');
@@ -1953,18 +1954,131 @@ function showContributionDetail(id){
     <div class="actions" style="margin-top:16px">${contributionControlAction(x)}</div>`);
 }
 
+
+// Preview and download private PDFs after checking the teacher's Control session.
+async function portfolioPdfAccess(id){
+  const sid=Number(id);
+  if(!TOKEN||!Number.isSafeInteger(sid)||sid<=0)throw new Error('Abre una sesión docente válida.');
+  const response=await fetch(SBURL+'/functions/v1/cenqal-portfolio-pdf',{
+    method:'POST',headers:{apikey:SBKEY,'Content-Type':'application/json'},
+    body:JSON.stringify({p_token:TOKEN,submission_id:sid}),cache:'no-store'
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data?.ok){
+    const messages={
+      unauthorized:'Tu sesión docente ha caducado. Vuelve a entrar.',
+      course_not_selected:'Selecciona primero el curso académico correspondiente.',
+      document_not_found:'No se encuentra este PDF en el curso seleccionado.',
+      document_not_available:'El archivo no está disponible en el almacén privado.',
+      document_service_unavailable:'El servicio de documentos no está disponible temporalmente.'
+    };
+    throw new Error(messages[data.error]||'No se pudo recuperar el PDF.');
+  }
+  const signed=new URL(String(data.signed_url||''));
+  if(signed.origin!==new URL(SBURL).origin ||
+     !signed.pathname.startsWith('/storage/v1/object/sign/cenqal-portfolios/')){
+    throw new Error('La dirección de descarga no es válida.');
+  }
+  return {url:signed.href,fileName:String(data.file_name||('Porfolio_'+sid+'.pdf'))};
+}
+function portfolioPdfActions(x,includeReview=true){
+  const sid=Number(x?.id);
+  if(!Number.isSafeInteger(sid)||sid<=0)return '';
+  const review=includeReview
+    ?`<button class="btn" onclick="showPortfolioDetail(${sid})">Ver evaluación</button>`:'';
+  const buttons=x.storage_path
+    ?`<button class="btn" onclick="viewPortfolioPdf(${sid})">👁 Ver PDF</button>
+      <button class="btn" onclick="downloadPortfolioPdf(${sid})">⬇ Descargar PDF</button>`
+    :'<span class="subtle">Sin archivo PDF disponible</span>';
+  const grade=includeReview
+    ?`<button class="btn primary" onclick="botPayload('cs_${sid}')">Calificar</button>`:'';
+  return `<div class="actions">${review}${buttons}${grade}</div>`;
+}
+async function viewPortfolioPdf(id){
+  const sid=Number(id);
+  if(!Number.isSafeInteger(sid))return;
+  let holder=document.getElementById('portfolioPdfViewer');
+  if(!holder||holder.dataset.submissionId!==String(sid)){
+    showPortfolioDetail(sid);
+    holder=document.getElementById('portfolioPdfViewer');
+  }
+  if(!holder)return;
+  holder.hidden=false;
+  holder.textContent='Preparando la visualización segura del PDF…';
+  try{
+    const pdf=await portfolioPdfAccess(sid);
+    if(!holder.isConnected||holder.dataset.submissionId!==String(sid))return;
+    holder.innerHTML='';
+    const info=document.createElement('div');
+    info.className='note';
+    info.textContent='PDF original · '+pdf.fileName;
+    holder.appendChild(info);
+    const frame=document.createElement('iframe');
+    frame.src=pdf.url;
+    frame.title='Documento PDF del porfolio';
+    frame.loading='lazy';
+    frame.referrerPolicy='no-referrer';
+    holder.appendChild(frame);
+    const fallback=document.createElement('a');
+    fallback.href=pdf.url;
+    fallback.target='_blank';
+    fallback.rel='noopener noreferrer';
+    fallback.className='btn';
+    fallback.textContent='↗ Abrir PDF en el visor del dispositivo';
+    const hint=document.createElement('p');
+    hint.className='subtle';
+    hint.textContent='Si el visor integrado no funciona, abre el documento en tu dispositivo. El acceso temporal caduca en 2 minutos.';
+    holder.append(fallback,hint);
+    document.getElementById('modal')?.classList.add('pdfOpen');
+  }catch(e){
+    if(holder.isConnected)holder.textContent='⚠️ '+(e.message||'No se pudo mostrar el PDF.');
+    toast(e.message||'No se pudo abrir el PDF.',true);
+  }
+}
+async function downloadPortfolioPdf(id){
+  try{
+    const pdf=await portfolioPdfAccess(id);
+    const response=await fetch(pdf.url,{cache:'no-store'});
+    if(!response.ok)throw new Error('No se ha podido descargar el documento.');
+    const file=await response.blob();
+    if(!file.size)throw new Error('El documento está vacío.');
+    const url=URL.createObjectURL(file);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download=pdf.fileName.replace(/[\\/:*?"<>|]/g,'_');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+    toast('PDF descargado.');
+  }catch(e){toast(e.message||'No se pudo descargar el PDF.',true)}
+}
 function showPortfolioDetail(id){
-  let x=portfolioById(id);if(!x)return toast('No se ha encontrado el portfolio.',true);
-  let s=x._student||state.studentDetail?.student||{};
-  modal(`<div class="sectionTitle"><h3>📄 Portfolio de ${esc(studentName(s))}</h3><button class="btn" onclick="closeModal()">Cerrar</button></div>
-    <div class="miniList"><div class="miniRow"><span>Reto</span><b>${esc(x.challenge_code||x.challenge_id||'—')}</b></div><div class="miniRow"><span>Archivo</span><b>${esc(x.file_name||'PDF')}</b></div><div class="miniRow"><span>Estado</span><b><span class="status ${statusClass(x.status)}">${esc(x.status||'—')}</span></b></div></div>
-    <div class="field" style="margin-top:12px"><label>Preevaluación / rúbrica automática</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(x.automatic_evaluation))}</div></div>
-    <div class="field" style="margin-top:12px"><label>Evaluación docente</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(x.teacher_evaluation))}</div></div>
-    <div class="field" style="margin-top:12px"><label>Feedback</label><div class="note" style="white-space:pre-wrap">${esc(prettyObject(objv(x,'teacher_feedback','feedback')))}</div></div>
-    <div class="actions" style="margin-top:16px"><button class="btn primary" onclick="botPayload('cs_${x.id}')">Revisar en Berilio</button>${x.storage_path?`<button class="btn" onclick="botPayload('cp_${x.id}')">Enviarme PDF</button>`:''}</div>`);
+  const x=portfolioById(id);
+  if(!x)return toast('No se ha encontrado el porfolio.',true);
+  const s=x._student||state.studentDetail?.student||{};
+  modal(`<div class="sectionTitle"><h3>📄 Porfolio de ${esc(studentName(s))}</h3>
+    <button class="btn" onclick="closeModal()">Cerrar</button></div>
+    <div class="miniList">
+      <div class="miniRow"><span>Reto</span><b>${esc(x.challenge_code||x.challenge_id||'—')}</b></div>
+      <div class="miniRow"><span>Archivo</span><b>${esc(x.file_name||'PDF')}</b></div>
+      <div class="miniRow"><span>Versión</span><b>${esc(x.version||'—')}</b></div>
+      <div class="miniRow"><span>Estado</span><b><span class="status ${statusClass(x.status)}">${esc(x.status||'—')}</span></b></div>
+    </div>
+    <div class="field" style="margin-top:12px"><label>Preevaluación / rúbrica automática</label>
+      <div class="note" style="white-space:pre-wrap">${esc(prettyObject(x.automatic_evaluation))}</div></div>
+    <div class="field" style="margin-top:12px"><label>Evaluación docente</label>
+      <div class="note" style="white-space:pre-wrap">${esc(prettyObject(x.teacher_evaluation))}</div></div>
+    <div class="field" style="margin-top:12px"><label>Feedback</label>
+      <div class="note" style="white-space:pre-wrap">${esc(prettyObject(objv(x,'teacher_feedback','feedback')))}</div></div>
+    <div class="actions" style="margin-top:16px">
+      ${portfolioPdfActions(x,false)}
+      <button class="btn primary" onclick="botPayload('cs_${Number(x.id)}')">Revisar / calificar en Berilio</button>
+    </div>
+    <div class="pdfViewer" id="portfolioPdfViewer" data-submission-id="${Number(x.id)}" hidden></div>`);
 }
 
-function renderStudentDetail(){let d=state.studentDetail||{},s=d.student||{},an=d.analytics||{},as=an.student||{},gp=d.gamification_profile||{};let name=s.full_name||[s.first_name,s.last_name].filter(Boolean).join(' ')||s.student_code||'Alumno';let risk=riskFor(as);document.getElementById('studentHero').innerHTML=`<div><h2>${risk} ${esc(name)}</h2><div class="studentMeta">${esc(s.student_code||'—')} · ${esc(s.group_name||'Sin grupo')} · ${s.telegram_user_id?'Telegram vinculado':'Sin vincular a Telegram'}</div></div><div class="actions"><span class="status ${s.active?'ok':'bad'}">${s.active?'ACTIVO':'INACTIVO'}</span></div>`;let weekly=d.weekly||[],exams=d.exams||[],subs=d.portfolio_submissions||[],contrib=d.contributions||[],evid=d.evidences||[],incs=d.incidents||[];let mastered=(d.gym_mastery||[]).filter(x=>x.mastered).length,passed=exams.filter(x=>Number(x.attempt?.score_out_of_10)>=5).length,approved=(d.portfolio_progress||[]).filter(x=>x.progress?.status==='approved').length;document.getElementById('studentMetrics').innerHTML=[metric('📊 Evidencias',as.evidence_average==null?'—':`${n(as.evidence_average)}/10`,`${as.evidence_count||0} registros`),metric('🎓 Oficial',as.provisional_normalized==null?'—':`${n(as.provisional_normalized)}/10`,`${pct(as.graded_official_weight)} evaluado`),metric('⚛️ PP',gp.xp_total||0,gp.level_name||'Aspirante'),metric('🪙 Og',gp.oganeson_balance||0,'saldo actual'),metric('🏆 Actividad',weekly.length,`retos · ${passed}/${exams.length} exámenes`)].join('');let comps=an.components||[];document.getElementById('studentComponents').innerHTML=comps.length?`<div class="miniList">${comps.map(c=>`<div class="miniRow"><span>${esc(c.component_name||c.component_code)}</span><b>${c.component_score==null?'—':n(c.component_score)}/10${c.official?` · ${n(c.component_weight_percent,0)}%`:''}</b></div>`).join('')}</div>`:'<div class="empty">Todavía no hay componentes calificados.</div>';document.getElementById('studentActivity').innerHTML=`<div class="miniList"><div class="miniRow"><span>Retos semanales</span><b>${weekly.length}</b></div><div class="miniRow"><span>Exámenes</span><b>${passed}/${exams.length} superados</b></div><div class="miniRow"><span>Porfolios aprobados</span><b>${approved}</b></div><div class="miniRow"><span>Entregas PDF</span><b>${subs.length}</b></div><div class="miniRow"><span>Aportaciones CENQAL</span><b>${contrib.length}</b></div><div class="miniRow"><span>Gym dominadas</span><b>${mastered}</b></div><div class="miniRow"><span>Evidencias PDF</span><b>${evid.length}</b></div><div class="miniRow"><span>Incidencias</span><b>${incs.filter(x=>['pending','in_review'].includes(x.status)).length} abiertas</b></div></div>`;let grades=an.grades||[];let html='';html+=detailCard('🧾 Últimas calificaciones',grades.length?tableHTML(['Fecha','Componente','Actividad','Nota','Origen'],grades.slice(0,50).map(g=>[fmtDate(g.created_at||g.updated_at),g.component_name||g.component_code,g.item_title||g.item_code,g.effective_score==null?'—':n(g.effective_score),g.source_type||'—'])):'<div class="empty">Sin calificaciones registradas.</div>',true);html+=detailCard('📰 Retos semanales',weekly.length?tableHTML(['Tema','Fecha','Reto','Preeval.','Estado','Respuesta'],weekly.map(x=>{let p=x.participation||{},c=x.challenge||{};return[`T${c.topic_number||'—'}`,fmtDate(p.created_at),c.title||'',p.preliminary_score==null?'—':`${n(p.preliminary_score,0)}/5`,p.status||'—',p.response_text||''] }),'last'):'<div class="empty">Sin participaciones semanales.</div>');html+=detailCard('📝 Exámenes',exams.length?tableHTML(['Tema','Examen','Estado','Aciertos','Nota','Entrega'],exams.map(x=>{let a=x.attempt||{},e=x.session||{};return[`T${e.topic_number||'—'}`,e.title||e.exam_code||'',a.status||'—',`${a.correct_count??'—'}/${e.question_count||20}`,a.score_out_of_10==null?'—':`${n(a.score_out_of_10)}/10`,fmtDate(a.submitted_at)]})):'<div class="empty">Sin intentos de examen.</div>');html+=detailCard('📄 Porfolios y entregas',subs.length?tableHTML(['Fecha','Reto','Versión','Archivo','Estado','Nota','PDF'],subs.map(x=>[fmtDate(x.created_at),x.challenge_code||x.challenge_id||'',x.version||'—',x.file_name||'PDF',x.status||'—',x.teacher_evaluation?.score==null?'—':`${n(x.teacher_evaluation.score,0)}/100`,x.storage_path?`<button class="btn" onclick="botPayload('cp_${x.id}')">Enviarme PDF</button>`:'—']),'html'):'<div class="empty">Sin entregas de porfolio.</div>');html+=detailCard('🧪 Aportaciones a CENQAL',contrib.length?tableHTML(['Fecha','Tema','Modo','Estado','Preeval.','PP','Og'],contrib.slice(0,200).map(x=>[fmtDate(x.created_at),x.primary_topic||x.macrotheme_number||'—',x.contribution_mode||'—',x.status||'—',x.preliminary_score??'—',x.prestige_amount??'—',x.oganeson_amount??'—'])):'<div class="empty">Sin aportaciones.</div>');let gm=d.gym_mastery||[];let topics={};gm.forEach(x=>{let t=x.topic_number||'—';topics[t]??={total:0,mastered:0,correct:0,wrong:0};topics[t].total++;if(x.mastered)topics[t].mastered++;topics[t].correct+=Number(x.correct_count||0);topics[t].wrong+=Number(x.wrong_count||0)});html+=detailCard('🧠 CENQAL Gym',Object.keys(topics).length?tableHTML(['Tema','Preguntas trabajadas','Dominadas','Aciertos','Errores'],Object.entries(topics).map(([t,x])=>[`T${t}`,x.total,x.mastered,x.correct,x.wrong])):'<div class="empty">Sin actividad en Gym.</div>');let ge=d.gamification_events||[];html+=detailCard('🪙 Historial PP / Og',ge.length?tableHTML(['Evento','PP','Og','Descripción'],ge.slice(0,100).map(x=>[x.event_type||x.event_key||'—',x.xp_delta||0,x.oganeson_delta||0,x.description||'—'])):'<div class="empty">Sin movimientos.</div>');html+=detailCard('📁 Evidencias PDF',evid.length?tableHTML(['Fecha','Tipo','Título','Hash','PDF'],evid.map(x=>[fmtDate(x.generated_at),x.evidence_type||'—',x.title||'—',(x.pdf_sha256||'').slice(0,14)+'…',x.storage_path?`<button class="btn" onclick="botPayload('ce_${x.id}')">Enviarme PDF</button>`:'—']),'html'):'<div class="empty">Sin evidencias PDF.</div>');html+=detailCard('🛠️ Incidencias',incs.length?tableHTML(['Fecha','Código','Módulo','Estado','Descripción'],incs.map(x=>[fmtDate(x.created_at),x.incident_code||'—',x.module||'—',x.status||'—',x.description||'—']),'last'):'<div class="empty">Sin incidencias.</div>');document.getElementById('studentSections').innerHTML=html}
+function renderStudentDetail(){let d=state.studentDetail||{},s=d.student||{},an=d.analytics||{},as=an.student||{},gp=d.gamification_profile||{};let name=s.full_name||[s.first_name,s.last_name].filter(Boolean).join(' ')||s.student_code||'Alumno';let risk=riskFor(as);document.getElementById('studentHero').innerHTML=`<div><h2>${risk} ${esc(name)}</h2><div class="studentMeta">${esc(s.student_code||'—')} · ${esc(s.group_name||'Sin grupo')} · ${s.telegram_user_id?'Telegram vinculado':'Sin vincular a Telegram'}</div></div><div class="actions"><span class="status ${s.active?'ok':'bad'}">${s.active?'ACTIVO':'INACTIVO'}</span></div>`;let weekly=d.weekly||[],exams=d.exams||[],subs=d.portfolio_submissions||[],contrib=d.contributions||[],evid=d.evidences||[],incs=d.incidents||[];let mastered=(d.gym_mastery||[]).filter(x=>x.mastered).length,passed=exams.filter(x=>Number(x.attempt?.score_out_of_10)>=5).length,approved=(d.portfolio_progress||[]).filter(x=>x.progress?.status==='approved').length;document.getElementById('studentMetrics').innerHTML=[metric('📊 Evidencias',as.evidence_average==null?'—':`${n(as.evidence_average)}/10`,`${as.evidence_count||0} registros`),metric('🎓 Oficial',as.provisional_normalized==null?'—':`${n(as.provisional_normalized)}/10`,`${pct(as.graded_official_weight)} evaluado`),metric('⚛️ PP',gp.xp_total||0,gp.level_name||'Aspirante'),metric('🪙 Og',gp.oganeson_balance||0,'saldo actual'),metric('🏆 Actividad',weekly.length,`retos · ${passed}/${exams.length} exámenes`)].join('');let comps=an.components||[];document.getElementById('studentComponents').innerHTML=comps.length?`<div class="miniList">${comps.map(c=>`<div class="miniRow"><span>${esc(c.component_name||c.component_code)}</span><b>${c.component_score==null?'—':n(c.component_score)}/10${c.official?` · ${n(c.component_weight_percent,0)}%`:''}</b></div>`).join('')}</div>`:'<div class="empty">Todavía no hay componentes calificados.</div>';document.getElementById('studentActivity').innerHTML=`<div class="miniList"><div class="miniRow"><span>Retos semanales</span><b>${weekly.length}</b></div><div class="miniRow"><span>Exámenes</span><b>${passed}/${exams.length} superados</b></div><div class="miniRow"><span>Porfolios aprobados</span><b>${approved}</b></div><div class="miniRow"><span>Entregas PDF</span><b>${subs.length}</b></div><div class="miniRow"><span>Aportaciones CENQAL</span><b>${contrib.length}</b></div><div class="miniRow"><span>Gym dominadas</span><b>${mastered}</b></div><div class="miniRow"><span>Evidencias PDF</span><b>${evid.length}</b></div><div class="miniRow"><span>Incidencias</span><b>${incs.filter(x=>['pending','in_review'].includes(x.status)).length} abiertas</b></div></div>`;let grades=an.grades||[];let html='';html+=detailCard('🧾 Últimas calificaciones',grades.length?tableHTML(['Fecha','Componente','Actividad','Nota','Origen'],grades.slice(0,50).map(g=>[fmtDate(g.created_at||g.updated_at),g.component_name||g.component_code,g.item_title||g.item_code,g.effective_score==null?'—':n(g.effective_score),g.source_type||'—'])):'<div class="empty">Sin calificaciones registradas.</div>',true);html+=detailCard('📰 Retos semanales',weekly.length?tableHTML(['Tema','Fecha','Reto','Preeval.','Estado','Respuesta'],weekly.map(x=>{let p=x.participation||{},c=x.challenge||{};return[`T${c.topic_number||'—'}`,fmtDate(p.created_at),c.title||'',p.preliminary_score==null?'—':`${n(p.preliminary_score,0)}/5`,p.status||'—',p.response_text||''] }),'last'):'<div class="empty">Sin participaciones semanales.</div>');html+=detailCard('📝 Exámenes',exams.length?tableHTML(['Tema','Examen','Estado','Aciertos','Nota','Entrega'],exams.map(x=>{let a=x.attempt||{},e=x.session||{};return[`T${e.topic_number||'—'}`,e.title||e.exam_code||'',a.status||'—',`${a.correct_count??'—'}/${e.question_count||20}`,a.score_out_of_10==null?'—':`${n(a.score_out_of_10)}/10`,fmtDate(a.submitted_at)]})):'<div class="empty">Sin intentos de examen.</div>');html+=detailCard('📄 Porfolios y entregas',subs.length?tableHTML(['Fecha','Reto','Versión','Archivo','Estado','Nota','PDF'],subs.map(x=>[fmtDate(x.created_at),x.challenge_code||x.challenge_id||'',x.version||'—',x.file_name||'PDF',x.status||'—',x.teacher_evaluation?.score==null?'—':`${n(x.teacher_evaluation.score,0)}/100`,x.storage_path?portfolioPdfActions(x,false):'—']),'html'):'<div class="empty">Sin entregas de porfolio.</div>');html+=detailCard('🧪 Aportaciones a CENQAL',contrib.length?tableHTML(['Fecha','Tema','Modo','Estado','Preeval.','PP','Og'],contrib.slice(0,200).map(x=>[fmtDate(x.created_at),x.primary_topic||x.macrotheme_number||'—',x.contribution_mode||'—',x.status||'—',x.preliminary_score??'—',x.prestige_amount??'—',x.oganeson_amount??'—'])):'<div class="empty">Sin aportaciones.</div>');let gm=d.gym_mastery||[];let topics={};gm.forEach(x=>{let t=x.topic_number||'—';topics[t]??={total:0,mastered:0,correct:0,wrong:0};topics[t].total++;if(x.mastered)topics[t].mastered++;topics[t].correct+=Number(x.correct_count||0);topics[t].wrong+=Number(x.wrong_count||0)});html+=detailCard('🧠 CENQAL Gym',Object.keys(topics).length?tableHTML(['Tema','Preguntas trabajadas','Dominadas','Aciertos','Errores'],Object.entries(topics).map(([t,x])=>[`T${t}`,x.total,x.mastered,x.correct,x.wrong])):'<div class="empty">Sin actividad en Gym.</div>');let ge=d.gamification_events||[];html+=detailCard('🪙 Historial PP / Og',ge.length?tableHTML(['Evento','PP','Og','Descripción'],ge.slice(0,100).map(x=>[x.event_type||x.event_key||'—',x.xp_delta||0,x.oganeson_delta||0,x.description||'—'])):'<div class="empty">Sin movimientos.</div>');html+=detailCard('📁 Evidencias PDF',evid.length?tableHTML(['Fecha','Tipo','Título','Hash','PDF'],evid.map(x=>[fmtDate(x.generated_at),x.evidence_type||'—',x.title||'—',(x.pdf_sha256||'').slice(0,14)+'…',x.storage_path?`<button class="btn" onclick="botPayload('ce_${x.id}')">Enviarme PDF</button>`:'—']),'html'):'<div class="empty">Sin evidencias PDF.</div>');html+=detailCard('🛠️ Incidencias',incs.length?tableHTML(['Fecha','Código','Módulo','Estado','Descripción'],incs.map(x=>[fmtDate(x.created_at),x.incident_code||'—',x.module||'—',x.status||'—',x.description||'—']),'last'):'<div class="empty">Sin incidencias.</div>');document.getElementById('studentSections').innerHTML=html}
 
 function detailCard(title,body,open=false){return `<details class="card" ${open?'open':''}><summary>${title}</summary><div class="detailBody">${body}</div></details>`}
 
