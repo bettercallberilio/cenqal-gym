@@ -224,6 +224,23 @@ details.card>.detailBody{padding:0 16px 16px}
 @media(max-width:980px){.analyticsKpis{grid-template-columns:repeat(3,minmax(0,1fr))}.analyticsGrid{grid-template-columns:1fr}.analyticsWide{grid-column:auto}}
 @media(max-width:620px){.analyticsKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.analyticsChart{min-height:290px}.analyticsChart canvas{height:270px!important}}
 
+
+.deliveryTopic{margin:10px 0;border:1px solid var(--line);border-radius:12px;background:#f8fafc;overflow:hidden}
+.deliveryTopic>summary{cursor:pointer;padding:13px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-weight:750;color:var(--navy);list-style:none}
+.deliveryTopic>summary::-webkit-details-marker{display:none}
+.deliveryTopic>summary::after{content:'＋';color:var(--muted);font-size:17px}
+.deliveryTopic[open]>summary::after{content:'−'}
+.deliveryTopic[open]>summary{border-bottom:1px solid var(--line)}
+.deliveryTopicBody{padding:12px}
+.deliveryTopicCount{background:#e5edf8;border-radius:999px;padding:3px 9px;font-size:12px;white-space:nowrap}
+.deliveryTopic>summary>span:first-child{flex:1}
+.deliveryTopic .tablewrap{margin:0}
+.deliveryTopic .actions{display:flex;flex-wrap:wrap;gap:6px}
+.pdfViewer{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:12px;background:#f7fafc}
+.pdfViewer iframe{display:block;border:1px solid var(--line);background:#fff;width:100%;height:min(73vh,860px)}
+.modal.pdfOpen{width:min(1050px,calc(100vw - 24px));max-height:96vh}
+@media(max-width:650px){.deliveryTopicBody{padding:8px}.deliveryTopic>summary{padding:12px}.pdfViewer iframe{height:65vh}}
+
 </style>
 </head>
 
@@ -468,15 +485,15 @@ details.card>.detailBody{padding:0 16px 16px}
 
     <section class="view" id="view-deliveries">
       <div class="viewHeader">
-        <div><h2>📥 Entregas y revisión</h2><p>Consulta centralizada de aportaciones, rúbricas, portfolios y retos. La concesión de PP y Og se confirma exclusivamente en Berilio.</p></div>
+        <div><h2>📥 Entregas, descargas y revisión</h2><p>Explora aportaciones, porfolios y retos agrupados por tema. Los PDF se abren y descargan desde esta aplicación. Las calificaciones y recompensas oficiales se validan en Berilio.</p></div>
         <div class="actions"><button class="btn primary" onclick="botPayload('cg_course')">📄 Informe del curso</button><button class="btn" onclick="exportDeliveriesCSV()">⬇ CSV</button><button class="btn" onclick="loadDeliveries(true)">↻ Actualizar</button></div>
       </div>
-      <div class="note warn" style="margin-bottom:14px">Las preevaluaciones son orientativas. Ver una entrega aquí no concede puntos: usa <b>Revisar en Berilio</b> para validar, devolver o rechazar.</div>
+      <div class="note warn" style="margin-bottom:14px">Pulsa cada tema para desplegar sus entregas. La búsqueda y los filtros muestran automáticamente los temas coincidentes. La preevaluación es orientativa; la nota se valida por el procedimiento habitual.</div>
       <div class="metrics grid" id="deliveryMetrics"><div class="card"><span class="loader"></span> Cargando entregas…</div></div>
       <div class="searchrow"><input id="deliverySearch" placeholder="Buscar alumno, título o tema" oninput="renderDeliveries()"><select id="deliveryStatus" onchange="renderDeliveries()"><option value="">Todos los estados</option><option value="pending">Pendientes</option><option value="validated">Validadas</option><option value="rejected">Rechazadas/devueltas</option></select></div>
-      <div class="card"><h3>🧪 Aportaciones a CENQAL</h3><div id="contributionsInbox"></div></div>
-      <div class="card" style="margin-top:14px"><h3>📄 Portfolios</h3><div id="portfoliosInbox"></div></div>
-      <div class="card" style="margin-top:14px"><h3>🏆 Retos y respuestas</h3><div id="challengesInbox"></div></div>
+      <div class="card"><h3>🧪 Aportaciones · por tema</h3><div id="contributionsInbox"></div></div>
+      <div class="card" style="margin-top:14px"><h3>📄 Porfolios · por tema</h3><div id="portfoliosInbox"></div></div>
+      <div class="card" style="margin-top:14px"><h3>🏆 Retos semanales · por tema</h3><div id="challengesInbox"></div></div>
     </section>
 
     <section class="view" id="view-student">
@@ -2009,23 +2026,96 @@ async function loadDeliveries(force=false){
   renderDeliveries();return state.deliveries;
 }
 
+
+function deliveryTopicNumber(x,type){
+  if(type==='weekly'){
+    const n=Number(x?.challenge?.topic_number||0);
+    if(Number.isInteger(n)&&n>0&&n<=30)return n;
+  }
+  if(type==='contribution'){
+    const n=Number(x?.macrotheme_number||0);
+    if(Number.isInteger(n)&&n>0&&n<=30)return n;
+  }
+  const fields=type==='portfolio'?[x?.challenge_code,x?.challenge_id]:
+    type==='weekly'?[x?.challenge?.challenge_code,x?.challenge?.title]:
+    [x?.primary_topic,x?.topic,x?.challenge_code];
+  for(const field of fields){
+    const match=String(field||'').match(/(?:^|[\s:_-])T(?:EMA)?\s*0*(\d{1,2})(?!\d)/i);
+    if(match){
+      const n=Number(match[1]);
+      if(n>0&&n<=30)return n;
+    }
+  }
+  return null;
+}
+function groupedDeliveries(rows,type,headers,rowBuilder,mode='html'){
+  if(!rows.length)return '<div class="empty">No hay entregas con estos filtros.</div>';
+  const groups=new Map();
+  for(const x of rows){
+    const t=deliveryTopicNumber(x,type),key=t==null?'other':t;
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(x);
+  }
+  const search=(document.getElementById('deliverySearch')?.value||'').trim();
+  const status=document.getElementById('deliveryStatus')?.value||'';
+  const expanded=Boolean(search||status);
+  const keys=[...groups.keys()].sort((a,b)=>a==='other'?1:b==='other'?-1:Number(a)-Number(b));
+  const kind=type==='portfolio'?'Porfolio':type==='weekly'?'Reto':'Tema';
+  return keys.map(key=>{
+    const items=groups.get(key);
+    const pending=items.filter(x=>deliveryGroup(type==='weekly'?(x.participation||{}).status:x.status)==='pending').length;
+    const title=key==='other'?'Sin tema asignado':kind+' '+key;
+    return `<details class="deliveryTopic" ${expanded?'open':''}>
+      <summary><span>${esc(title)} ${pending?'· '+pending+' pendiente'+(pending===1?'':'s'):''}</span>
+      <span class="deliveryTopicCount">${items.length} ${items.length===1?'entrega':'entregas'}</span></summary>
+      <div class="deliveryTopicBody">${tableHTML(headers,items.map(rowBuilder),mode)}</div>
+    </details>`;
+  }).join('');
+}
 function deliveryMatches(x,q,status,type){
-  let s=x._student||{},raw=type==='weekly'?x.participation||{}:x;
-  let group=deliveryGroup(raw.status);
-  if(status&&group!==status)return false;
-  let text=[studentName(s),s.student_code,x.title,x.primary_topic,x.topic,x.challenge_code,x.challenge?.title,raw.response_text].join(' ').toLowerCase();
+  const s=x._student||{},raw=type==='weekly'?x.participation||{}:x;
+  if(status&&deliveryGroup(raw.status)!==status)return false;
+  const topic=deliveryTopicNumber(x,type);
+  const text=[studentName(s),s.student_code,x.title,x.primary_topic,x.topic,x.challenge_code,x.challenge?.title,
+    x.file_name,raw.response_text,topic?'T'+topic:'',topic?'Tema '+topic:''].join(' ').toLowerCase();
   return !q||text.includes(q);
 }
-
 function renderDeliveries(){
-  let d=state.deliveries;if(!d)return;
-  let q=(document.getElementById('deliverySearch')?.value||'').trim().toLowerCase(),st=document.getElementById('deliveryStatus')?.value||'';
-  let c=d.contributions.filter(x=>deliveryMatches(x,q,st,'contribution')),p=d.portfolios.filter(x=>deliveryMatches(x,q,st,'portfolio')),w=d.weekly.filter(x=>deliveryMatches(x,q,st,'weekly'));
-  let pendingC=d.contributions.filter(x=>deliveryGroup(x.status)==='pending').length,pendingP=d.portfolios.filter(x=>deliveryGroup(x.status)==='pending').length;
-  document.getElementById('deliveryMetrics').innerHTML=[metric('🧪 Aportaciones',d.contributions.length,`${pendingC} pendientes`),metric('📄 Portfolios',d.portfolios.length,`${pendingP} pendientes`),metric('🏆 Respuestas a retos',d.weekly.length,'registradas'),metric('⚠️ Fichas no cargadas',d.failed||0,d.failed?'Reintenta la actualización':'Todo correcto')].join('');
-  document.getElementById('contributionsInbox').innerHTML=c.length?tableHTML(['Fecha','Alumno','Título / tema','Estado','Preeval.','Acciones'],c.map(x=>[fmtDate(x.created_at),studentName(x._student),x.title||x.primary_topic||x.topic||'—',x.status||'—',x.preliminary_score??'—',`<div class="actions"><button class="btn" onclick="showContributionDetail('${x.id}')">Ver respuestas y rúbrica</button>${contributionControlAction(x,true)}</div>`]),'html'):'<div class="empty">No hay aportaciones con estos filtros.</div>';
-  document.getElementById('portfoliosInbox').innerHTML=p.length?tableHTML(['Fecha','Alumno','Reto / archivo','Estado','Nota','Acciones'],p.map(x=>[fmtDate(x.created_at),studentName(x._student),x.challenge_code||x.file_name||'—',x.status||'—',x.teacher_evaluation?.score??'—',`<button class="btn" onclick="showPortfolioDetail('${x.id}')">Ver evaluación</button>`]),'html'):'<div class="empty">No hay portfolios con estos filtros.</div>';
-  document.getElementById('challengesInbox').innerHTML=w.length?tableHTML(['Fecha','Alumno','Reto','Estado','Preeval.','Respuesta'],w.map(x=>{let a=x.participation||{},ch=x.challenge||{};return[fmtDate(a.created_at),studentName(x._student),ch.title||`Tema ${ch.topic_number||'—'}`,a.status||'—',a.preliminary_score??'—',a.response_text||'—']}),'last'):'<div class="empty">No hay respuestas a retos con estos filtros.</div>';
+  const d=state.deliveries;
+  if(!d)return;
+  const q=(document.getElementById('deliverySearch')?.value||'').trim().toLowerCase();
+  const status=document.getElementById('deliveryStatus')?.value||'';
+  const c=d.contributions.filter(x=>deliveryMatches(x,q,status,'contribution'));
+  const p=d.portfolios.filter(x=>deliveryMatches(x,q,status,'portfolio'));
+  const w=d.weekly.filter(x=>deliveryMatches(x,q,status,'weekly'));
+  const pendingC=d.contributions.filter(x=>deliveryGroup(x.status)==='pending').length;
+  const pendingP=d.portfolios.filter(x=>deliveryGroup(x.status)==='pending').length;
+  document.getElementById('deliveryMetrics').innerHTML=[
+    metric('🧪 Aportaciones',d.contributions.length,pendingC+' pendientes'),
+    metric('📄 Porfolios',d.portfolios.length,pendingP+' pendientes'),
+    metric('🏆 Respuestas a retos',d.weekly.length,'registradas'),
+    metric('⚠️ Fichas no cargadas',d.failed||0,d.failed?'Reintenta la actualización':'Todo correcto')
+  ].join('');
+  document.getElementById('contributionsInbox').innerHTML=groupedDeliveries(
+    c,'contribution',['Fecha','Alumno','Título','Estado','Preeval.','Acciones'],
+    x=>[fmtDate(x.created_at),studentName(x._student),x.title||x.primary_topic||x.topic||'—',
+      x.status||'—',x.preliminary_score??'—',
+      `<div class="actions"><button class="btn" onclick="showContributionDetail('${x.id}')">Ver rúbrica</button>${contributionControlAction(x,true)}</div>`]
+  );
+  document.getElementById('portfoliosInbox').innerHTML=groupedDeliveries(
+    p,'portfolio',['Fecha','Alumno','Archivo','Estado','Nota','Acciones'],
+    x=>[fmtDate(x.created_at),studentName(x._student),
+      (x.file_name||'PDF')+(Number(x.version)>1?' · v'+x.version:''),
+      x.status||'—',x.teacher_evaluation?.score??'—',
+      portfolioPdfActions(x,true)]
+  );
+  document.getElementById('challengesInbox').innerHTML=groupedDeliveries(
+    w,'weekly',['Fecha','Alumno','Reto','Estado','Preeval.','Respuesta'],
+    x=>{const a=x.participation||{},ch=x.challenge||{};return[
+      fmtDate(a.created_at),studentName(x._student),ch.title||('Tema '+(ch.topic_number||'—')),
+      a.status||'—',a.preliminary_score??'—',a.response_text||'—'];
+    },'last'
+  );
 }
 
 function csvCell(v){return `"${String(v??'').replace(/"/g,'""')}"`}
