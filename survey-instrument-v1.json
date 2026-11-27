@@ -1,0 +1,1269 @@
+[
+  {
+    "id": "USE01",
+    "label": "¿Con qué frecuencia has utilizado Berilio/CENQAL durante el último mes?",
+    "group": "1 · Participación",
+    "type": "single",
+    "options": [
+      {
+        "value": "0",
+        "label": "No lo he usado"
+      },
+      {
+        "value": "1",
+        "label": "Menos de una vez por semana"
+      },
+      {
+        "value": "2",
+        "label": "1–2 días por semana"
+      },
+      {
+        "value": "3",
+        "label": "3–4 días por semana"
+      },
+      {
+        "value": "4",
+        "label": "5 o más días por semana"
+      },
+      {
+        "value": "NA",
+        "label": "Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "EASE01",
+    "label": "Comparado con clases centradas en explicaciones y apuntes, aprender con esta metodología me resulta…",
+    "group": "2 · Aprendizaje percibido",
+    "type": "single",
+    "options": [
+      {
+        "value": "-2",
+        "label": "Mucho más difícil"
+      },
+      {
+        "value": "-1",
+        "label": "Algo más difícil"
+      },
+      {
+        "value": "0",
+        "label": "Igual"
+      },
+      {
+        "value": "1",
+        "label": "Algo más fácil"
+      },
+      {
+        "value": "2",
+        "label": "Mucho más fácil"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo comparar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "LEARN01",
+    "label": "Comprendo mejor los conceptos.",
+    "group": "2 · Aprendizaje percibido",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "LEARN02",
+    "label": "Recuerdo lo aprendido días después.",
+    "group": "2 · Aprendizaje percibido",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "LEARN03",
+    "label": "Puedo aplicar la química a situaciones alimentarias.",
+    "group": "2 · Aprendizaje percibido",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "LEARN04",
+    "label": "Identifico mejor mis dudas.",
+    "group": "2 · Aprendizaje percibido",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "LEARN05",
+    "label": "Estudio de forma más constante.",
+    "group": "2 · Aprendizaje percibido",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "TECH01",
+    "label": "Me ha interesado usar estas tecnologías en la asignatura.",
+    "group": "3 · Tecnología e inteligencia artificial",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "TECH02",
+    "label": "Me resulta sencillo utilizar las herramientas.",
+    "group": "3 · Tecnología e inteligencia artificial",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "TECH03",
+    "label": "Las respuestas y orientaciones de Berilio me ayudan a razonar.",
+    "group": "3 · Tecnología e inteligencia artificial",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "TECH04",
+    "label": "He aprendido a contrastar las respuestas de la IA con fuentes fiables.",
+    "group": "3 · Tecnología e inteligencia artificial",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "TECH05",
+    "label": "Sé cuándo necesito ayuda de la profesora.",
+    "group": "3 · Tecnología e inteligencia artificial",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "UTIL01",
+    "label": "¿Qué utilidad ha tenido para aprender? Retos y misiones",
+    "group": "4 · Utilidad de cada elemento",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nada útil"
+      },
+      {
+        "value": "2",
+        "label": "Poco útil"
+      },
+      {
+        "value": "3",
+        "label": "Algo útil"
+      },
+      {
+        "value": "4",
+        "label": "Bastante útil"
+      },
+      {
+        "value": "5",
+        "label": "Muy útil"
+      },
+      {
+        "value": "NA",
+        "label": "No lo he utilizado / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "UTIL02",
+    "label": "¿Qué utilidad ha tenido para aprender? Preguntas de práctica y repaso",
+    "group": "4 · Utilidad de cada elemento",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nada útil"
+      },
+      {
+        "value": "2",
+        "label": "Poco útil"
+      },
+      {
+        "value": "3",
+        "label": "Algo útil"
+      },
+      {
+        "value": "4",
+        "label": "Bastante útil"
+      },
+      {
+        "value": "5",
+        "label": "Muy útil"
+      },
+      {
+        "value": "NA",
+        "label": "No lo he utilizado / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "UTIL03",
+    "label": "¿Qué utilidad ha tenido para aprender? Tutor Berilio",
+    "group": "4 · Utilidad de cada elemento",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nada útil"
+      },
+      {
+        "value": "2",
+        "label": "Poco útil"
+      },
+      {
+        "value": "3",
+        "label": "Algo útil"
+      },
+      {
+        "value": "4",
+        "label": "Bastante útil"
+      },
+      {
+        "value": "5",
+        "label": "Muy útil"
+      },
+      {
+        "value": "NA",
+        "label": "No lo he utilizado / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "UTIL04",
+    "label": "¿Qué utilidad ha tenido para aprender? Búsqueda y aportación de artículos a CENQAL",
+    "group": "4 · Utilidad de cada elemento",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nada útil"
+      },
+      {
+        "value": "2",
+        "label": "Poco útil"
+      },
+      {
+        "value": "3",
+        "label": "Algo útil"
+      },
+      {
+        "value": "4",
+        "label": "Bastante útil"
+      },
+      {
+        "value": "5",
+        "label": "Muy útil"
+      },
+      {
+        "value": "NA",
+        "label": "No lo he utilizado / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "UTIL05",
+    "label": "¿Qué utilidad ha tenido para aprender? Puntos PP y Oganesones",
+    "group": "4 · Utilidad de cada elemento",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nada útil"
+      },
+      {
+        "value": "2",
+        "label": "Poco útil"
+      },
+      {
+        "value": "3",
+        "label": "Algo útil"
+      },
+      {
+        "value": "4",
+        "label": "Bastante útil"
+      },
+      {
+        "value": "5",
+        "label": "Muy útil"
+      },
+      {
+        "value": "NA",
+        "label": "No lo he utilizado / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "UTIL06",
+    "label": "¿Qué utilidad ha tenido para aprender? Ranking y niveles",
+    "group": "4 · Utilidad de cada elemento",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nada útil"
+      },
+      {
+        "value": "2",
+        "label": "Poco útil"
+      },
+      {
+        "value": "3",
+        "label": "Algo útil"
+      },
+      {
+        "value": "4",
+        "label": "Bastante útil"
+      },
+      {
+        "value": "5",
+        "label": "Muy útil"
+      },
+      {
+        "value": "NA",
+        "label": "No lo he utilizado / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "UTIL07",
+    "label": "¿Qué utilidad ha tenido para aprender? Actividades participativas en clase",
+    "group": "4 · Utilidad de cada elemento",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nada útil"
+      },
+      {
+        "value": "2",
+        "label": "Poco útil"
+      },
+      {
+        "value": "3",
+        "label": "Algo útil"
+      },
+      {
+        "value": "4",
+        "label": "Bastante útil"
+      },
+      {
+        "value": "5",
+        "label": "Muy útil"
+      },
+      {
+        "value": "NA",
+        "label": "No lo he utilizado / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "EMO01",
+    "label": "¿Cómo te has sentido? Puedes marcar emociones diferentes. Si eliges «prefiero no responder», deja el resto sin marcar.",
+    "group": "5 · Bienestar",
+    "type": "multi",
+    "options": [
+      {
+        "value": "Interés",
+        "label": "Interés"
+      },
+      {
+        "value": "Motivación",
+        "label": "Motivación"
+      },
+      {
+        "value": "Confianza",
+        "label": "Confianza"
+      },
+      {
+        "value": "Apoyo",
+        "label": "Apoyo"
+      },
+      {
+        "value": "Indiferencia",
+        "label": "Indiferencia"
+      },
+      {
+        "value": "Confusión",
+        "label": "Confusión"
+      },
+      {
+        "value": "Frustración",
+        "label": "Frustración"
+      },
+      {
+        "value": "Agobio",
+        "label": "Agobio"
+      },
+      {
+        "value": "Vergüenza o miedo a equivocarme",
+        "label": "Vergüenza o miedo a equivocarme"
+      },
+      {
+        "value": "Prefiero no responder",
+        "label": "Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "DIST01",
+    "label": "¿Con qué frecuencia has vivido esta situación? Presión por puntos o ranking",
+    "group": "5 · Bienestar",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nunca"
+      },
+      {
+        "value": "2",
+        "label": "Rara vez"
+      },
+      {
+        "value": "3",
+        "label": "A veces"
+      },
+      {
+        "value": "4",
+        "label": "A menudo"
+      },
+      {
+        "value": "5",
+        "label": "Muy a menudo"
+      },
+      {
+        "value": "NA",
+        "label": "No se aplica / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "DIST02",
+    "label": "¿Con qué frecuencia has vivido esta situación? Miedo a equivocarme delante de compañeros",
+    "group": "5 · Bienestar",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nunca"
+      },
+      {
+        "value": "2",
+        "label": "Rara vez"
+      },
+      {
+        "value": "3",
+        "label": "A veces"
+      },
+      {
+        "value": "4",
+        "label": "A menudo"
+      },
+      {
+        "value": "5",
+        "label": "Muy a menudo"
+      },
+      {
+        "value": "NA",
+        "label": "No se aplica / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "DIST03",
+    "label": "¿Con qué frecuencia has vivido esta situación? Sobrecarga de tareas o avisos",
+    "group": "5 · Bienestar",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nunca"
+      },
+      {
+        "value": "2",
+        "label": "Rara vez"
+      },
+      {
+        "value": "3",
+        "label": "A veces"
+      },
+      {
+        "value": "4",
+        "label": "A menudo"
+      },
+      {
+        "value": "5",
+        "label": "Muy a menudo"
+      },
+      {
+        "value": "NA",
+        "label": "No se aplica / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "DIST04",
+    "label": "¿Con qué frecuencia has vivido esta situación? Frustración por fallos técnicos",
+    "group": "5 · Bienestar",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nunca"
+      },
+      {
+        "value": "2",
+        "label": "Rara vez"
+      },
+      {
+        "value": "3",
+        "label": "A veces"
+      },
+      {
+        "value": "4",
+        "label": "A menudo"
+      },
+      {
+        "value": "5",
+        "label": "Muy a menudo"
+      },
+      {
+        "value": "NA",
+        "label": "No se aplica / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "DIST05",
+    "label": "¿Con qué frecuencia has vivido esta situación? Inseguridad por respuestas de IA",
+    "group": "5 · Bienestar",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nunca"
+      },
+      {
+        "value": "2",
+        "label": "Rara vez"
+      },
+      {
+        "value": "3",
+        "label": "A veces"
+      },
+      {
+        "value": "4",
+        "label": "A menudo"
+      },
+      {
+        "value": "5",
+        "label": "Muy a menudo"
+      },
+      {
+        "value": "NA",
+        "label": "No se aplica / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "DIST06",
+    "label": "¿Con qué frecuencia has vivido esta situación? Dificultades de acceso o uso que me han hecho sentir en desventaja",
+    "group": "5 · Bienestar",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Nunca"
+      },
+      {
+        "value": "2",
+        "label": "Rara vez"
+      },
+      {
+        "value": "3",
+        "label": "A veces"
+      },
+      {
+        "value": "4",
+        "label": "A menudo"
+      },
+      {
+        "value": "5",
+        "label": "Muy a menudo"
+      },
+      {
+        "value": "NA",
+        "label": "No se aplica / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "LOAD01",
+    "label": "La carga de trabajo respecto a lo que aprendo me parece…",
+    "group": "6 · Organización y apoyo",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Muy baja"
+      },
+      {
+        "value": "2",
+        "label": "Algo baja"
+      },
+      {
+        "value": "3",
+        "label": "Adecuada"
+      },
+      {
+        "value": "4",
+        "label": "Algo alta"
+      },
+      {
+        "value": "5",
+        "label": "Excesiva"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "ORG01",
+    "label": "Entiendo qué debo hacer en cada actividad.",
+    "group": "6 · Organización y apoyo",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "ORG02",
+    "label": "Entiendo cómo se evalúa mi trabajo.",
+    "group": "6 · Organización y apoyo",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "ORG03",
+    "label": "Los puntos y recompensas se aplican de manera clara.",
+    "group": "6 · Organización y apoyo",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "ORG04",
+    "label": "Puedo pedir ayuda sin sentirme juzgado/a.",
+    "group": "6 · Organización y apoyo",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "AR01",
+    "label": "Soy capaz de reconocer cuándo he entendido realmente un concepto y cuándo simplemente lo he memorizado.",
+    "group": "7 · Cómo aprendo actualmente",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ],
+    "pre_reference": "Pregunta inicial 17; comprobar equivalencia de codificación antes de calcular ganancias"
+  },
+  {
+    "id": "AR02",
+    "label": "Cuando no comprendo algo, pruebo diferentes maneras de resolver la duda.",
+    "group": "7 · Cómo aprendo actualmente",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ],
+    "pre_reference": "Pregunta inicial 18; comprobar equivalencia de codificación antes de calcular ganancias"
+  },
+  {
+    "id": "AR03",
+    "label": "Soy capaz de organizar mi trabajo sin que el profesor me diga exactamente qué hacer en cada momento.",
+    "group": "7 · Cómo aprendo actualmente",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ],
+    "pre_reference": "Pregunta inicial 19; comprobar equivalencia de codificación antes de calcular ganancias"
+  },
+  {
+    "id": "AR04",
+    "label": "Me resulta útil comprobar con frecuencia cuánto estoy aprendiendo.",
+    "group": "7 · Cómo aprendo actualmente",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ],
+    "pre_reference": "Pregunta inicial 20; comprobar equivalencia de codificación antes de calcular ganancias"
+  },
+  {
+    "id": "AR05",
+    "label": "Tiendo a dejar gran parte del estudio para los días anteriores al examen.",
+    "group": "7 · Cómo aprendo actualmente",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "1 · Totalmente en desacuerdo"
+      },
+      {
+        "value": "2",
+        "label": "2 · En desacuerdo"
+      },
+      {
+        "value": "3",
+        "label": "3 · Ni de acuerdo ni en desacuerdo"
+      },
+      {
+        "value": "4",
+        "label": "4 · De acuerdo"
+      },
+      {
+        "value": "5",
+        "label": "5 · Totalmente de acuerdo"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ],
+    "pre_reference": "Pregunta inicial 21; comprobar equivalencia de codificación antes de calcular ganancias"
+  },
+  {
+    "id": "OPEN01",
+    "label": "Si has vivido alguna situación de malestar, ¿qué ocurrió y qué cambio te habría ayudado? No incluyas nombres ni datos personales. Respuesta opcional.",
+    "group": "8 · Propuestas de mejora",
+    "type": "text"
+  },
+  {
+    "id": "OPEN02",
+    "label": "¿Qué mantendrías porque te ha ayudado especialmente a aprender? Aporta un ejemplo si puedes. No incluyas nombres ni datos personales. Respuesta opcional.",
+    "group": "8 · Propuestas de mejora",
+    "type": "text"
+  },
+  {
+    "id": "OPEN03",
+    "label": "¿Qué quitarías o reducirías y por qué? No incluyas nombres ni datos personales. Respuesta opcional.",
+    "group": "8 · Propuestas de mejora",
+    "type": "text"
+  },
+  {
+    "id": "OPEN04",
+    "label": "¿Qué añadirías o cambiarías para aprender mejor y sentirte más a gusto? Puedes proponer alternativas sin tecnología. No incluyas nombres ni datos personales. Respuesta opcional.",
+    "group": "8 · Propuestas de mejora",
+    "type": "text"
+  },
+  {
+    "id": "OPEN05",
+    "label": "Si quieres expresar otra emoción o experiencia, puedes hacerlo aquí. No incluyas nombres ni datos personales. Respuesta opcional.",
+    "group": "8 · Propuestas de mejora",
+    "type": "text"
+  },
+  {
+    "id": "SAT01",
+    "label": "¿Cuál es tu satisfacción global con la experiencia?",
+    "group": "9 · Valoración global",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Muy insatisfecho/a"
+      },
+      {
+        "value": "2",
+        "label": "Insatisfecho/a"
+      },
+      {
+        "value": "3",
+        "label": "Ni satisfecho/a ni insatisfecho/a"
+      },
+      {
+        "value": "4",
+        "label": "Satisfecho/a"
+      },
+      {
+        "value": "5",
+        "label": "Muy satisfecho/a"
+      },
+      {
+        "value": "NA",
+        "label": "No puedo valorar / Prefiero no responder"
+      }
+    ]
+  },
+  {
+    "id": "NEXT01",
+    "label": "Para próximas ediciones, preferiría…",
+    "group": "9 · Valoración global",
+    "type": "single",
+    "options": [
+      {
+        "value": "1",
+        "label": "Mantenerla tal como está"
+      },
+      {
+        "value": "2",
+        "label": "Mantenerla con pequeños cambios"
+      },
+      {
+        "value": "3",
+        "label": "Mantenerla con cambios importantes"
+      },
+      {
+        "value": "4",
+        "label": "Sustituirla por otra metodología"
+      },
+      {
+        "value": "5",
+        "label": "No tengo una preferencia clara"
+      },
+      {
+        "value": "NA",
+        "label": "Prefiero no responder"
+      }
+    ]
+  }
+]
